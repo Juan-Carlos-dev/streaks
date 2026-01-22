@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is signed in
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if the user accesses their own data
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Rules for Users collection
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isOwner(userId);
+    }
+
+    // Rules for Habits collection
+    match /habits/{habitId} {
+      // Allow read to all signed-in users (so feed can show habit info)
+      allow read: if isSignedIn();
+      // Allow update/delete only if the habit belongs to the user
+      allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
+      allow create: if isSignedIn();
+    }
+
+    // Rules for Posts collection
+    match /posts/{postId} {
+      // Allow read to all signed-in users (feed)
+      allow read: if true;
+      // Allow create if user is signed in (and optionally checks userId)
+      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
+      // Allow update/delete only if owner
+      allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
+    }
+
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
