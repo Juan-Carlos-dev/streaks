@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../core/constants/app_colors.dart';
+import '../providers/auth_providers.dart';
+
+class RegisterScreen extends ConsumerStatefulWidget {
+  const RegisterScreen({super.key});
+
+  @override
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
+  final _usernameController = TextEditingController();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  void _submit() {
+    if (_formKey.currentState!.validate()) {
+      ref.read(registerControllerProvider.notifier).signUp(
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+            _usernameController.text.trim(),
+          );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ref.listen<AsyncValue<void>>(registerControllerProvider, (_, state) {
+      if (state.hasError) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.error.toString())),
+        );
+      }
+    });
+
+    final registerState = ref.watch(registerControllerProvider);
+
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: const BoxDecoration(gradient: AppColors.mainGradient),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 32),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 24),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: IconButton(
+                      onPressed: () => context.pop(),
+                      icon: const Icon(Icons.arrow_back_ios, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'Crear cuenta',
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Empieza tu camino hacia mejores hábitos',
+                    style: TextStyle(color: Colors.white60, fontSize: 14),
+                  ),
+                  const SizedBox(height: 40),
+                  TextFormField(
+                    controller: _usernameController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Nombre de usuario',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Introduce un nombre' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _emailController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Correo electrónico',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    validator: (v) =>
+                        v == null || v.isEmpty ? 'Introduce tu correo' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _passwordController,
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'Contraseña',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      filled: true,
+                      fillColor: Colors.white.withOpacity(0.1),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide.none,
+                      ),
+                    ),
+                    obscureText: true,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) return 'Introduce una contraseña';
+                      if (v.length < 6) return 'Mínimo 6 caracteres';
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 32),
+                  ElevatedButton(
+                    onPressed: registerState.isLoading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                    ),
+                    child: registerState.isLoading
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Text('Crear cuenta'),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

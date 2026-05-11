@@ -1,0 +1,472 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/intl.dart';
+import '../../core/constants/app_colors.dart';
+import '../../domain/entities/habit.dart';
+import '../providers/user_providers.dart';
+import '../providers/habit_providers.dart';
+import '../widgets/add_habit_modal.dart';
+
+class CalendarScreen extends ConsumerStatefulWidget {
+  const CalendarScreen({super.key});
+
+  @override
+  ConsumerState<CalendarScreen> createState() => _CalendarScreenState();
+}
+
+class _CalendarScreenState extends ConsumerState<CalendarScreen> {
+  // 1. Variables de estado y constantes
+  late DateTime _selectedDate;
+  late DateTime _today;
+  late DateTime _visibleDate;
+  final ScrollController _dayScrollController = ScrollController();
+  
+  final int _initialIndex = 5000;
+  final double _itemWidth = 64.0; // Definimos la constante que faltaba
+
+  @override
+  void initState() {
+    super.initState();
+    _today = DateTime.now();
+    _selectedDate = _today;
+    _visibleDate = _today;
+
+    _dayScrollController.addListener(_onScroll);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final screenWidth = MediaQuery.of(context).size.width;
+      _dayScrollController.jumpTo(
+        (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2)
+      );
+    });
+  }
+
+  void _scrollToToday() {
+  final screenWidth = MediaQuery.of(context).size.width;
+  // Calculamos la posición exacta de "Hoy" (el índice inicial)
+  final double targetOffset = (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2);
+
+  // Animamos el scroll hasta esa posición
+  _dayScrollController.animateTo(
+    targetOffset,
+    duration: const Duration(milliseconds: 500),
+    curve: Curves.easeInOutCubic,
+  );
+
+  // Opcional: Si quieres que también se seleccione el día de hoy al hacer doble click
+  setState(() {
+    _selectedDate = _today;
+    _visibleDate = _today;
+  });
+}
+
+  // 2. Métodos de ayuda (Los que faltaban según el error)
+  
+  void _onScroll() {
+  final screenWidth = MediaQuery.of(context).size.width;
+  
+  // Calculamos la posición del centro de la pantalla
+  final centerX = _dayScrollController.offset + (screenWidth / 2);
+  
+  // Determinamos el índice del elemento que está en el centro
+  final index = (centerX / _itemWidth).floor();
+  
+  // Obtenemos la fecha correspondiente a ese índice
+  final dateAtCenter = _getDateFromIndex(index);
+
+  // Si el mes o el año de la fecha en el centro es distinto al actual...
+  if (dateAtCenter.month != _visibleDate.month || dateAtCenter.year != _visibleDate.year) {
+    setState(() {
+      _visibleDate = dateAtCenter; // Actualizamos el título de arriba
+    });
+  }
+}
+
+  DateTime _getDateFromIndex(int index) {
+    return DateTime(_today.year, _today.month, _today.day + (index - _initialIndex));
+  }
+
+  String _dayAbbr(int weekday) {
+    const days = ['LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB', 'DOM'];
+    return days[weekday - 1];
+  }
+
+  @override
+  void dispose() {
+    _dayScrollController.removeListener(_onScroll);
+    _dayScrollController.dispose();
+    super.dispose();
+  }
+
+
+  String _monthName(int month) {
+    const months = [
+      '', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+      'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE',
+    ];
+    return months[month];
+  }
+
+  void _showAddHabit() {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      isScrollControlled: true,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (_) => const AddHabitModal(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userAsync = ref.watch(currentUserProvider);
+    final habitsAsync = ref.watch(habitListProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: Stack(
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 14),
+
+                // ── Month name ────────────────────────────────────────────
+                // ANTES: _monthName(_selectedDate.month)
+                // AHORA:
+                Center(
+                  child: Text(
+                    _monthName(_visibleDate.month), // <--- Usa _visibleDate aquí
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 2,
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 14),
+
+                // ── Day strip ─────────────────────────────────────────────
+              GestureDetector(
+                onDoubleTap: _scrollToToday, // <--- Al hacer doble click ejecuta la función
+                child: SizedBox(
+                  height: 82,
+                  child: ListView.builder(
+                    controller: _dayScrollController,
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    itemCount: 10000,
+                    itemBuilder: (context, index) {
+                      final day = _getDateFromIndex(index);
+                      final isSelected =
+                          day.year == _selectedDate.year &&
+                          day.month == _selectedDate.month &&
+                          day.day == _selectedDate.day;
+
+                      return GestureDetector(
+                        onTap: () => setState(() => _selectedDate = day),
+                        child: _DayPill(
+                          dayAbbr: _dayAbbr(day.weekday),
+                          dayNumber: day.day,
+                          isSelected: isSelected,
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+
+                // White underline below strip
+                Center(
+                  child: Container(
+                    width: 56,
+                    height: 3,
+                    margin: const EdgeInsets.only(top: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 22),
+
+                // ── Greeting ──────────────────────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: userAsync.when(
+                    data: (user) {
+                      final name = user?.username ?? 'Usuario';
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            'Bienvenido,',
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                          Text(
+                            name,
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                    loading: () => const SizedBox(height: 60),
+                    error: (_, __) => const Text(
+                      'Bienvenido',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 18),
+
+                // ── Habits list ───────────────────────────────────────────
+                Expanded(
+                  child: habitsAsync.when(
+                    data: (habits) {
+                      if (habits.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No tienes hábitos aún\n¡Crea tu primer hábito!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(color: Colors.white54, height: 1.6),
+                          ),
+                        );
+                      }
+
+                      final filtered = habits.where((h) {
+                        if (h.frequency.daysOfWeek.isEmpty) return true;
+                        return h.frequency.daysOfWeek
+                            .contains(_selectedDate.weekday);
+                      }).toList();
+
+                      if (filtered.isEmpty) {
+                        return const Center(
+                          child: Text(
+                            'No hay hábitos para este día',
+                            style: TextStyle(color: Colors.white54),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+                        itemCount: filtered.length,
+                        itemBuilder: (context, index) => _HabitTile(
+                          habit: filtered[index],
+                          onComplete: () {
+                            ref
+                                .read(habitControllerProvider.notifier)
+                                .completeHabit(filtered[index].id);
+                          },
+                        ),
+                      );
+                    },
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (e, _) => Center(child: Text('Error: $e')),
+                  ),
+                ),
+              ],
+            ),
+
+            // ── Floating "Añadir hábito" pill ─────────────────────────────
+            Positioned(
+              bottom: 102,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: GestureDetector(
+                  onTap: _showAddHabit,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                    decoration: BoxDecoration(
+                      gradient: AppColors.blueGradient,
+                      borderRadius: BorderRadius.circular(30),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.4),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: const Text(
+                      'Añadir habito',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Day pill ─────────────────────────────────────────────────────────────────
+
+class _DayPill extends StatelessWidget {
+  final String dayAbbr;
+  final int dayNumber;
+  final bool isSelected;
+
+  const _DayPill({
+    required this.dayAbbr,
+    required this.dayNumber,
+    required this.isSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 58,
+      margin: const EdgeInsets.symmetric(horizontal: 3),
+      decoration: BoxDecoration(
+        gradient: AppColors.blueGradient,
+        borderRadius: BorderRadius.circular(32),
+        border: isSelected
+            ? Border.all(color: Colors.white, width: 2.5)
+            : null,
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            dayAbbr,
+            style: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: 4),
+          // White circle with blue day number
+          Container(
+            width: 32,
+            height: 32,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$dayNumber',
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.primary,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Habit tile ────────────────────────────────────────────────────────────────
+
+class _HabitTile extends StatelessWidget {
+  final Habit habit;
+  final VoidCallback onComplete;
+
+  const _HabitTile({required this.habit, required this.onComplete});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = AppColors.habitColorFromHex(habit.color);
+    final timeStr = DateFormat('HH:mm').format(
+      DateTime.now().subtract(const Duration(hours: 3)),
+    );
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        children: [
+          // Colored rounded square
+          Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(13),
+            ),
+          ),
+          const SizedBox(width: 14),
+          // Title + subtitle
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  habit.title,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'Ultima vez:  Hoy a las $timeStr',
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Blue gradient check circle
+          GestureDetector(
+            onTap: onComplete,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: const BoxDecoration(
+                gradient: AppColors.blueGradient,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.check, color: Colors.white, size: 22),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
