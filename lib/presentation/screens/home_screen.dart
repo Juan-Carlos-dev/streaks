@@ -721,13 +721,15 @@ class _GroupChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           color: isSelected ? null : AppColors.surface,
           gradient: isSelected ? AppColors.blueGradient : null,
           borderRadius: BorderRadius.circular(20),
-          border: isSelected ? null : Border.all(
-            color: Colors.white.withOpacity(0.1),
+          border: Border.all(
+            color: isSelected ? Colors.transparent : Colors.white.withOpacity(0.1),
+            width: 1,
           ),
         ),
         child: Text(
