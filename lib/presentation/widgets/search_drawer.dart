@@ -17,8 +17,11 @@ class SearchView extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: SafeArea(
-        child: Column(
+      body: Stack(
+        children: [
+          const _FloatingBubblesBackground(),
+          SafeArea(
+            child: Column(
           children: [
             // Search Bar
             Padding(
@@ -86,6 +89,8 @@ class SearchView extends ConsumerWidget {
             ),
           ],
         ),
+          ),
+        ],
       ),
     );
   }
@@ -208,6 +213,109 @@ class _SearchHistoryView extends ConsumerWidget {
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+    );
+  }
+}
+
+class _FloatingBubblesBackground extends ConsumerStatefulWidget {
+  const _FloatingBubblesBackground();
+
+  @override
+  ConsumerState<_FloatingBubblesBackground> createState() => _FloatingBubblesBackgroundState();
+}
+
+class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBackground> with TickerProviderStateMixin {
+  late List<AnimationController> _controllers;
+  late List<Animation<double>> _animations;
+  late List<double> _randomXs;
+  late List<double> _randomSizes;
+
+  @override
+  void initState() {
+    super.initState();
+    _controllers = List.generate(8, (index) {
+      return AnimationController(
+        vsync: this,
+        duration: Duration(seconds: 5 + (index % 3) * 2),
+      )..repeat();
+    });
+
+    _animations = _controllers.map((controller) {
+      return Tween<double>(begin: 1.2, end: -0.2).animate(
+        CurvedAnimation(parent: controller, curve: Curves.linear),
+      );
+    }).toList();
+
+    _randomXs = List.generate(8, (index) => 0.05 + (index * 0.11));
+    _randomSizes = List.generate(8, (index) => 40.0 + (index % 3) * 15.0);
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final suggestedUsersAsync = ref.watch(suggestedUsersProvider);
+    final size = MediaQuery.of(context).size;
+
+    return suggestedUsersAsync.when(
+      data: (users) {
+        if (users.isEmpty) return const SizedBox.shrink();
+        
+        return Stack(
+          children: List.generate(_controllers.length, (index) {
+            final user = users[index % users.length];
+            return AnimatedBuilder(
+              animation: _animations[index],
+              builder: (context, child) {
+                return Positioned(
+                  left: _randomXs[index] * size.width,
+                  top: _animations[index].value * size.height,
+                  child: Opacity(
+                    opacity: 0.4,
+                    child: GestureDetector(
+                      onTap: () {
+                        context.go('/home/user/${user.uid}');
+                      },
+                      child: Container(
+                        width: _randomSizes[index],
+                        height: _randomSizes[index],
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24, width: 2),
+                        ),
+                        child: ClipOval(
+                          child: user.photoUrl.isNotEmpty
+                              ? CachedNetworkImage(
+                                  imageUrl: ImageUtils.wrapProxy(user.photoUrl),
+                                  fit: BoxFit.cover,
+                                )
+                              : Container(
+                                  color: AppColors.surface,
+                                  child: Center(
+                                    child: Text(
+                                      user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
+                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          }),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 }

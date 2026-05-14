@@ -104,3 +104,12 @@ final removeSearchHistoryItemProvider = Provider((ref) => (String targetUid) asy
   
   ref.invalidate(recentUsersProvider);
 });
+
+final suggestedUsersProvider = FutureProvider<List<User>>((ref) async {
+  final snapshot = await FirebaseFirestore.instance
+      .collection('users')
+      .limit(20)
+      .get();
+      
+  return snapshot.docs.map((doc) => User.fromFirestore(doc)).toList();
+});
