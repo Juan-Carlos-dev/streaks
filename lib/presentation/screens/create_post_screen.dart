@@ -61,7 +61,7 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
       imageUrl: '',
       caption: _captionController.text.trim(),
       likesCount: 0,
-      habitStreakSnapshot: _selectedHabit!.currentStreak,
+      habitStreakSnapshot: _selectedHabit!.calculatedStreak,
       timestamp: DateTime.now(),
     );
 

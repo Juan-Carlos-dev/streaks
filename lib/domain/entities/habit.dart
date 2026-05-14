@@ -100,6 +100,34 @@ class Habit {
       completedDates: completedDates ?? this.completedDates,
     );
   }
+
+  int get calculatedStreak {
+    if (completedDates.isEmpty) return 0;
+    
+    int streak = 0;
+    DateTime date = DateTime.now();
+    date = DateTime(date.year, date.month, date.day);
+    final start = DateTime(startDate.year, startDate.month, startDate.day);
+    
+    while (date.isAfter(start) || date.isAtSameMomentAs(start)) {
+      if (frequency.daysOfWeek.contains(date.weekday)) {
+        final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        final isCompleted = completedDates.containsKey(dateKey);
+        
+        if (isCompleted) {
+          streak++;
+        } else {
+          final now = DateTime.now();
+          final isToday = date.year == now.year && date.month == now.month && date.day == now.day;
+          if (!isToday) {
+            break;
+          }
+        }
+      }
+      date = date.subtract(const Duration(days: 1));
+    }
+    return streak;
+  }
 }
 
 class HabitFrequency {
