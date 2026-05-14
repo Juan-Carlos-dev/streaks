@@ -525,6 +525,7 @@ class _HabitTileState extends State<_HabitTile> with TickerProviderStateMixin {
         ),
       ),
       ),
+      ),
     );
   }
 
