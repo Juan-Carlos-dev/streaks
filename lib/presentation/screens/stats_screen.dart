@@ -162,13 +162,15 @@ class _DayCirclesRow extends StatelessWidget {
   }
 }
 
-class _DayCircle extends StatelessWidget {
+class _DayCircle extends ConsumerWidget {
   final bool completed;
   final String label;
   const _DayCircle({required this.completed, required this.label});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(gradientControllerProvider);
+    
     return Container(
       width: 44,
       height: 44,
@@ -305,7 +307,7 @@ class _StatColumn extends StatelessWidget {
 
 // ── Heatmap Card ─────────────────────────────────────────────────────────────
 
-class _HeatmapCard extends StatelessWidget {
+class _HeatmapCard extends ConsumerWidget {
   const _HeatmapCard();
 
   // Simulated heatmap: 4 rows × 8 columns = 32 cells (last partial row)
@@ -317,7 +319,9 @@ class _HeatmapCard extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(gradientControllerProvider);
+    
     final now = DateTime.now();
     final monthName = _monthName(now.month);
 
