@@ -39,7 +39,7 @@ class Habit {
       color: data['color'] ?? '#007BFF',
       frequency: data['frequency'] != null
           ? HabitFrequency.fromMap(Map<String, dynamic>.from(data['frequency']))
-          : const HabitFrequency(daysOfWeek: []),
+          : const HabitFrequency(daysOfWeek: [1, 2, 3, 4, 5, 6, 7]),
       isPrivateHabit: data['isPrivateHabit'] ?? false,
       currentStreak: data['currentStreak'] ?? 0,
       longestStreak: data['longestStreak'] ?? 0,
@@ -108,8 +108,9 @@ class HabitFrequency {
   const HabitFrequency({required this.daysOfWeek});
 
   factory HabitFrequency.fromMap(Map<String, dynamic> map) {
+    final list = map['daysOfWeek'] as List<dynamic>?;
     return HabitFrequency(
-      daysOfWeek: List<int>.from(map['daysOfWeek'] ?? []),
+      daysOfWeek: list != null ? list.cast<int>().toList() : [1, 2, 3, 4, 5, 6, 7],
     );
   }
 

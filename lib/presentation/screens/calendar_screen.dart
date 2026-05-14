@@ -254,9 +254,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                       }
 
                       final filtered = habits.where((h) {
-                        if (h.frequency.daysOfWeek.isEmpty) return true;
-                        return h.frequency.daysOfWeek
-                            .contains(_selectedDate.weekday);
+                        return h.frequency.daysOfWeek.contains(_selectedDate.weekday);
                       }).toList();
 
                       if (filtered.isEmpty) {
