@@ -81,15 +81,20 @@ class User {
   }
 }
 
-class UserStats {
-  final int currentGlobalStreak;
-  final int postsCount;
-  final int totalMinutes;
+
+  class UserStats {
+    final int currentGlobalStreak;
+    final int postsCount;
+    final int totalMinutes;
+    final int followersCount;  // 👈 añadir
+    final int followingCount;  // 👈 añadir
 
   const UserStats({
     this.currentGlobalStreak = 0,
     this.postsCount = 0,
     this.totalMinutes = 0,
+    this.followersCount = 0,  // 👈 añadir
+    this.followingCount = 0,  // 👈 añadir
   });
 
   factory UserStats.fromMap(Map<String, dynamic> map) {
@@ -97,6 +102,8 @@ class UserStats {
       currentGlobalStreak: map['currentGlobalStreak'] ?? 0,
       postsCount: map['postsCount'] ?? 0,
       totalMinutes: map['totalMinutes'] ?? 0,
+      followersCount: map['followersCount'] ?? 0,  // 👈 añadir
+      followingCount: map['followingCount'] ?? 0,  // 👈 añadir
     );
   }
 
@@ -105,6 +112,8 @@ class UserStats {
       'currentGlobalStreak': currentGlobalStreak,
       'postsCount': postsCount,
       'totalMinutes': totalMinutes,
+      'followersCount': followersCount,  // 👈 añadir
+      'followingCount': followingCount,  // 👈 añadir
     };
   }
 }

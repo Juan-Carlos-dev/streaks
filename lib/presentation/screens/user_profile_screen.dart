@@ -8,9 +8,8 @@ import '../providers/user_providers.dart';
 import '../providers/auth_providers.dart';
 import '../providers/feed_providers.dart';
 import '../../core/utils/image_utils.dart';
+import '../providers/follow_providers.dart';
 
-/// Shows the profile of any user (identified by [userId]).
-/// If the logged-in user visits their own uid, action buttons are hidden.
 class UserProfileScreen extends ConsumerWidget {
   final String userId;
   const UserProfileScreen({super.key, required this.userId});
@@ -63,13 +62,11 @@ class _UserProfileBody extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ── Header: gradient banner + back button + avatar ────────────
           SizedBox(
             height: bannerHeight + avatarRadius,
             child: Stack(
               clipBehavior: Clip.none,
               children: [
-                // Gradient banner
                 Positioned(
                   top: 0, left: 0, right: 0,
                   height: bannerHeight,
@@ -83,7 +80,6 @@ class _UserProfileBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Black rounded-top section
                 Positioned(
                   top: bannerHeight - 24, left: 0, right: 0, bottom: 0,
                   child: Container(
@@ -93,7 +89,6 @@ class _UserProfileBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Back button
                 Positioned(
                   top: MediaQuery.of(context).padding.top + 4,
                   left: 4,
@@ -102,7 +97,6 @@ class _UserProfileBody extends StatelessWidget {
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ),
-                // Avatar
                 Positioned(
                   top: avatarTop - 10,
                   left: 24,
@@ -112,7 +106,6 @@ class _UserProfileBody extends StatelessWidget {
             ),
           ),
 
-          // ── Username + stats ──────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 8, 24, 0),
             child: Row(
@@ -123,14 +116,13 @@ class _UserProfileBody extends StatelessWidget {
                   style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 const Spacer(),
-                const _UPStatPair(value: '0', label: 'Seguidores'),
+                _LiveStatPair(uid: user?.uid ?? '', label: 'Seguidores', isFollowers: true),
                 const SizedBox(width: 24),
-                const _UPStatPair(value: '0', label: 'Siguiendo'),
+                _LiveStatPair(uid: user?.uid ?? '', label: 'Siguiendo', isFollowers: false),
               ],
             ),
           ),
 
-          // ── Bio ───────────────────────────────────────────────────────
           if ((user?.bio ?? '').isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 10, 24, 0),
@@ -138,52 +130,14 @@ class _UserProfileBody extends StatelessWidget {
                   style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4)),
             ),
 
-          // ── Action buttons (only for other users) ─────────────────────
           if (!isOwnProfile)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DecoratedBox(
-                      decoration: BoxDecoration(
-                        gradient: AppColors.blueGradient,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {},
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
-                        child: const Text('Seguir', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.send_rounded, size: 16),
-                      label: const Text('Mensaje', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white24, width: 1.5),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
+              child: _FollowButtons(userId: user?.uid ?? ''),
             ),
 
           const SizedBox(height: 16),
 
-          // ── Photo grid ────────────────────────────────────────────────
           postsAsync.when(
             loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
             error: (_, __) => const SizedBox.shrink(),
@@ -226,7 +180,6 @@ class _UserProfileBody extends StatelessWidget {
               );
             },
           ),
-
           const SizedBox(height: 100),
         ],
       ),
@@ -234,7 +187,7 @@ class _UserProfileBody extends StatelessWidget {
   }
 }
 
-// ── Widgets privados ──────────────────────────────────────────────────────────
+// ── Widgets privados corregidos ──────────────────────────────────────────────────────────
 
 class _UPAvatar extends StatelessWidget {
   final User? user;
@@ -281,6 +234,111 @@ class _UPStatPair extends StatelessWidget {
         Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
         Text(label, style: const TextStyle(fontSize: 11, color: Colors.white60)),
       ],
+    );
+  }
+} 
+
+class _LiveStatPair extends ConsumerWidget {
+  final String uid;
+  final String label;
+  final bool isFollowers;
+
+  const _LiveStatPair({
+    required this.uid,
+    required this.label,
+    required this.isFollowers,
+  });
+
+  String _fmt(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}k';
+    return '$n';
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final countAsync = isFollowers
+        ? ref.watch(followersCountProvider(uid))
+        : ref.watch(followingCountProvider(uid));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        countAsync.when(
+          data: (n) => Text(_fmt(n),
+              style: const TextStyle(
+                  fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          loading: () => const Text('—',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          error: (_, __) => const Text('0',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+        ),
+        Text(label,
+            style: const TextStyle(fontSize: 11, color: Colors.white60)),
+      ],
+    );
+  }
+}// <--- FALTA ESTA LLAVE EN TU CÓDIGO
+
+class _FollowButtons extends ConsumerWidget {
+  final String userId;
+
+  const _FollowButtons({required this.userId}); // Quitamos 'ref' del constructor, no es necesario en ConsumerWidget
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFollowingAsync = ref.watch(isFollowingProvider(userId));
+    final controllerState = ref.watch(followControllerProvider(userId));
+
+    return isFollowingAsync.when(
+      loading: () => const SizedBox(height: 48, child: Center(child: CircularProgressIndicator())),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (isFollowing) => Row(
+        children: [
+          Expanded(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: isFollowing ? null : AppColors.blueGradient,
+                color: isFollowing ? Colors.white12 : null,
+                borderRadius: BorderRadius.circular(12),
+                border: isFollowing ? Border.all(color: Colors.white24) : null,
+              ),
+              child: ElevatedButton(
+                onPressed: controllerState.isLoading
+                    ? null
+                    : () => ref.read(followControllerProvider(userId).notifier).toggle(),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                child: controllerState.isLoading
+                    ? const SizedBox(height: 18, width: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text(
+                        isFollowing ? 'Siguiendo' : 'Seguir',
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {},
+              icon: const Icon(Icons.send_rounded, size: 16),
+              label: const Text('Mensaje', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.white,
+                side: const BorderSide(color: Colors.white24, width: 1.5),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

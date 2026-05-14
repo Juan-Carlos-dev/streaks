@@ -9,6 +9,9 @@ import '../providers/auth_providers.dart';
 import '../providers/habit_providers.dart';
 import '../providers/feed_providers.dart';
 import '../../core/utils/image_utils.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -40,6 +43,55 @@ class _ProfileBody extends StatelessWidget {
   final WidgetRef ref;
   final AsyncValue postsAsync;
   final bool isOwnProfile;
+
+  String _formatCount(int count) {
+  if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
+  if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
+  return '$count';
+  }
+
+  Future<void> _changeProfilePhoto(BuildContext context) async {
+  final picker = ImagePicker();
+  final picked = await picker.pickImage(
+    source: ImageSource.gallery,
+    imageQuality: 80,
+  );
+  if (picked == null) return;
+
+  final authUid = ref.read(authStateProvider).value;
+  if (authUid == null) return;
+
+  try {
+    // Subir a Firebase Storage
+    final file = File(picked.path);
+    final storageRef = FirebaseStorage.instanceFor(
+      bucket: 'streaks-cc514.firebasestorage.app',
+    ).ref().child('avatars/$authUid.jpg');
+
+    await storageRef.putFile(file);
+    final downloadUrl = await storageRef.getDownloadURL();
+
+    // Guardar URL en Firestore
+    await FirebaseFirestore.instance
+        .collection('users')
+        .doc(authUid)
+        .set({'photoUrl': downloadUrl}, SetOptions(merge: true));
+
+    ref.invalidate(currentUserProvider);
+
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto actualizada')),
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al subir la foto: $e')),
+      );
+    }
+  }
+}
 
   const _ProfileBody({
     required this.user,
@@ -100,7 +152,14 @@ class _ProfileBody extends StatelessWidget {
                 Positioned(
                   top: avatarTop - 10,
                   left: 24,
-                  child: _Avatar(user: user, radius: avatarRadius),
+                  child: GestureDetector(
+                    onTap: () => _changeProfilePhoto(context),
+                    child: Stack(
+                      children: [
+                        _Avatar(user: user, radius: avatarRadius),
+                      ],
+                    ),
+                  ),
                 ),
                 // Settings gear icon
                 Positioned(
@@ -130,9 +189,15 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                const _StatPair(value: '10.5k', label: 'Seguidores'),
+                _StatPair(
+                  value: _formatCount(user?.stats.followersCount ?? 0),
+                  label: 'Seguidores',
+                ),
                 const SizedBox(width: 24),
-                const _StatPair(value: '347', label: 'Siguiendo'),
+                _StatPair(
+                  value: _formatCount(user?.stats.followingCount ?? 0),
+                  label: 'Siguiendo',
+                ),
               ],
             ),
           ),
@@ -394,9 +459,9 @@ class _ProfileBody extends StatelessWidget {
             _SettingsTile(
               icon: Icons.cancel_outlined,
               title: 'Cerrar sesión',
-              onTap: () {
-                Navigator.of(context).pop();
-                ref.read(authRepositoryProvider).signOut();
+              onTap: () async {
+                Navigator.of(context, rootNavigator: true).pop();
+                await ref.read(authRepositoryProvider).signOut();
               },
             ),
             const _Divider(),
