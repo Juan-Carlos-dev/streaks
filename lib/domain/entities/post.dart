@@ -7,6 +7,7 @@ class Post {
   final String imageUrl;
   final String caption;
   final int likesCount;
+  final List<String> likedBy;
   final int habitStreakSnapshot;
   final DateTime timestamp;
 
@@ -17,6 +18,7 @@ class Post {
     required this.imageUrl,
     required this.caption,
     this.likesCount = 0,
+    this.likedBy = const [],
     this.habitStreakSnapshot = 0,
     required this.timestamp,
   });
@@ -30,6 +32,7 @@ class Post {
       imageUrl: data['imageUrl'] ?? '',
       caption: data['caption'] ?? '',
       likesCount: data['likesCount'] ?? 0,
+      likedBy: List<String>.from(data['likedBy'] ?? []),
       habitStreakSnapshot: data['habitStreakSnapshot'] ?? 0,
       timestamp: data['timestamp'] != null
           ? DateTime.parse(data['timestamp'])
@@ -45,6 +48,7 @@ class Post {
       'imageUrl': imageUrl,
       'caption': caption,
       'likesCount': likesCount,
+      'likedBy': likedBy,
       'habitStreakSnapshot': habitStreakSnapshot,
       'timestamp': timestamp.toIso8601String(),
     };
@@ -57,6 +61,7 @@ class Post {
     String? imageUrl,
     String? caption,
     int? likesCount,
+    List<String>? likedBy,
     int? habitStreakSnapshot,
     DateTime? timestamp,
   }) {
@@ -67,6 +72,7 @@ class Post {
       imageUrl: imageUrl ?? this.imageUrl,
       caption: caption ?? this.caption,
       likesCount: likesCount ?? this.likesCount,
+      likedBy: likedBy ?? this.likedBy,
       habitStreakSnapshot: habitStreakSnapshot ?? this.habitStreakSnapshot,
       timestamp: timestamp ?? this.timestamp,
     );

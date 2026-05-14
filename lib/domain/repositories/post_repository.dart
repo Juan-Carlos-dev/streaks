@@ -10,5 +10,5 @@ abstract class PostRepository {
     required Post post,
     required File imageFile,
   });
-  Future<Either<Failure, void>> likePost(String postId);
+  Future<Either<Failure, void>> likePost(String postId, String userId);
 }

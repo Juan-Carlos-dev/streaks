@@ -12,6 +12,7 @@ class Habit {
   final int longestStreak;
   final String? reminderTime;
   final DateTime startDate;
+  final Map<String, DateTime> completedDates;
 
   const Habit({
     required this.id,
@@ -25,6 +26,7 @@ class Habit {
     this.longestStreak = 0,
     this.reminderTime,
     required this.startDate,
+    this.completedDates = const {},
   });
 
   factory Habit.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -45,6 +47,10 @@ class Habit {
       startDate: data['startDate'] != null
           ? DateTime.parse(data['startDate'])
           : DateTime.now(),
+      completedDates: data['completedDates'] != null
+          ? (data['completedDates'] as Map<String, dynamic>).map(
+              (key, value) => MapEntry(key, DateTime.parse(value as String)))
+          : {},
     );
   }
 
@@ -61,6 +67,7 @@ class Habit {
       'longestStreak': longestStreak,
       'reminderTime': reminderTime,
       'startDate': startDate.toIso8601String(),
+      'completedDates': completedDates.map((k, v) => MapEntry(k, v.toIso8601String())),
     };
   }
 
@@ -76,6 +83,7 @@ class Habit {
     int? longestStreak,
     String? reminderTime,
     DateTime? startDate,
+    Map<String, DateTime>? completedDates,
   }) {
     return Habit(
       id: id ?? this.id,
@@ -89,6 +97,7 @@ class Habit {
       longestStreak: longestStreak ?? this.longestStreak,
       reminderTime: reminderTime ?? this.reminderTime,
       startDate: startDate ?? this.startDate,
+      completedDates: completedDates ?? this.completedDates,
     );
   }
 }

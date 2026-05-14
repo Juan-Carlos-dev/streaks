@@ -16,6 +16,10 @@ final habitListProvider = StreamProvider<List<Habit>>((ref) {
   return repository.getHabitsByUserId(uid);
 });
 
+final habitByIdProvider = StreamProvider.family<Habit?, String>((ref, habitId) {
+  return ref.watch(habitRepositoryProvider).getHabitStream(habitId);
+});
+
 final habitControllerProvider =
     StateNotifierProvider<HabitController, AsyncValue<void>>((ref) {
   return HabitController(ref.watch(habitRepositoryProvider));
@@ -56,6 +60,15 @@ class HabitController extends StateNotifier<AsyncValue<void>> {
   Future<void> completeHabit(String habitId) async {
     state = const AsyncLoading();
     final result = await _repository.completeHabit(habitId);
+    state = result.fold(
+      (failure) => AsyncError(failure.message, StackTrace.current),
+      (_) => const AsyncData(null),
+    );
+  }
+
+  Future<void> toggleHabitCompletion(String habitId, DateTime date) async {
+    state = const AsyncLoading();
+    final result = await _repository.toggleHabitCompletion(habitId, date);
     state = result.fold(
       (failure) => AsyncError(failure.message, StackTrace.current),
       (_) => const AsyncData(null),

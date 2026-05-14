@@ -273,10 +273,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         itemCount: filtered.length,
                         itemBuilder: (context, index) => _HabitTile(
                           habit: filtered[index],
+                          selectedDate: _selectedDate,
                           onComplete: () {
                             ref
                                 .read(habitControllerProvider.notifier)
-                                .completeHabit(filtered[index].id);
+                                .toggleHabitCompletion(filtered[index].id, _selectedDate);
                           },
                         ),
                       );
@@ -398,16 +399,24 @@ class _DayPill extends StatelessWidget {
 
 class _HabitTile extends StatelessWidget {
   final Habit habit;
+  final DateTime selectedDate;
   final VoidCallback onComplete;
 
-  const _HabitTile({required this.habit, required this.onComplete});
+  const _HabitTile({required this.habit, required this.selectedDate, required this.onComplete});
 
   @override
   Widget build(BuildContext context) {
     final color = AppColors.habitColorFromHex(habit.color);
-    final timeStr = DateFormat('HH:mm').format(
-      DateTime.now().subtract(const Duration(hours: 3)),
-    );
+    
+    final dateKey = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
+    final isCompleted = habit.completedDates.containsKey(dateKey);
+    final completedAt = habit.completedDates[dateKey];
+    
+    final timeStr = isCompleted && completedAt != null 
+        ? DateFormat('HH:mm').format(completedAt) 
+        : '--:--';
+        
+    final subtitleText = isCompleted ? 'Completado a las $timeStr' : 'Aún no completado';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -443,7 +452,7 @@ class _HabitTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 3),
                 Text(
-                  'Ultima vez:  Hoy a las $timeStr',
+                  subtitleText,
                   style: const TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
@@ -458,11 +467,12 @@ class _HabitTile extends StatelessWidget {
             child: Container(
               width: 40,
               height: 40,
-              decoration: const BoxDecoration(
-                gradient: AppColors.blueGradient,
+              decoration: BoxDecoration(
+                gradient: isCompleted ? AppColors.blueGradient : null,
+                color: isCompleted ? null : Colors.grey[200],
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.check, color: Colors.white, size: 22),
+              child: Icon(Icons.check, color: isCompleted ? Colors.white : Colors.grey[400], size: 22),
             ),
           ),
         ],

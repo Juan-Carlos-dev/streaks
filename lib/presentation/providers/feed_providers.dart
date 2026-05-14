@@ -47,3 +47,16 @@ class CreatePostController extends StateNotifier<AsyncValue<void>> {
     );
   }
 }
+
+final likePostControllerProvider = Provider((ref) {
+  return LikePostController(ref.watch(postRepositoryProvider));
+});
+
+class LikePostController {
+  final PostRepository _repository;
+  LikePostController(this._repository);
+
+  Future<void> likePost(String postId, String userId) async {
+    await _repository.likePost(postId, userId);
+  }
+}

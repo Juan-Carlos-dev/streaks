@@ -21,6 +21,20 @@ class HabitRepositoryImpl implements HabitRepository {
   }
 
   @override
+  Stream<Habit?> getHabitStream(String habitId) {
+    return _firestore
+        .collection('habits')
+        .doc(habitId)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.exists) {
+        return Habit.fromFirestore(snapshot);
+      }
+      return null;
+    });
+  }
+
+  @override
   Future<Either<Failure, void>> createHabit(Habit habit) async {
     try {
       await _firestore
@@ -65,6 +79,39 @@ class HabitRepositoryImpl implements HabitRepository {
       return const Right(null);
     } catch (e) {
       return const Left(ServerFailure('Error al completar el hábito'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> toggleHabitCompletion(String habitId, DateTime date) async {
+    try {
+      final dateKey = '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+      
+      final habitRef = _firestore.collection('habits').doc(habitId);
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(habitRef);
+        if (!snapshot.exists) return;
+        
+        final data = snapshot.data()!;
+        final completedDates = Map<String, dynamic>.from(data['completedDates'] ?? {});
+        
+        if (completedDates.containsKey(dateKey)) {
+          completedDates.remove(dateKey);
+          transaction.update(habitRef, {
+            'completedDates': completedDates,
+            'currentStreak': FieldValue.increment(-1),
+          });
+        } else {
+          completedDates[dateKey] = DateTime.now().toIso8601String();
+          transaction.update(habitRef, {
+            'completedDates': completedDates,
+            'currentStreak': FieldValue.increment(1),
+          });
+        }
+      });
+      return const Right(null);
+    } catch (e) {
+      return const Left(ServerFailure('Error al actualizar el hábito'));
     }
   }
 }

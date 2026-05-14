@@ -63,10 +63,25 @@ class PostRepositoryImpl implements PostRepository {
   }
 
   @override
-  Future<Either<Failure, void>> likePost(String postId) async {
+  Future<Either<Failure, void>> likePost(String postId, String userId) async {
     try {
-      await _firestore.collection('posts').doc(postId).update({
-        'likesCount': FieldValue.increment(1),
+      final postRef = _firestore.collection('posts').doc(postId);
+      await _firestore.runTransaction((transaction) async {
+        final snapshot = await transaction.get(postRef);
+        if (!snapshot.exists) return;
+        
+        final likedBy = List<String>.from(snapshot.data()?['likedBy'] ?? []);
+        if (likedBy.contains(userId)) {
+          transaction.update(postRef, {
+            'likedBy': FieldValue.arrayRemove([userId]),
+            'likesCount': FieldValue.increment(-1),
+          });
+        } else {
+          transaction.update(postRef, {
+            'likedBy': FieldValue.arrayUnion([userId]),
+            'likesCount': FieldValue.increment(1),
+          });
+        }
       });
       return const Right(null);
     } catch (e) {

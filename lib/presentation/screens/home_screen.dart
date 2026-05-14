@@ -9,6 +9,8 @@ import '../../domain/entities/post.dart';
 import '../../domain/entities/user.dart';
 import '../providers/feed_providers.dart';
 import '../providers/user_providers.dart';
+import '../providers/habit_providers.dart';
+import '../providers/auth_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
 
@@ -182,41 +184,96 @@ class _EmptyFeed extends StatelessWidget {
 }
 
 // ── Post card ─────────────────────────────────────────────────────────────────
-class _PostCard extends ConsumerWidget {
+class _PostCard extends ConsumerStatefulWidget {
   final Post post;
 
   const _PostCard({required this.post});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final userAsync = ref.watch(userByIdProvider(post.userId));
+  ConsumerState<_PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends ConsumerState<_PostCard> {
+  bool _isLiking = false;
+
+  void _handleDoubleTap() async {
+    final userId = ref.read(authStateProvider).value;
+    if (userId == null) return;
+    
+    final isLiking = !widget.post.likedBy.contains(userId);
+    
+    if (isLiking) {
+      setState(() { _isLiking = true; });
+    }
+    
+    ref.read(likePostControllerProvider).likePost(widget.post.id, userId);
+    
+    if (isLiking) {
+      await Future.delayed(const Duration(milliseconds: 1200));
+      if (mounted) setState(() { _isLiking = false; });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final userAsync = ref.watch(userByIdProvider(widget.post.userId));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header: avatar + name + habit + streak
         userAsync.when(
-          data: (user) => _PostHeader(post: post, user: user),
-          loading: () => _PostHeader(post: post, user: null),
-          error: (_, __) => _PostHeader(post: post, user: null),
+          data: (user) => _PostHeader(post: widget.post, user: user),
+          loading: () => _PostHeader(post: widget.post, user: null),
+          error: (_, __) => _PostHeader(post: widget.post, user: null),
         ),
 
         // Image — 5:4 (Instagram portrait), cropped to fill
-        AspectRatio(
-          aspectRatio: 5 / 4,
-          child: CachedNetworkImage(
-            imageUrl: ImageUtils.wrapProxy(post.imageUrl),
-            width: double.infinity,
-            fit: BoxFit.cover,
-            alignment: Alignment.center,
-            placeholder: (_, __) => Container(
-              color: AppColors.surfaceLight,
-              child: const Center(child: CircularProgressIndicator()),
-            ),
-            errorWidget: (_, __, ___) => Container(
-              color: AppColors.surfaceLight,
-              child: const Icon(Icons.broken_image,
-                  color: Colors.grey, size: 48),
+        GestureDetector(
+          onDoubleTap: _handleDoubleTap,
+          child: AspectRatio(
+            aspectRatio: 5 / 4,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CachedNetworkImage(
+                  imageUrl: ImageUtils.wrapProxy(widget.post.imageUrl),
+                  width: double.infinity,
+                  height: double.infinity,
+                  fit: BoxFit.cover,
+                  alignment: Alignment.center,
+                  placeholder: (_, __) => Container(
+                    color: AppColors.surfaceLight,
+                    child: const Center(child: CircularProgressIndicator()),
+                  ),
+                  errorWidget: (_, __, ___) => Container(
+                    color: AppColors.surfaceLight,
+                    child: const Icon(Icons.broken_image,
+                        color: Colors.grey, size: 48),
+                  ),
+                ),
+                if (_isLiking)
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0.5, end: 1.0),
+                    duration: const Duration(milliseconds: 600),
+                    curve: Curves.elasticOut,
+                    builder: (context, scale, child) {
+                      return Transform.scale(
+                        scale: scale,
+                        child: AnimatedOpacity(
+                          opacity: _isLiking ? 1.0 : 0.0,
+                          duration: const Duration(milliseconds: 300),
+                          child: const Icon(
+                            Icons.star_rounded,
+                            color: Colors.amber,
+                            size: 120,
+                            shadows: [Shadow(color: Colors.black45, blurRadius: 10)],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+              ],
             ),
           ),
         ),
@@ -227,10 +284,18 @@ class _PostCard extends ConsumerWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('⭐', style: TextStyle(fontSize: 18)),
+              Icon(
+                widget.post.likedBy.contains(ref.watch(authStateProvider).value)
+                    ? Icons.star_rounded
+                    : Icons.star_outline_rounded,
+                color: widget.post.likedBy.contains(ref.watch(authStateProvider).value)
+                    ? Colors.amber
+                    : Colors.white,
+                size: 22,
+              ),
               const SizedBox(width: 6),
               Text(
-                '${post.likesCount}',
+                '${widget.post.likesCount}',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w700,
@@ -239,7 +304,7 @@ class _PostCard extends ConsumerWidget {
               ),
               const SizedBox(width: 10),
               Text(
-                timeago.format(post.timestamp, locale: 'es'),
+                timeago.format(widget.post.timestamp, locale: 'es'),
                 style: const TextStyle(
                     color: AppColors.textSecondary, fontSize: 13),
               ),
@@ -251,11 +316,11 @@ class _PostCard extends ConsumerWidget {
         ),
 
         // Caption
-        if (post.caption.isNotEmpty)
+        if (widget.post.caption.isNotEmpty)
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
             child: Text(
-              post.caption,
+              widget.post.caption,
               style: const TextStyle(color: Colors.white, fontSize: 14, height: 1.4),
             ),
           ),
@@ -267,15 +332,20 @@ class _PostCard extends ConsumerWidget {
 }
 
 // ── Post header row ───────────────────────────────────────────────────────────
-class _PostHeader extends StatelessWidget {
+class _PostHeader extends ConsumerWidget {
   final Post post;
   final User? user;
 
   const _PostHeader({required this.post, required this.user});
 
   @override
-  Widget build(BuildContext context) {
-    const habitName = 'Hábito';         // TODO: resolve from habitId if needed
+  Widget build(BuildContext context, WidgetRef ref) {
+    final habitAsync = ref.watch(habitByIdProvider(post.habitId));
+    final habitName = habitAsync.when(
+      data: (habit) => habit?.title ?? 'Hábito',
+      loading: () => '...',
+      error: (_, __) => 'Hábito',
+    );
     final username = user?.username ?? 'Usuario';
     final streak = post.habitStreakSnapshot;
 
