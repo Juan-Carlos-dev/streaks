@@ -34,11 +34,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         children: [
           // ── Feed (full screen, scrolls behind the bar) ────────────────
           SafeArea(
+            bottom: false,
             child: feedAsync.when(
               data: (posts) {
                 if (posts.isEmpty) return _EmptyFeed();
                 return ListView.builder(
-                  padding: const EdgeInsets.only(top: 72, bottom: 12),
+                  padding: const EdgeInsets.only(top: 72, bottom: 120),
                   itemCount: posts.length,
                   itemBuilder: (context, index) => _PostCard(post: posts[index]),
                 );
