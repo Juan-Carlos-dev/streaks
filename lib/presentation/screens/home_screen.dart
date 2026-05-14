@@ -60,6 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       backgroundColor: AppColors.background,
       body: PageView(
         controller: _pageController,
+        physics: const ClampingScrollPhysics(),
         children: [
           const SearchView(),
           Stack(
