@@ -421,6 +421,8 @@ class _HabitTile extends StatefulWidget {
 
 class _HabitTileState extends State<_HabitTile> with TickerProviderStateMixin {
   bool _isDeleteMode = false;
+  int _futureAttemptCount = 0;
+  
   late AnimationController _popController;
   late Animation<double> _scaleAnimation;
   
@@ -470,13 +472,19 @@ class _HabitTileState extends State<_HabitTile> with TickerProviderStateMixin {
     final todayDateOnly = DateTime(today.year, today.month, today.day);
 
     if (selectedDateOnly.isAfter(todayDateOnly)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No puedes completar hábitos de un día futuro'),
-          backgroundColor: Colors.redAccent,
-          duration: Duration(seconds: 2),
-        ),
-      );
+      _futureAttemptCount++;
+      
+      if (_futureAttemptCount >= 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No puedes completar hábitos de un día futuro'),
+            backgroundColor: Colors.redAccent,
+            duration: Duration(seconds: 2),
+          ),
+        );
+        _futureAttemptCount = 0; // Reset after showing
+      }
+      
       _shakeController.forward(from: 0.0);
       return;
     }
