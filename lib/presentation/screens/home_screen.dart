@@ -547,12 +547,29 @@ class _GroupSelectionView extends ConsumerStatefulWidget {
   ConsumerState<_GroupSelectionView> createState() => _GroupSelectionViewState();
 }
 
-class _GroupSelectionViewState extends ConsumerState<_GroupSelectionView> {
+class _GroupSelectionViewState extends ConsumerState<_GroupSelectionView> with SingleTickerProviderStateMixin {
   final List<String> _availableGroups = [
     'Hiking', 'Running', 'Gym', 'Meditation', 'Reading', 'Coding', 'Yoga', 'Nutrition'
   ];
   final Set<String> _selected = {};
   bool _isLoading = false;
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    );
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   void _save() async {
     if (_selected.isEmpty) return;
@@ -568,6 +585,16 @@ class _GroupSelectionViewState extends ConsumerState<_GroupSelectionView> {
 
   @override
   Widget build(BuildContext context) {
+    final headerAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.4, curve: Curves.easeOutCubic),
+    );
+
+    final buttonAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.6, 1.0, curve: Curves.easeOutCubic),
+    );
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -575,50 +602,95 @@ class _GroupSelectionViewState extends ConsumerState<_GroupSelectionView> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text(
-              '¿Qué temas te interesan?',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-              textAlign: TextAlign.center,
+            FadeTransition(
+              opacity: headerAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(headerAnimation),
+                child: Column(
+                  children: [
+                    const Text(
+                      '¿Qué temas te interesan?',
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Selecciona los grupos de los que quieres ver publicaciones.',
+                      style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Selecciona los grupos de los que quieres ver publicaciones.',
-              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             Wrap(
-              spacing: 8,
-              runSpacing: 8,
+              spacing: 12,
+              runSpacing: 12,
               alignment: WrapAlignment.center,
-              children: _availableGroups.map((group) {
+              children: List.generate(_availableGroups.length, (index) {
+                final group = _availableGroups[index];
                 final isSelected = _selected.contains(group);
-                return ChoiceChip(
-                  label: Text(group),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    setState(() {
-                      if (selected) _selected.add(group);
-                      else _selected.remove(group);
-                    });
-                  },
-                  selectedColor: AppColors.primary,
-                  backgroundColor: AppColors.surface,
-                  labelStyle: TextStyle(color: isSelected ? Colors.white : AppColors.textSecondary),
+                
+                // Staggered animation for each chip
+                final delayStart = 0.2 + (index * 0.05);
+                final delayEnd = delayStart + 0.4;
+                final chipAnimation = CurvedAnimation(
+                  parent: _controller,
+                  curve: Interval(
+                    delayStart.clamp(0.0, 1.0),
+                    delayEnd.clamp(0.0, 1.0),
+                    curve: Curves.elasticOut,
+                  ),
                 );
-              }).toList(),
+
+                return ScaleTransition(
+                  scale: chipAnimation,
+                  child: FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: _controller,
+                      curve: Interval(delayStart.clamp(0.0, 1.0), (delayStart + 0.2).clamp(0.0, 1.0)),
+                    ),
+                    child: ChoiceChip(
+                      label: Text(group),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) _selected.add(group);
+                          else _selected.remove(group);
+                        });
+                      },
+                      selectedColor: AppColors.primary,
+                      backgroundColor: AppColors.surface,
+                      labelStyle: TextStyle(
+                        color: isSelected ? Colors.white : AppColors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    ),
+                  ),
+                );
+              }),
             ),
             const SizedBox(height: 48),
-            ElevatedButton(
-              onPressed: _selected.isEmpty || _isLoading ? null : _save,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            FadeTransition(
+              opacity: buttonAnimation,
+              child: SlideTransition(
+                position: Tween<Offset>(begin: const Offset(0, 0.5), end: Offset.zero).animate(buttonAnimation),
+                child: ElevatedButton(
+                  onPressed: _selected.isEmpty || _isLoading ? null : _save,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: _selected.isEmpty ? 0 : 8,
+                    shadowColor: AppColors.primary.withOpacity(0.5),
+                  ),
+                  child: _isLoading 
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Text('Comenzar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                ),
               ),
-              child: _isLoading 
-                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                : const Text('Comenzar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
             ),
           ],
         ),
