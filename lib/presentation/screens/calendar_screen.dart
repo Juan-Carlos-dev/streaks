@@ -270,6 +270,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                         padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                         itemCount: filtered.length,
                         itemBuilder: (context, index) => _HabitTile(
+                          key: ValueKey(filtered[index].id),
                           habit: filtered[index],
                           selectedDate: _selectedDate,
                           onComplete: () {
@@ -407,6 +408,7 @@ class _HabitTile extends StatefulWidget {
   final VoidCallback onDelete;
 
   const _HabitTile({
+    super.key,
     required this.habit,
     required this.selectedDate,
     required this.onComplete,
@@ -417,12 +419,40 @@ class _HabitTile extends StatefulWidget {
   State<_HabitTile> createState() => _HabitTileState();
 }
 
-class _HabitTileState extends State<_HabitTile> {
+class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMixin {
   bool _isDeleteMode = false;
+  late AnimationController _popController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _popController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 300),
+    );
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.15).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
+      TweenSequenceItem(tween: Tween(begin: 1.15, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 60),
+    ]).animate(_popController);
+  }
+
+  @override
+  void dispose() {
+    _popController.dispose();
+    super.dispose();
+  }
+
+  void _handleDelete() async {
+    await _popController.forward();
+    widget.onDelete();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return ScaleTransition(
+      scale: _scaleAnimation,
+      child: GestureDetector(
       onLongPress: () {
         setState(() {
           _isDeleteMode = true;
@@ -500,7 +530,7 @@ class _HabitTileState extends State<_HabitTile> {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: widget.onDelete,
+            onTap: _handleDelete,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
