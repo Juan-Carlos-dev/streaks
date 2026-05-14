@@ -590,15 +590,20 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
   }
 
   Future<void> _requestContacts() async {
-    final status = await Permission.contacts.request();
-    if (status.isGranted) {
-      final contacts = await FlutterContacts.getContacts(withProperties: true);
-      final phones = contacts
-          .expand((c) => c.phones.map((p) => p.number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '')))
-          .toSet()
-          .toList();
-      if (mounted) setState(() { _contactsGranted = true; _contactPhones = phones; });
-    } else {
+    try {
+      final status = await Permission.contacts.request();
+      if (status.isGranted) {
+        final contacts = await FlutterContacts.getContacts(withProperties: true);
+        final phones = contacts
+            .expand((c) => c.phones.map((p) => p.number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '')))
+            .toSet()
+            .toList();
+        if (mounted) setState(() { _contactsGranted = true; _contactPhones = phones; });
+      } else {
+        if (mounted) setState(() => _contactsPermissionRequested = true);
+      }
+    } catch (_) {
+      // Plugin not available yet (needs full rebuild) — fail silently
       if (mounted) setState(() => _contactsPermissionRequested = true);
     }
   }
