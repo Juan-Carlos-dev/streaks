@@ -277,6 +277,11 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                                 .read(habitControllerProvider.notifier)
                                 .toggleHabitCompletion(filtered[index].id, _selectedDate);
                           },
+                          onDelete: () {
+                            ref
+                                .read(habitControllerProvider.notifier)
+                                .deleteHabit(filtered[index].id);
+                          },
                         ),
                       );
                     },
@@ -395,63 +400,82 @@ class _DayPill extends StatelessWidget {
 
 // ── Habit tile ────────────────────────────────────────────────────────────────
 
-class _HabitTile extends StatelessWidget {
+class _HabitTile extends StatefulWidget {
   final Habit habit;
   final DateTime selectedDate;
   final VoidCallback onComplete;
+  final VoidCallback onDelete;
 
-  const _HabitTile({required this.habit, required this.selectedDate, required this.onComplete});
+  const _HabitTile({
+    required this.habit,
+    required this.selectedDate,
+    required this.onComplete,
+    required this.onDelete,
+  });
+
+  @override
+  State<_HabitTile> createState() => _HabitTileState();
+}
+
+class _HabitTileState extends State<_HabitTile> {
+  bool _isDeleteMode = false;
 
   @override
   Widget build(BuildContext context) {
-    final color = AppColors.habitColorFromHex(habit.color);
-    
-    final dateKey = '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}';
-    final isCompleted = habit.completedDates.containsKey(dateKey);
-    final completedAt = habit.completedDates[dateKey];
-    
-    final timeStr = isCompleted && completedAt != null 
-        ? DateFormat('HH:mm').format(completedAt) 
-        : '--:--';
-        
-    final subtitleText = isCompleted ? 'Completado a las $timeStr' : 'Aún no completado';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+    return GestureDetector(
+      onLongPress: () {
+        setState(() {
+          _isDeleteMode = true;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          boxShadow: _isDeleteMode
+              ? [
+                  BoxShadow(
+                    color: Colors.redAccent.withOpacity(0.6),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                  )
+                ]
+              : [],
+        ),
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _isDeleteMode ? _buildDeleteMode() : _buildNormalMode(),
+        ),
       ),
+    );
+  }
+
+  Widget _buildDeleteMode() {
+    return SizedBox(
+      key: const ValueKey('delete_mode'),
+      height: 52,
       child: Row(
         children: [
-          // Colored rounded square
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(13),
-            ),
-          ),
-          const SizedBox(width: 14),
-          // Title + subtitle
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: const [
                 Text(
-                  habit.title,
-                  style: const TextStyle(
-                    color: Colors.black,
+                  '¿Quieres eliminar este hábito?',
+                  style: TextStyle(
+                    color: Colors.red,
                     fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 3),
+                SizedBox(height: 2),
                 Text(
-                  subtitleText,
-                  style: const TextStyle(
+                  'Tu progreso se perderá.',
+                  style: TextStyle(
                     color: Colors.black54,
                     fontSize: 12,
                   ),
@@ -459,22 +483,100 @@ class _HabitTile extends StatelessWidget {
               ],
             ),
           ),
-          // Blue gradient check circle
           GestureDetector(
-            onTap: onComplete,
+            onTap: () {
+              setState(() {
+                _isDeleteMode = false;
+              });
+            },
             child: Container(
-              width: 40,
-              height: 40,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                gradient: isCompleted ? AppColors.blueGradient : null,
-                color: isCompleted ? null : Colors.grey[200],
-                shape: BoxShape.circle,
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(12),
               ),
-              child: Icon(Icons.check, color: isCompleted ? Colors.white : Colors.grey[400], size: 22),
+              child: const Text('No', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: widget.onDelete,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.redAccent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Text('Sí', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildNormalMode() {
+    final color = AppColors.habitColorFromHex(widget.habit.color);
+    
+    final dateKey = '${widget.selectedDate.year}-${widget.selectedDate.month.toString().padLeft(2, '0')}-${widget.selectedDate.day.toString().padLeft(2, '0')}';
+    final isCompleted = widget.habit.completedDates.containsKey(dateKey);
+    final completedAt = widget.habit.completedDates[dateKey];
+    
+    final timeStr = isCompleted && completedAt != null 
+        ? DateFormat('HH:mm').format(completedAt) 
+        : '--:--';
+        
+    final subtitleText = isCompleted ? 'Completado a las $timeStr' : 'Aún no completado';
+
+    return Row(
+      key: const ValueKey('normal_mode'),
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(13),
+          ),
+        ),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                widget.habit.title,
+                style: const TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 15,
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                subtitleText,
+                style: const TextStyle(
+                  color: Colors.black54,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
+        ),
+        GestureDetector(
+          onTap: widget.onComplete,
+          child: Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              gradient: isCompleted ? AppColors.blueGradient : null,
+              color: isCompleted ? null : Colors.grey[200],
+              shape: BoxShape.circle,
+            ),
+            child: Icon(Icons.check, color: isCompleted ? Colors.white : Colors.grey[400], size: 22),
+          ),
+        ),
+      ],
     );
   }
 }
