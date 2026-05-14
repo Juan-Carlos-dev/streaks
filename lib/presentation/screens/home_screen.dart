@@ -723,10 +723,11 @@ class _GroupChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primary : AppColors.surface,
+          color: isSelected ? null : AppColors.surface,
+          gradient: isSelected ? AppColors.blueGradient : null,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.1),
+          border: isSelected ? null : Border.all(
+            color: Colors.white.withOpacity(0.1),
           ),
         ),
         child: Text(
