@@ -5,6 +5,7 @@ import 'package:firebase_storage/firebase_storage.dart';
 import '../../domain/repositories/post_repository.dart';
 import '../../data/repositories/post_repository_impl.dart';
 import '../../domain/entities/post.dart';
+import 'habit_providers.dart' as import_habit_providers;
 
 final postRepositoryProvider = Provider<PostRepository>((ref) {
   return PostRepositoryImpl(
@@ -16,6 +17,30 @@ final postRepositoryProvider = Provider<PostRepository>((ref) {
 final feedStreamProvider = StreamProvider<List<Post>>((ref) {
   final repository = ref.watch(postRepositoryProvider);
   return repository.getFeedPosts();
+});
+
+final groupsFeedProvider = FutureProvider<List<Post>>((ref) async {
+  final allPosts = await ref.watch(feedStreamProvider.future);
+  // Get user's habits
+  final myHabitsAsync = ref.watch(import_habit_providers.habitListProvider);
+  if (myHabitsAsync.value == null) return [];
+  
+  final myHabitTitles = myHabitsAsync.value!.map((h) => h.title.trim().toLowerCase()).toSet();
+  if (myHabitTitles.isEmpty) return [];
+
+  List<Post> filtered = [];
+  for (final post in allPosts) {
+    try {
+      final habitDoc = await FirebaseFirestore.instance.collection('habits').doc(post.habitId).get();
+      if (habitDoc.exists) {
+        final title = (habitDoc.data()?['title'] as String?)?.trim().toLowerCase() ?? '';
+        if (myHabitTitles.contains(title)) {
+          filtered.add(post);
+        }
+      }
+    } catch (_) {}
+  }
+  return filtered;
 });
 
 final userPostsProvider =

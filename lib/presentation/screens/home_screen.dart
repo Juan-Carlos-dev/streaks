@@ -26,7 +26,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final feedAsync = ref.watch(feedStreamProvider);
+    final feedAsync = _selectedTab == 0 ? ref.watch(feedStreamProvider) : ref.watch(groupsFeedProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -44,7 +44,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   edgeOffset: 90, // Desplaza el indicador hacia abajo para que no quede detrás del header
                   onRefresh: () async {
                     // Refresca el provider del feed
-                    ref.invalidate(feedStreamProvider);
+                    if (_selectedTab == 0) {
+                      ref.invalidate(feedStreamProvider);
+                    } else {
+                      ref.invalidate(groupsFeedProvider);
+                    }
                     // Pequeño delay visual
                     await Future.delayed(const Duration(milliseconds: 800));
                   },
@@ -128,7 +132,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         ),
                         const SizedBox(width: 24),
                         _TabButton(
-                          label: 'Para ti',
+                          label: 'Grupos',
                           selected: _selectedTab == 1,
                           onTap: () => setState(() => _selectedTab = 1),
                         ),
