@@ -167,7 +167,7 @@ class _ProfileBody extends StatelessWidget {
                   right: 12,
                   child: IconButton(
                     icon: const Icon(Icons.settings_outlined, color: Colors.white, size: 26),
-                    onPressed: () => _showSettingsModal(context),
+                    onPressed: () => _showSettingsModal(context, ref),
                   ),
                 ),
               ],
@@ -423,7 +423,7 @@ class _ProfileBody extends StatelessWidget {
     );
   }
 
-  void _showSettingsModal(BuildContext context) {
+  void _showSettingsModal(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
       useRootNavigator: true,
@@ -454,6 +454,15 @@ class _ProfileBody extends StatelessWidget {
             _SettingsTile(icon: Icons.edit_outlined, title: 'Descripción / Bio', onTap: () => _showEditBioDialog(context)),
             const _Divider(),
             _SettingsTile(icon: Icons.grid_view_rounded, title: 'Personalizar widget', onTap: () {}),
+            const _Divider(),
+            _SettingsTile(
+              icon: Icons.palette_outlined,
+              title: 'Personalizar degradado',
+              onTap: () {
+                Navigator.of(context).pop();
+                _showGradientPicker(context, ref);
+              },
+            ),
             const _Divider(),
             _SettingsTile(icon: Icons.phonelink_lock_outlined, title: 'Cambiar contraseña', onTap: () {}),
             const _Divider(),
@@ -496,6 +505,203 @@ class _ProfileBody extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showGradientPicker(BuildContext context, WidgetRef ref) {
+    final userAsync = ref.watch(currentUserProvider);
+    userAsync.whenData((user) {
+      if (user == null) return;
+      
+      final color1Controller = TextEditingController(text: user.customGradient[0]);
+      final color2Controller = TextEditingController(text: user.customGradient[1]);
+
+      showModalBottomSheet(
+        context: context,
+        useRootNavigator: true,
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        ),
+        isScrollControlled: true,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setState) => Padding(
+            padding: EdgeInsets.only(
+              top: 12,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+              left: 24,
+              right: 24,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Handle
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const Text(
+                  'Personalizar degradado',
+                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Introduce los códigos HEX para los dos colores del degradado.',
+                  style: TextStyle(color: Colors.grey, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                
+                // Preview
+                Container(
+                  width: double.infinity,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        _parseColor(color1Controller.text),
+                        _parseColor(color2Controller.text),
+                      ],
+                    ),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'Vista previa',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Color 1
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _parseColor(color1Controller.text),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey[300]!, width: 2),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: color1Controller,
+                        decoration: const InputDecoration(
+                          labelText: 'Color 1 (HEX)',
+                          hintText: '#00C6FF',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (val) {
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Color 2
+                Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: _parseColor(color2Controller.text),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.grey[300]!, width: 2),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: TextField(
+                        controller: color2Controller,
+                        decoration: const InputDecoration(
+                          labelText: 'Color 2 (HEX)',
+                          hintText: '#0072FF',
+                          border: OutlineInputBorder(),
+                        ),
+                        onChanged: (val) {
+                          setState(() {});
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Save Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      final c1 = color1Controller.text.trim();
+                      final c2 = color2Controller.text.trim();
+                      
+                      if (!_isValidHex(c1) || !_isValidHex(c2)) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(
+                          const SnackBar(content: Text('Introduce códigos HEX válidos (ej: #FF0000)')),
+                        );
+                        return;
+                      }
+
+                      try {
+                        await FirebaseFirestore.instance
+                            .collection('users')
+                            .doc(user.uid)
+                            .update({
+                          'customGradient': [c1, c2],
+                        });
+                        
+                        if (ctx.mounted) Navigator.of(ctx).pop();
+                      } catch (e) {
+                        if (ctx.mounted) {
+                          ScaffoldMessenger.of(ctx).showSnackBar(
+                            SnackBar(content: Text('Error al guardar: $e')),
+                          );
+                        }
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                    child: const Text('Guardar degradado', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  Color _parseColor(String hex) {
+    try {
+      return Color(int.parse(hex.replaceAll('#', '0xFF')));
+    } catch (_) {
+      return Colors.grey; // Fallback
+    }
+  }
+
+  bool _isValidHex(String hex) {
+    final regExp = RegExp(r'^#[0-9A-Fa-f]{6}$');
+    return regExp.hasMatch(hex);
   }
 
   void _showDeleteConfirmation(BuildContext context) {

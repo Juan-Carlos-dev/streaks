@@ -19,3 +19,19 @@ final userByIdProvider =
     StreamProvider.family<User?, String>((ref, userId) {
   return ref.watch(userRepositoryProvider).getUserStream(userId);
 });
+
+final gradientControllerProvider = Provider<void>((ref) {
+  final userAsync = ref.watch(currentUserProvider);
+  userAsync.whenData((user) {
+    if (user != null && user.customGradient.length == 2) {
+      AppColors.blueGradient = LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [
+          Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
+          Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
+        ],
+      );
+    }
+  });
+});

@@ -68,7 +68,7 @@ class AppColors {
   );
 
   // Standard blue gradient used on all interactive blue elements (dark → light)
-  static const LinearGradient blueGradient = LinearGradient(
+  static LinearGradient blueGradient = const LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],

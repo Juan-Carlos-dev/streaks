@@ -12,6 +12,7 @@ class User {
   final Map<String, dynamic> widgetConfig;
   final List<String> followedGroups;
   final List<String> recentSearches;
+  final List<String> customGradient;
 
   const User({
     required this.uid,
@@ -25,6 +26,7 @@ class User {
     this.widgetConfig = const {},
     this.followedGroups = const [],
     this.recentSearches = const [],
+    this.customGradient = const ['#3D8EF0', '#64B5F6'], // Default blue gradient
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -45,6 +47,7 @@ class User {
           : {},
       followedGroups: List<String>.from(data['followedGroups'] ?? []),
       recentSearches: List<String>.from(data['recentSearches'] ?? []),
+      customGradient: List<String>.from(data['customGradient'] ?? ['#3D8EF0', '#64B5F6']),
     );
   }
 
@@ -61,6 +64,7 @@ class User {
       'widgetConfig': widgetConfig,
       'followedGroups': followedGroups,
       'recentSearches': recentSearches,
+      'customGradient': customGradient,
     };
   }
 
@@ -76,6 +80,7 @@ class User {
     Map<String, dynamic>? widgetConfig,
     List<String>? followedGroups,
     List<String>? recentSearches,
+    List<String>? customGradient,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -89,6 +94,7 @@ class User {
       widgetConfig: widgetConfig ?? this.widgetConfig,
       followedGroups: followedGroups ?? this.followedGroups,
       recentSearches: recentSearches ?? this.recentSearches,
+      customGradient: customGradient ?? this.customGradient,
     );
   }
 }

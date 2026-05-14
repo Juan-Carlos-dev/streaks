@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import '../../core/constants/app_colors.dart';
+import '../providers/user_providers.dart';
 
-class MainWrapperScreen extends StatelessWidget {
+class MainWrapperScreen extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
 
   const MainWrapperScreen({
@@ -20,7 +22,8 @@ class MainWrapperScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(gradientControllerProvider);
     return Scaffold(
       backgroundColor: Colors.black,
       // No bottomNavigationBar — we use a floating overlay via Stack
