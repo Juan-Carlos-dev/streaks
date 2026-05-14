@@ -7,17 +7,17 @@ import '../providers/search_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
 
-class SearchDrawer extends ConsumerWidget {
-  const SearchDrawer({super.key});
+class SearchView extends ConsumerWidget {
+  const SearchView({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final query = ref.watch(searchQueryProvider);
     final resultsAsync = ref.watch(searchResultsProvider);
 
-    return Drawer(
+    return Scaffold(
       backgroundColor: AppColors.background,
-      child: SafeArea(
+      body: SafeArea(
         child: Column(
           children: [
             // Search Bar

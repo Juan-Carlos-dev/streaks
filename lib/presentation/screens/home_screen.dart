@@ -26,6 +26,19 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _selectedTab = 0; // 0 = Siguiendo, 1 = Grupos
   String? _selectedGroupFilter; // null = Todos los grupos
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(initialPage: 1);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -45,9 +58,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      drawer: const SearchDrawer(),
-      body: Stack(
+      body: PageView(
+        controller: _pageController,
         children: [
+          const SearchView(),
+          Stack(
+            children: [
           // ── Feed (full screen, scrolls behind the bar) ────────────────
           SafeArea(
             bottom: false,
@@ -213,6 +229,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               ),
             ),
           ),
+        ],
+      ),
         ],
       ),
     );
