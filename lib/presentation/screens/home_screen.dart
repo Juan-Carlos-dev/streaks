@@ -64,7 +64,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   },
                   child: ListView.builder(
                     padding: EdgeInsets.only(
-                      top: _selectedTab == 1 ? glassBarHeight + 56 : glassBarHeight + 8,
+                      top: _selectedTab == 1 ? 120 : 72,
                       bottom: 120
                     ),
                     physics: const AlwaysScrollableScrollPhysics(),
