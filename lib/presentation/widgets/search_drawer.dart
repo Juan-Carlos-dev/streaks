@@ -46,10 +46,13 @@ class SearchView extends ConsumerWidget {
               child: resultsAsync.when(
                 data: (users) {
                   if (users.isEmpty) {
-                    return Center(
+                    if (query.isEmpty) {
+                      return const _SearchHistoryView();
+                    }
+                    return const Center(
                       child: Text(
-                        query.isEmpty ? 'Escribe para buscar' : 'No se encontraron usuarios',
-                        style: const TextStyle(color: Colors.white38),
+                        'No se encontraron usuarios',
+                        style: TextStyle(color: Colors.white38),
                       ),
                     );
                   }
@@ -70,7 +73,7 @@ class SearchView extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         onTap: () {
-                          // Navigate to user profile
+                          ref.read(saveSearchHistoryProvider)(user.uid);
                           context.go('/home/user/${user.uid}');
                         },
                       );
@@ -120,6 +123,66 @@ class _UserAvatar extends StatelessWidget {
           style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
       ),
+    );
+  }
+}
+
+class _SearchHistoryView extends ConsumerWidget {
+  const _SearchHistoryView();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final recentUsersAsync = ref.watch(recentUsersProvider);
+
+    return recentUsersAsync.when(
+      data: (users) {
+        if (users.isEmpty) {
+          return const Center(
+            child: Text(
+              'No hay búsquedas recientes',
+              style: TextStyle(color: Colors.white38),
+            ),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Text(
+                'Recientes',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                itemCount: users.length,
+                itemBuilder: (context, index) {
+                  final user = users[index];
+                  return ListTile(
+                    leading: _UserAvatar(user: user),
+                    title: Text(
+                      user.username,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      user.bio.isNotEmpty ? user.bio : 'Sin descripción',
+                      style: const TextStyle(color: Colors.white54, fontSize: 12),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () {
+                      context.go('/home/user/${user.uid}');
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
     );
   }
 }
