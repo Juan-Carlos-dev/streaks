@@ -240,8 +240,8 @@ class _FloatingBubblesBackground extends ConsumerWidget {
           },
           blendMode: BlendMode.dstIn,
           child: Stack(
-            children: List.generate(min(users.length, 15), (index) {
-              return _FloatingBubble(user: users[index]);
+            children: List.generate(15, (index) {
+              return _FloatingBubble(user: users[index % users.length]);
             }),
           ),
         );
@@ -297,7 +297,7 @@ class _FloatingBubbleState extends State<_FloatingBubble> with SingleTickerProvi
     _size = 35.0 + rand.nextDouble() * 30.0; // 35 to 65
     _waveAmplitude = 10.0 + rand.nextDouble() * 25.0; // 10 to 35
     _waveFrequency = 2.0 + rand.nextDouble() * 2.0; // 2 to 4 waves
-    _controller.duration = Duration(seconds: 8 + rand.nextInt(7)); // 8 to 15 seconds
+    _controller.duration = Duration(seconds: 5 + rand.nextInt(5)); // 5 to 10 seconds
   }
 
   @override
