@@ -10,6 +10,7 @@ class User {
   final int profileGradientIndex;
   final UserStats stats;
   final Map<String, dynamic> widgetConfig;
+  final List<String> followedGroups;
 
   const User({
     required this.uid,
@@ -21,6 +22,7 @@ class User {
     this.profileGradientIndex = 0,
     this.stats = const UserStats(),
     this.widgetConfig = const {},
+    this.followedGroups = const [],
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -39,6 +41,7 @@ class User {
       widgetConfig: data['widgetConfig'] != null
           ? Map<String, dynamic>.from(data['widgetConfig'])
           : {},
+      followedGroups: List<String>.from(data['followedGroups'] ?? []),
     );
   }
 
@@ -53,6 +56,7 @@ class User {
       'profileGradientIndex': profileGradientIndex,
       'stats': stats.toMap(),
       'widgetConfig': widgetConfig,
+      'followedGroups': followedGroups,
     };
   }
 
@@ -66,6 +70,7 @@ class User {
     int? profileGradientIndex,
     UserStats? stats,
     Map<String, dynamic>? widgetConfig,
+    List<String>? followedGroups,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -77,6 +82,7 @@ class User {
       profileGradientIndex: profileGradientIndex ?? this.profileGradientIndex,
       stats: stats ?? this.stats,
       widgetConfig: widgetConfig ?? this.widgetConfig,
+      followedGroups: followedGroups ?? this.followedGroups,
     );
   }
 }

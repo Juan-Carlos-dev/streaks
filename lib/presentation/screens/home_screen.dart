@@ -22,11 +22,16 @@ class HomeScreen extends ConsumerStatefulWidget {
 }
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
-  int _selectedTab = 0; // 0 = Siguiendo, 1 = Para ti
+  int _selectedTab = 0; // 0 = Siguiendo, 1 = Grupos
+  String? _selectedGroupFilter; // null = Todos los grupos
 
   @override
   Widget build(BuildContext context) {
-    final feedAsync = _selectedTab == 0 ? ref.watch(feedStreamProvider) : ref.watch(groupsFeedProvider);
+    final feedAsync = _selectedTab == 0 ? ref.watch(feedStreamProvider) : ref.watch(groupsFeedProvider(_selectedGroupFilter));
+    final currentUserAsync = ref.watch(currentUserProvider);
+    final currentUser = currentUserAsync.value;
+
+    final bool showGroupSelection = _selectedTab == 1 && currentUser != null && currentUser.followedGroups.isEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -35,7 +40,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // ── Feed (full screen, scrolls behind the bar) ────────────────
           SafeArea(
             bottom: false,
-            child: feedAsync.when(
+            child: showGroupSelection
+                ? _GroupSelectionView(currentUser: currentUser!)
+                : feedAsync.when(
               data: (posts) {
                 if (posts.isEmpty) return _EmptyFeed();
                 return RefreshIndicator(
@@ -53,7 +60,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     await Future.delayed(const Duration(milliseconds: 800));
                   },
                   child: ListView.builder(
-                    padding: const EdgeInsets.only(top: 72, bottom: 120),
+                    padding: EdgeInsets.only(top: _selectedTab == 1 ? 140 : 72, bottom: 120),
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: posts.length + 1,
                     itemBuilder: (context, index) {
@@ -93,6 +100,39 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               error: (e, _) => Center(child: Text('Error: $e')),
             ),
           ),
+
+          // ── Group Filters (horizontal chips below top bar) ───────────────
+          if (_selectedTab == 1 && !showGroupSelection && currentUser != null)
+            Positioned(
+              top: 100,
+              left: 0,
+              right: 0,
+              child: SizedBox(
+                height: 40,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _GroupChip(
+                      label: 'Todos',
+                      isSelected: _selectedGroupFilter == null,
+                      onTap: () => setState(() => _selectedGroupFilter = null),
+                    ),
+                    const SizedBox(width: 8),
+                    ...currentUser.followedGroups.map((g) {
+                      return Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: _GroupChip(
+                          label: g,
+                          isSelected: _selectedGroupFilter == g.trim().toLowerCase(),
+                          onTap: () => setState(() => _selectedGroupFilter = g.trim().toLowerCase()),
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
 
           // ── Glass top bar (overlay) ───────────────────────────────────
           Positioned(
@@ -134,7 +174,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         _TabButton(
                           label: 'Grupos',
                           selected: _selectedTab == 1,
-                          onTap: () => setState(() => _selectedTab = 1),
+                          onTap: () => setState(() {
+                            _selectedTab = 1;
+                            _selectedGroupFilter = null;
+                          }),
                         ),
                         const Spacer(),
                         Container(
@@ -489,6 +532,131 @@ class _UserAvatar extends StatelessWidget {
             color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: radius * 0.8,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupSelectionView extends ConsumerStatefulWidget {
+  final User currentUser;
+  const _GroupSelectionView({required this.currentUser});
+
+  @override
+  ConsumerState<_GroupSelectionView> createState() => _GroupSelectionViewState();
+}
+
+class _GroupSelectionViewState extends ConsumerState<_GroupSelectionView> {
+  final List<String> _availableGroups = [
+    'Hiking', 'Running', 'Gym', 'Meditation', 'Reading', 'Coding', 'Yoga', 'Nutrition'
+  ];
+  final Set<String> _selected = {};
+  bool _isLoading = false;
+
+  void _save() async {
+    if (_selected.isEmpty) return;
+    setState(() => _isLoading = true);
+    final updatedUser = widget.currentUser.copyWith(
+      followedGroups: _selected.toList(),
+    );
+    await ref.read(userRepositoryProvider).updateUser(updatedUser);
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Text(
+              '¿Qué temas te interesan?',
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Selecciona los grupos de los que quieres ver publicaciones.',
+              style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.center,
+              children: _availableGroups.map((group) {
+                final isSelected = _selected.contains(group);
+                return ChoiceChip(
+                  label: Text(group),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    setState(() {
+                      if (selected) _selected.add(group);
+                      else _selected.remove(group);
+                    });
+                  },
+                  selectedColor: AppColors.primary,
+                  backgroundColor: AppColors.surface,
+                  labelStyle: TextStyle(color: isSelected ? Colors.white : AppColors.textSecondary),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 48),
+            ElevatedButton(
+              onPressed: _selected.isEmpty || _isLoading ? null : _save,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              ),
+              child: _isLoading 
+                ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text('Comenzar', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupChip extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _GroupChip({
+    required this.label,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected ? AppColors.primary : AppColors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.white.withOpacity(0.1),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : AppColors.textSecondary,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 14,
           ),
         ),
       ),

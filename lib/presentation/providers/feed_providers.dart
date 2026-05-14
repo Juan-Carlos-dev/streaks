@@ -6,6 +6,7 @@ import '../../domain/repositories/post_repository.dart';
 import '../../data/repositories/post_repository_impl.dart';
 import '../../domain/entities/post.dart';
 import 'habit_providers.dart' as import_habit_providers;
+import 'user_providers.dart' as import_user_providers;
 
 final postRepositoryProvider = Provider<PostRepository>((ref) {
   return PostRepositoryImpl(
@@ -19,14 +20,17 @@ final feedStreamProvider = StreamProvider<List<Post>>((ref) {
   return repository.getFeedPosts();
 });
 
-final groupsFeedProvider = FutureProvider<List<Post>>((ref) async {
+final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, selectedGroup) async {
   final allPosts = await ref.watch(feedStreamProvider.future);
-  // Get user's habits
-  final myHabitsAsync = ref.watch(import_habit_providers.habitListProvider);
-  if (myHabitsAsync.value == null) return [];
   
-  final myHabitTitles = myHabitsAsync.value!.map((h) => h.title.trim().toLowerCase()).toSet();
+  final currentUserAsync = ref.watch(import_user_providers.currentUserProvider);
+  final currentUser = currentUserAsync.value;
+  if (currentUser == null) return [];
+  
+  final myHabitTitles = currentUser.followedGroups.map((g) => g.trim().toLowerCase()).toSet();
   if (myHabitTitles.isEmpty) return [];
+
+  final filterTitle = selectedGroup?.trim().toLowerCase();
 
   List<Post> filtered = [];
   for (final post in allPosts) {
@@ -34,8 +38,14 @@ final groupsFeedProvider = FutureProvider<List<Post>>((ref) async {
       final habitDoc = await FirebaseFirestore.instance.collection('habits').doc(post.habitId).get();
       if (habitDoc.exists) {
         final title = (habitDoc.data()?['title'] as String?)?.trim().toLowerCase() ?? '';
-        if (myHabitTitles.contains(title)) {
-          filtered.add(post);
+        if (filterTitle != null) {
+          if (title == filterTitle) {
+            filtered.add(post);
+          }
+        } else {
+          if (myHabitTitles.contains(title)) {
+            filtered.add(post);
+          }
         }
       }
     } catch (_) {}
