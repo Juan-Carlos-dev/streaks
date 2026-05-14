@@ -586,7 +586,7 @@ class _ProfileBody extends StatelessWidget {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => _showColorPresets(context, (color) {
+                      onTap: () => _showColorPresets(context, _parseColor(color1Controller.text), (color) {
                         color1Controller.text = _colorToHex(color);
                         setState(() {});
                       }),
@@ -622,7 +622,7 @@ class _ProfileBody extends StatelessWidget {
                 Row(
                   children: [
                     GestureDetector(
-                      onTap: () => _showColorPresets(context, (color) {
+                      onTap: () => _showColorPresets(context, _parseColor(color2Controller.text), (color) {
                         color2Controller.text = _colorToHex(color);
                         setState(() {});
                       }),
@@ -716,7 +716,7 @@ class _ProfileBody extends StatelessWidget {
     return regExp.hasMatch(hex);
   }
 
-  void _showColorPresets(BuildContext context, Function(Color) onColorSelected) {
+  void _showColorPresets(BuildContext context, Color initialColor, Function(Color) onColorSelected) {
     final colors = [
       Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
       Colors.blue, Colors.lightBlue, Colors.cyan, Colors.teal,
@@ -725,36 +725,118 @@ class _ProfileBody extends StatelessWidget {
       Colors.black, Colors.white,
     ];
 
+    double currentHue = HSVColor.fromColor(initialColor).hue;
+
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Selecciona un color'),
         content: SizedBox(
           width: double.maxFinite,
-          child: GridView.builder(
-            shrinkWrap: true,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 6,
-              crossAxisSpacing: 8,
-              mainAxisSpacing: 8,
-            ),
-            itemCount: colors.length,
-            itemBuilder: (ctx, index) {
-              final color = colors[index];
-              return GestureDetector(
-                onTap: () {
-                  onColorSelected(color);
-                  Navigator.of(ctx).pop();
-                },
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.grey[300]!, width: 1),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 6,
+                    crossAxisSpacing: 8,
+                    mainAxisSpacing: 8,
                   ),
+                  itemCount: colors.length,
+                  itemBuilder: (ctx, index) {
+                    final color = colors[index];
+                    return GestureDetector(
+                      onTap: () {
+                        onColorSelected(color);
+                        Navigator.of(ctx).pop();
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey[300]!, width: 1),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              );
-            },
+                const SizedBox(height: 24),
+                const Text(
+                  'O selecciona un tono específico:',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                const SizedBox(height: 12),
+                StatefulBuilder(
+                  builder: (ctx, setState) {
+                    final selectedColor = HSVColor.fromAHSV(1.0, currentHue, 1.0, 1.0).toColor();
+                    return Column(
+                      children: [
+                        Container(
+                          height: 20,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            gradient: const LinearGradient(
+                              colors: [
+                                Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Color(0xFFFF00FF), Colors.red,
+                              ],
+                            ),
+                          ),
+                        ),
+                        Slider(
+                          value: currentHue,
+                          min: 0.0,
+                          max: 360.0,
+                          onChanged: (val) {
+                            setState(() {
+                              currentHue = val;
+                            });
+                            onColorSelected(HSVColor.fromAHSV(1.0, val, 1.0, 1.0).toColor());
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: selectedColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.grey[300]!, width: 1),
+                          ),
+                          child: Center(
+                            child: Text(
+                              _colorToHex(selectedColor),
+                              style: TextStyle(
+                                color: selectedColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        SizedBox(
+                          width: double.infinity,
+                          child: ElevatedButton(
+                            onPressed: () {
+                              onColorSelected(selectedColor);
+                              Navigator.of(ctx).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.black,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            ),
+                            child: const Text('Confirmar este color'),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ),
       ),
