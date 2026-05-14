@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
@@ -769,71 +770,29 @@ class _ProfileBody extends StatelessWidget {
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                 ),
                 const SizedBox(height: 12),
-                StatefulBuilder(
-                  builder: (ctx, setState) {
-                    final selectedColor = HSVColor.fromAHSV(1.0, currentHue, 1.0, 1.0).toColor();
-                    return Column(
-                      children: [
-                        Container(
-                          height: 20,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            gradient: const LinearGradient(
-                              colors: [
-                                Colors.red, Colors.yellow, Colors.green, Colors.cyan, Colors.blue, Color(0xFFFF00FF), Colors.red,
-                              ],
-                            ),
-                          ),
-                        ),
-                        Slider(
-                          value: currentHue,
-                          min: 0.0,
-                          max: 360.0,
-                          onChanged: (val) {
-                            setState(() {
-                              currentHue = val;
-                            });
-                            onColorSelected(HSVColor.fromAHSV(1.0, val, 1.0, 1.0).toColor());
-                          },
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: double.infinity,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: selectedColor,
-                            borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: Colors.grey[300]!, width: 1),
-                          ),
-                          child: Center(
-                            child: Text(
-                              _colorToHex(selectedColor),
-                              style: TextStyle(
-                                color: selectedColor.computeLuminance() > 0.5 ? Colors.black : Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              onColorSelected(selectedColor);
-                              Navigator.of(ctx).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.black,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                            ),
-                            child: const Text('Confirmar este color'),
-                          ),
-                        ),
-                      ],
-                    );
-                  },
+                ColorPicker(
+                  pickerColor: initialColor,
+                  onColorChanged: onColorSelected,
+                  pickerAreaHeightPercent: 0.7,
+                  enableAlpha: false,
+                  displayThumbColor: true,
+                  paletteType: PaletteType.hsvWithHue,
+                  labelTypes: const [],
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(ctx).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    ),
+                    child: const Text('Confirmar este color'),
+                  ),
                 ),
               ],
             ),
