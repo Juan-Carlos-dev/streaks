@@ -19,7 +19,7 @@ class SearchView extends ConsumerWidget {
       backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          const _FloatingBubblesBackground(),
+          if (query.isEmpty) const _FloatingBubblesBackground(),
           SafeArea(
             child: Column(
           children: [
@@ -267,51 +267,62 @@ class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBack
       data: (users) {
         if (users.isEmpty) return const SizedBox.shrink();
         
-        return Stack(
-          children: List.generate(_controllers.length, (index) {
-            final user = users[index % users.length];
-            return AnimatedBuilder(
-              animation: _animations[index],
-              builder: (context, child) {
-                return Positioned(
-                  left: _randomXs[index] * size.width,
-                  top: _animations[index].value * size.height,
-                  child: Opacity(
-                    opacity: 0.4,
-                    child: GestureDetector(
-                      onTap: () {
-                        context.go('/home/user/${user.uid}');
-                      },
-                      child: Container(
-                        width: _randomSizes[index],
-                        height: _randomSizes[index],
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(color: Colors.white24, width: 2),
-                        ),
-                        child: ClipOval(
-                          child: user.photoUrl.isNotEmpty
-                              ? CachedNetworkImage(
-                                  imageUrl: ImageUtils.wrapProxy(user.photoUrl),
-                                  fit: BoxFit.cover,
-                                )
-                              : Container(
-                                  color: AppColors.surface,
-                                  child: Center(
-                                    child: Text(
-                                      user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
-                                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        return ShaderMask(
+          shaderCallback: (bounds) {
+            return const LinearGradient(
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              colors: [Colors.white, Colors.transparent],
+              stops: [0.3, 0.6],
+            ).createShader(bounds);
+          },
+          blendMode: BlendMode.dstIn,
+          child: Stack(
+            children: List.generate(_controllers.length, (index) {
+              final user = users[index % users.length];
+              return AnimatedBuilder(
+                animation: _animations[index],
+                builder: (context, child) {
+                  return Positioned(
+                    left: _randomXs[index] * size.width,
+                    top: _animations[index].value * size.height,
+                    child: Opacity(
+                      opacity: 0.4,
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/user/${user.uid}');
+                        },
+                        child: Container(
+                          width: _randomSizes[index],
+                          height: _randomSizes[index],
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24, width: 2),
+                          ),
+                          child: ClipOval(
+                            child: user.photoUrl.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: ImageUtils.wrapProxy(user.photoUrl),
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: AppColors.surface,
+                                    child: Center(
+                                      child: Text(
+                                        user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
+                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                                      ),
                                     ),
                                   ),
-                                ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
-            );
-          }),
+                  );
+                },
+              );
+            }),
+          ),
         );
       },
       loading: () => const SizedBox.shrink(),
