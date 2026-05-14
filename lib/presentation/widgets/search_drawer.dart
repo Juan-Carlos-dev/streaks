@@ -70,8 +70,6 @@ class SearchView extends ConsumerWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         onTap: () {
-                          // Close drawer
-                          Navigator.of(context).pop();
                           // Navigate to user profile
                           context.go('/home/user/${user.uid}');
                         },
