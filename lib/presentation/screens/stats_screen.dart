@@ -38,18 +38,8 @@ class StatsScreen extends ConsumerWidget {
               const SizedBox(height: 28),
 
               // ── Cards Container ──────────────────────────────────────────
-              Container(
-                constraints: BoxConstraints(
-                  minHeight: MediaQuery.of(context).size.height - 300,
-                ),
-                decoration: const BoxDecoration(
-                  color: Color(0xFFF5F5F5), // Light grey background
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(30),
-                    topRight: Radius.circular(30),
-                  ),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Column(
                   children: [
                     // Stats card
@@ -81,7 +71,8 @@ class StatsScreen extends ConsumerWidget {
                       error: (_, __) => const SizedBox.shrink(),
                     ),
 
-                    const SizedBox(height: 32),
+                    // Padding for the floating bottom navigation bar
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
