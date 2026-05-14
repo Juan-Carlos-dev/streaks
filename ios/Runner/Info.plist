@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSContactsUsageDescription</key>
+	<string>Streaks quiere acceder a tus contactos para sugerirte amigos que ya usan la app.</string>
 </dict>
 </plist>

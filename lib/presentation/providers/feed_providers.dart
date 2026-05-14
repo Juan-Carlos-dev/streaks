@@ -20,6 +20,40 @@ final feedStreamProvider = StreamProvider<List<Post>>((ref) {
   return repository.getFeedPosts();
 });
 
+// List of UIDs the current user is following
+final followingUidsProvider = StreamProvider<List<String>>((ref) {
+  final currentUid = ref.watch(import_user_providers.currentUserProvider).value?.uid;
+  if (currentUid == null) return Stream.value([]);
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(currentUid)
+      .collection('following')
+      .snapshots()
+      .map((snap) => snap.docs.map((d) => d.id).toList());
+});
+
+// Posts only from followed users
+final followingFeedProvider = StreamProvider<List<Post>>((ref) {
+  final followedUids = ref.watch(followingUidsProvider).value;
+  if (followedUids == null || followedUids.isEmpty) return Stream.value([]);
+
+  final allPostsStream = ref.watch(postRepositoryProvider).getFeedPosts();
+  return allPostsStream.map((posts) => posts.where((p) => followedUids.contains(p.userId)).toList());
+});
+
+// Suggested users (any user except self, not already followed)
+final suggestedUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final currentUid = ref.watch(import_user_providers.currentUserProvider).value?.uid;
+  final followedUids = ref.watch(followingUidsProvider).value ?? [];
+  if (currentUid == null) return [];
+
+  final snap = await FirebaseFirestore.instance.collection('users').limit(20).get();
+  return snap.docs
+      .where((d) => d.id != currentUid && !followedUids.contains(d.id))
+      .map((d) => {'uid': d.id, ...d.data()})
+      .toList();
+});
+
 final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, selectedGroup) async {
   final allPosts = await ref.watch(feedStreamProvider.future);
   

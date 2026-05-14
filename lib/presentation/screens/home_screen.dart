@@ -11,8 +11,11 @@ import '../providers/feed_providers.dart';
 import '../providers/user_providers.dart';
 import '../providers/habit_providers.dart';
 import '../providers/auth_providers.dart';
+import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
+import 'package:flutter_contacts/flutter_contacts.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -30,11 +33,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final topPadding = MediaQuery.of(context).padding.top;
     final glassBarHeight = topPadding + 64; // Approx height of top bar
     
-    final feedAsync = _selectedTab == 0 ? ref.watch(feedStreamProvider) : ref.watch(groupsFeedProvider(_selectedGroupFilter));
+    final feedAsync = _selectedTab == 0
+        ? ref.watch(followingFeedProvider)
+        : ref.watch(groupsFeedProvider(_selectedGroupFilter));
+    final followingUids = ref.watch(followingUidsProvider).value;
     final currentUserAsync = ref.watch(currentUserProvider);
     final currentUser = currentUserAsync.value;
 
     final bool showGroupSelection = _selectedTab == 1 && currentUser != null && currentUser.followedGroups.isEmpty;
+    // Show suggestions if following nobody in the Siguiendo tab
+    final bool showFollowingSuggestions = _selectedTab == 0 && followingUids != null && followingUids.isEmpty;
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -45,7 +53,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             bottom: false,
             child: showGroupSelection
                 ? _GroupSelectionView(currentUser: currentUser!)
-                : feedAsync.when(
+                : showFollowingSuggestions
+                    ? _EmptySuggestionsView()
+                    : feedAsync.when(
               data: (posts) {
                 if (posts.isEmpty) return _EmptyFeed();
                 return RefreshIndicator(
@@ -541,6 +551,238 @@ class _UserAvatar extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Empty Siguiendo → Show suggestions + contacts request
+// ─────────────────────────────────────────────────────────────────────────────
+
+class _EmptySuggestionsView extends ConsumerStatefulWidget {
+  const _EmptySuggestionsView();
+
+  @override
+  ConsumerState<_EmptySuggestionsView> createState() => _EmptySuggestionsViewState();
+}
+
+class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
+    with SingleTickerProviderStateMixin {
+  bool _contactsPermissionRequested = false;
+  bool _contactsGranted = false;
+  List<String> _contactPhones = [];
+  late AnimationController _animController;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 900),
+    )..forward();
+    _requestContacts();
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _requestContacts() async {
+    final status = await Permission.contacts.request();
+    if (status.isGranted) {
+      final contacts = await FlutterContacts.getContacts(withProperties: true);
+      final phones = contacts
+          .expand((c) => c.phones.map((p) => p.number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '')))
+          .toSet()
+          .toList();
+      if (mounted) setState(() { _contactsGranted = true; _contactPhones = phones; });
+    } else {
+      if (mounted) setState(() => _contactsPermissionRequested = true);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final suggestedAsync = ref.watch(suggestedUsersProvider);
+    final currentUid = ref.watch(authStateProvider).value;
+
+    return ListView(
+      padding: const EdgeInsets.only(top: 80, bottom: 120, left: 16, right: 16),
+      children: [
+        // ── Header ───────────────────────────────────────────────────
+        FadeTransition(
+          opacity: CurvedAnimation(parent: _animController, curve: const Interval(0.0, 0.5, curve: Curves.easeOut)),
+          child: SlideTransition(
+            position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
+                .animate(CurvedAnimation(parent: _animController, curve: const Interval(0.0, 0.5, curve: Curves.easeOut))),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 12),
+                const Text(
+                  'Aún no sigues a nadie 👋',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  'Sigue a personas y verás sus publicaciones aquí.',
+                  style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                ),
+                const SizedBox(height: 28),
+
+                // ── Contacts banner ────────────────────────────────────
+                if (!_contactsGranted)
+                  GestureDetector(
+                    onTap: _requestContacts,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.blueGradient,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.contacts_rounded, color: Colors.white, size: 28),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: const [
+                                Text('Encuentra amigos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                                SizedBox(height: 2),
+                                Text('Conecta con personas de tus contactos que ya usan Streaks', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white, size: 16),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (_contactsGranted)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.green.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green.withOpacity(0.4)),
+                    ),
+                    child: Row(children: const [
+                      Icon(Icons.check_circle_rounded, color: Colors.green, size: 18),
+                      SizedBox(width: 8),
+                      Text('Contactos sincronizados', style: TextStyle(color: Colors.green, fontSize: 13)),
+                    ]),
+                  ),
+                const SizedBox(height: 28),
+                const Text(
+                  'Personas que podrías conocer',
+                  style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: Colors.white),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
+          ),
+        ),
+
+        // ── Suggested user cards ──────────────────────────────────────
+        ...suggestedAsync.when(
+          data: (users) => List.generate(users.length, (index) {
+            final u = users[index];
+            final uid = u['uid'] as String;
+            final username = (u['username'] ?? 'Usuario') as String;
+            final photoUrl = (u['photoUrl'] ?? '') as String;
+            final gradientIndex = ((u['profileGradientIndex'] ?? 0) as int)
+                .clamp(0, AppColors.profileGradients.length - 1);
+
+            final delay = index * 0.07;
+            final cardAnim = CurvedAnimation(
+              parent: _animController,
+              curve: Interval(delay.clamp(0.0, 1.0), (delay + 0.5).clamp(0.0, 1.0), curve: Curves.easeOutCubic),
+            );
+
+            return FadeTransition(
+              opacity: cardAnim,
+              child: SlideTransition(
+                position: Tween<Offset>(begin: const Offset(0.15, 0), end: Offset.zero).animate(cardAnim),
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: Colors.white.withOpacity(0.05)),
+                  ),
+                  child: Row(
+                    children: [
+                      // Avatar
+                      photoUrl.isNotEmpty
+                          ? CircleAvatar(radius: 24, backgroundImage: NetworkImage(photoUrl))
+                          : Container(
+                              width: 48, height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: AppColors.profileGradients[gradientIndex],
+                                  begin: Alignment.topLeft, end: Alignment.bottomRight,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  username.isNotEmpty ? username[0].toUpperCase() : 'U',
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                                ),
+                              ),
+                            ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15)),
+                            Text('Streaks user', style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
+                          ],
+                        ),
+                      ),
+                      // Follow button
+                      Consumer(builder: (context, ref, _) {
+                        final isFollowingAsync = ref.watch(isFollowingProvider(uid));
+                        final isFollowing = isFollowingAsync.value ?? false;
+                        return GestureDetector(
+                          onTap: () async {
+                            await ref.read(followControllerProvider(uid).notifier).toggle();
+                          },
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 250),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                            decoration: BoxDecoration(
+                              gradient: isFollowing ? null : AppColors.blueGradient,
+                              color: isFollowing ? AppColors.surface : null,
+                              borderRadius: BorderRadius.circular(20),
+                              border: isFollowing ? Border.all(color: Colors.white.withOpacity(0.15)) : null,
+                            ),
+                            child: Text(
+                              isFollowing ? 'Siguiendo' : 'Seguir',
+                              style: TextStyle(
+                                color: isFollowing ? AppColors.textSecondary : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }),
+          loading: () => [const Center(child: CircularProgressIndicator())],
+          error: (_, __) => [],
+        ),
+      ],
     );
   }
 }
