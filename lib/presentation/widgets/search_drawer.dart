@@ -1,0 +1,127 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../core/constants/app_colors.dart';
+import '../../core/utils/image_utils.dart';
+import '../../domain/entities/user.dart';
+import '../providers/search_providers.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:go_router/go_router.dart';
+
+class SearchDrawer extends ConsumerWidget {
+  const SearchDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = ref.watch(searchQueryProvider);
+    final resultsAsync = ref.watch(searchResultsProvider);
+
+    return Drawer(
+      backgroundColor: AppColors.background,
+      child: SafeArea(
+        child: Column(
+          children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                onChanged: (val) => ref.read(searchQueryProvider.notifier).state = val,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Buscar usuarios...',
+                  hintStyle: const TextStyle(color: Colors.white38),
+                  prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                  filled: true,
+                  fillColor: AppColors.surface,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+              ),
+            ),
+            
+            // Results
+            Expanded(
+              child: resultsAsync.when(
+                data: (users) {
+                  if (users.isEmpty) {
+                    return Center(
+                      child: Text(
+                        query.isEmpty ? 'Escribe para buscar' : 'No se encontraron usuarios',
+                        style: const TextStyle(color: Colors.white38),
+                      ),
+                    );
+                  }
+                  return ListView.builder(
+                    itemCount: users.length,
+                    itemBuilder: (context, index) {
+                      final user = users[index];
+                      return ListTile(
+                        leading: _UserAvatar(user: user),
+                        title: Text(
+                          user.username,
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          user.bio.isNotEmpty ? user.bio : 'Sin descripción',
+                          style: const TextStyle(color: Colors.white54, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () {
+                          // Close drawer
+                          Navigator.of(context).pop();
+                          // Navigate to user profile
+                          context.go('/home/user/${user.uid}');
+                        },
+                      );
+                    },
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.red))),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _UserAvatar extends StatelessWidget {
+  final User user;
+  const _UserAvatar({required this.user});
+
+  @override
+  Widget build(BuildContext context) {
+    if (user.photoUrl.isNotEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundImage: CachedNetworkImageProvider(ImageUtils.wrapProxy(user.photoUrl)),
+      );
+    }
+    final gradientIndex = (user.profileGradientIndex)
+        .clamp(0, AppColors.profileGradients.length - 1);
+    final colors = AppColors.profileGradients[gradientIndex];
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: colors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+      ),
+    );
+  }
+}

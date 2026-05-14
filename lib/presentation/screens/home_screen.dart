@@ -14,6 +14,7 @@ import '../providers/auth_providers.dart';
 import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
+import '../widgets/search_drawer.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -44,6 +45,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
+      drawer: const SearchDrawer(),
       body: Stack(
         children: [
           // ── Feed (full screen, scrolls behind the bar) ────────────────
