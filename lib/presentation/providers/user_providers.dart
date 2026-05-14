@@ -34,6 +34,12 @@ final gradientControllerProvider = Provider<void>((ref) {
           Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
         ],
       );
+    } else {
+      AppColors.blueGradient = const LinearGradient(
+        begin: Alignment.centerLeft,
+        end: Alignment.centerRight,
+        colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],
+      );
     }
   });
 });
