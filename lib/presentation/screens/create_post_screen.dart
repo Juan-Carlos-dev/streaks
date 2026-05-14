@@ -140,10 +140,21 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             const SizedBox(height: 8),
             habitsAsync.when(
               data: (habits) {
-                if (habits.isEmpty) {
-                  return const Text('No tienes hábitos creados',
+                final today = DateTime.now();
+                final dateKey = '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+                
+                final completedHabits = habits.where((h) => h.completedDates.containsKey(dateKey)).toList();
+
+                if (completedHabits.isEmpty) {
+                  return const Text('No tienes hábitos completados hoy para compartir',
                       style: TextStyle(color: AppColors.textHint));
                 }
+                
+                // Validar que el hábito seleccionado sigue existiendo en la lista filtrada
+                if (_selectedHabit != null && !completedHabits.any((h) => h.id == _selectedHabit!.id)) {
+                  _selectedHabit = null;
+                }
+
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   decoration: BoxDecoration(
@@ -155,9 +166,9 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
                       value: _selectedHabit,
                       isExpanded: true,
                       dropdownColor: AppColors.surface,
-                      hint: const Text('Selecciona un hábito',
+                      hint: const Text('Selecciona un hábito completado hoy',
                           style: TextStyle(color: AppColors.textHint)),
-                      items: habits.map((h) {
+                      items: completedHabits.map((h) {
                         return DropdownMenuItem(
                           value: h,
                           child: Text(h.title,
