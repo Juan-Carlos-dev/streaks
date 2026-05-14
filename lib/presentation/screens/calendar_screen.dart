@@ -480,6 +480,7 @@ class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMi
           child: _isDeleteMode ? _buildDeleteMode() : _buildNormalMode(),
         ),
       ),
+      ),
     );
   }
 
