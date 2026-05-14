@@ -6,6 +6,7 @@ import '../../domain/entities/user.dart';
 import '../providers/search_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:math';
 
 class SearchView extends ConsumerWidget {
   const SearchView({super.key});
@@ -236,7 +237,7 @@ class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBack
     _controllers = List.generate(8, (index) {
       return AnimationController(
         vsync: this,
-        duration: Duration(seconds: 5 + (index % 3) * 2),
+        duration: Duration(seconds: 8 + (index % 3) * 3),
       )..repeat();
     });
 
@@ -246,7 +247,7 @@ class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBack
       );
     }).toList();
 
-    _randomXs = List.generate(8, (index) => 0.05 + (index * 0.11));
+    _randomXs = List.generate(8, (index) => 0.1 + (index * 0.1));
     _randomSizes = List.generate(8, (index) => 40.0 + (index % 3) * 15.0);
   }
 
@@ -278,13 +279,14 @@ class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBack
           },
           blendMode: BlendMode.dstIn,
           child: Stack(
-            children: List.generate(_controllers.length, (index) {
-              final user = users[index % users.length];
+            children: List.generate(min(users.length, _controllers.length), (index) {
+              final user = users[index];
               return AnimatedBuilder(
                 animation: _animations[index],
                 builder: (context, child) {
+                  final wave = sin(_animations[index].value * 3 * pi) * 25;
                   return Positioned(
-                    left: _randomXs[index] * size.width,
+                    left: (_randomXs[index] * size.width) + wave,
                     top: _animations[index].value * size.height,
                     child: Opacity(
                       opacity: 0.4,
