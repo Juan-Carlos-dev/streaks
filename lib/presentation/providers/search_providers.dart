@@ -73,3 +73,34 @@ final saveSearchHistoryProvider = Provider((ref) => (String searchedUid) async {
   
   ref.invalidate(recentUsersProvider);
 });
+
+final clearSearchHistoryProvider = Provider((ref) => () async {
+  final authUid = ref.read(authStateProvider).value;
+  if (authUid == null) return;
+
+  final userDoc = FirebaseFirestore.instance.collection('users').doc(authUid);
+  await userDoc.update({'recentSearches': []});
+  
+  ref.invalidate(recentUsersProvider);
+});
+
+final removeSearchHistoryItemProvider = Provider((ref) => (String targetUid) async {
+  final authUid = ref.read(authStateProvider).value;
+  if (authUid == null) return;
+
+  final userDoc = FirebaseFirestore.instance.collection('users').doc(authUid);
+  
+  await FirebaseFirestore.instance.runTransaction((transaction) async {
+    final snapshot = await transaction.get(userDoc);
+    if (!snapshot.exists) return;
+    
+    final data = snapshot.data()!;
+    final recentSearches = List<String>.from(data['recentSearches'] ?? []);
+    
+    recentSearches.remove(targetUid);
+    
+    transaction.update(userDoc, {'recentSearches': recentSearches});
+  });
+  
+  ref.invalidate(recentUsersProvider);
+});

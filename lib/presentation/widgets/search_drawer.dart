@@ -147,11 +147,30 @@ class _SearchHistoryView extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 12),
-              child: Text(
-                'Recientes',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Recientes',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      ref.read(clearSearchHistoryProvider)();
+                    },
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.zero,
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: const Text(
+                      'Borrar todo',
+                      style: TextStyle(color: AppColors.primary, fontSize: 14, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
               ),
             ),
             Expanded(
@@ -170,6 +189,12 @@ class _SearchHistoryView extends ConsumerWidget {
                       style: const TextStyle(color: Colors.white54, fontSize: 12),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
+                    ),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white38, size: 18),
+                      onPressed: () {
+                        ref.read(removeSearchHistoryItemProvider)(user.uid);
+                      },
                     ),
                     onTap: () {
                       context.go('/home/user/${user.uid}');
