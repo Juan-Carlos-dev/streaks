@@ -218,51 +218,12 @@ class _SearchHistoryView extends ConsumerWidget {
   }
 }
 
-class _FloatingBubblesBackground extends ConsumerStatefulWidget {
+class _FloatingBubblesBackground extends ConsumerWidget {
   const _FloatingBubblesBackground();
 
   @override
-  ConsumerState<_FloatingBubblesBackground> createState() => _FloatingBubblesBackgroundState();
-}
-
-class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBackground> with TickerProviderStateMixin {
-  late List<AnimationController> _controllers;
-  late List<Animation<double>> _animations;
-  late List<double> _randomXs;
-  late List<double> _randomSizes;
-
-  @override
-  void initState() {
-    super.initState();
-    _controllers = List.generate(8, (index) {
-      return AnimationController(
-        vsync: this,
-        duration: Duration(seconds: 8 + (index % 3) * 3),
-      )..repeat();
-    });
-
-    _animations = _controllers.map((controller) {
-      return Tween<double>(begin: 1.2, end: -0.2).animate(
-        CurvedAnimation(parent: controller, curve: Curves.linear),
-      );
-    }).toList();
-
-    _randomXs = List.generate(8, (index) => 0.1 + (index * 0.1));
-    _randomSizes = List.generate(8, (index) => 40.0 + (index % 3) * 15.0);
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final suggestedUsersAsync = ref.watch(suggestedUsersProvider);
-    final size = MediaQuery.of(context).size;
 
     return suggestedUsersAsync.when(
       data: (users) {
@@ -279,56 +240,118 @@ class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBack
           },
           blendMode: BlendMode.dstIn,
           child: Stack(
-            children: List.generate(min(users.length, _controllers.length), (index) {
-              final user = users[index];
-              return AnimatedBuilder(
-                animation: _animations[index],
-                builder: (context, child) {
-                  final wave = sin(_animations[index].value * 3 * pi) * 25;
-                  return Positioned(
-                    left: (_randomXs[index] * size.width) + wave,
-                    top: _animations[index].value * size.height,
-                    child: Opacity(
-                      opacity: 0.4,
-                      child: GestureDetector(
-                        onTap: () {
-                          context.go('/home/user/${user.uid}');
-                        },
-                        child: Container(
-                          width: _randomSizes[index],
-                          height: _randomSizes[index],
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white24, width: 2),
-                          ),
-                          child: ClipOval(
-                            child: user.photoUrl.isNotEmpty
-                                ? CachedNetworkImage(
-                                    imageUrl: ImageUtils.wrapProxy(user.photoUrl),
-                                    fit: BoxFit.cover,
-                                  )
-                                : Container(
-                                    color: AppColors.surface,
-                                    child: Center(
-                                      child: Text(
-                                        user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
-                                        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                                      ),
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              );
+            children: List.generate(min(users.length, 8), (index) {
+              return _FloatingBubble(user: users[index]);
             }),
           ),
         );
       },
       loading: () => const SizedBox.shrink(),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _FloatingBubble extends StatefulWidget {
+  final User user;
+  const _FloatingBubble({required this.user});
+
+  @override
+  State<_FloatingBubble> createState() => _FloatingBubbleState();
+}
+
+class _FloatingBubbleState extends State<_FloatingBubble> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  late double _randomX;
+  late double _size;
+  late double _waveAmplitude;
+  late double _waveFrequency;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+    );
+    
+    _animation = Tween<double>(begin: 1.2, end: -0.2).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.linear),
+    );
+
+    _randomize();
+
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        _randomize();
+        _controller.forward(from: 0.0);
+      }
+    });
+
+    _controller.forward();
+  }
+
+  void _randomize() {
+    final rand = Random();
+    _randomX = 0.05 + rand.nextDouble() * 0.9; // 5% to 95% of width
+    _size = 35.0 + rand.nextDouble() * 30.0; // 35 to 65
+    _waveAmplitude = 10.0 + rand.nextDouble() * 25.0; // 10 to 35
+    _waveFrequency = 2.0 + rand.nextDouble() * 2.0; // 2 to 4 waves
+    _controller.duration = Duration(seconds: 8 + rand.nextInt(7)); // 8 to 15 seconds
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    final user = widget.user;
+
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final wave = sin(_animation.value * _waveFrequency * pi) * _waveAmplitude;
+        return Positioned(
+          left: (_randomX * size.width) + wave,
+          top: _animation.value * size.height,
+          child: Opacity(
+            opacity: 0.4,
+            child: GestureDetector(
+              onTap: () {
+                context.go('/home/user/${user.uid}');
+              },
+              child: Container(
+                width: _size,
+                height: _size,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white24, width: 2),
+                ),
+                child: ClipOval(
+                  child: user.photoUrl.isNotEmpty
+                      ? CachedNetworkImage(
+                          imageUrl: ImageUtils.wrapProxy(user.photoUrl),
+                          fit: BoxFit.cover,
+                        )
+                      : Container(
+                          color: AppColors.surface,
+                          child: Center(
+                            child: Text(
+                              user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: _size * 0.4),
+                            ),
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
