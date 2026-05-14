@@ -614,7 +614,7 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
     final currentUid = ref.watch(authStateProvider).value;
 
     return ListView(
-      padding: const EdgeInsets.only(top: 80, bottom: 120, left: 16, right: 16),
+      padding: const EdgeInsets.only(top: 60, bottom: 120, left: 16, right: 16),
       children: [
         // ── Header ───────────────────────────────────────────────────
         FadeTransition(
@@ -623,19 +623,23 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
             position: Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero)
                 .animate(CurvedAnimation(parent: _animController, curve: const Interval(0.0, 0.5, curve: Curves.easeOut))),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const SizedBox(height: 12),
+                const SizedBox(height: 20),
+                Icon(Icons.people_outline_rounded, size: 54, color: Colors.grey[700]),
+                const SizedBox(height: 16),
                 const Text(
-                  'Aún no sigues a nadie 👋',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                  'Aún no sigues a nadie',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 8),
                 const Text(
                   'Sigue a personas y verás sus publicaciones aquí.',
-                  style: TextStyle(fontSize: 15, color: AppColors.textSecondary),
+                  style: TextStyle(fontSize: 14, color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 32),
 
                 // ── Contacts banner ────────────────────────────────────
                 if (!_contactsGranted)
