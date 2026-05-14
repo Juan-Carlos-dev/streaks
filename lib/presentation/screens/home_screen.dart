@@ -27,6 +27,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final topPadding = MediaQuery.of(context).padding.top;
+    final glassBarHeight = topPadding + 64; // Approx height of top bar
+    
     final feedAsync = _selectedTab == 0 ? ref.watch(feedStreamProvider) : ref.watch(groupsFeedProvider(_selectedGroupFilter));
     final currentUserAsync = ref.watch(currentUserProvider);
     final currentUser = currentUserAsync.value;
@@ -60,7 +63,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     await Future.delayed(const Duration(milliseconds: 800));
                   },
                   child: ListView.builder(
-                    padding: EdgeInsets.only(top: _selectedTab == 1 ? 140 : 72, bottom: 120),
+                    padding: EdgeInsets.only(
+                      top: _selectedTab == 1 ? glassBarHeight + 56 : glassBarHeight + 8,
+                      bottom: 120
+                    ),
                     physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: posts.length + 1,
                     itemBuilder: (context, index) {
@@ -104,7 +110,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // ── Group Filters (horizontal chips below top bar) ───────────────
           if (_selectedTab == 1 && !showGroupSelection && currentUser != null)
             Positioned(
-              top: 100,
+              top: glassBarHeight + 8,
               left: 0,
               right: 0,
               child: SizedBox(
