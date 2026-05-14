@@ -274,21 +274,6 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           habit: filtered[index],
                           selectedDate: _selectedDate,
                           onComplete: () {
-                            final today = DateTime.now();
-                            final selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
-                            final todayDateOnly = DateTime(today.year, today.month, today.day);
-                            
-                            if (selectedDateOnly.isAfter(todayDateOnly)) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('No puedes completar hábitos de un día futuro'),
-                                  backgroundColor: Colors.redAccent,
-                                  duration: Duration(seconds: 2),
-                                ),
-                              );
-                              return;
-                            }
-
                             ref
                                 .read(habitControllerProvider.notifier)
                                 .toggleHabitCompletion(filtered[index].id, _selectedDate);
@@ -434,10 +419,13 @@ class _HabitTile extends StatefulWidget {
   State<_HabitTile> createState() => _HabitTileState();
 }
 
-class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMixin {
+class _HabitTileState extends State<_HabitTile> with TickerProviderStateMixin {
   bool _isDeleteMode = false;
   late AnimationController _popController;
   late Animation<double> _scaleAnimation;
+  
+  late AnimationController _shakeController;
+  late Animation<double> _shakeAnimation;
 
   @override
   void initState() {
@@ -450,11 +438,24 @@ class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMi
       TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.15).chain(CurveTween(curve: Curves.easeOut)), weight: 40),
       TweenSequenceItem(tween: Tween(begin: 1.15, end: 0.0).chain(CurveTween(curve: Curves.easeIn)), weight: 60),
     ]).animate(_popController);
+    
+    _shakeController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: 8.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -8.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 8.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 8.0, end: -8.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -8.0, end: 0.0), weight: 1),
+    ]).animate(CurvedAnimation(parent: _shakeController, curve: Curves.easeInOut));
   }
 
   @override
   void dispose() {
     _popController.dispose();
+    _shakeController.dispose();
     super.dispose();
   }
 
@@ -463,11 +464,39 @@ class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMi
     widget.onDelete();
   }
 
+  void _handleComplete() {
+    final today = DateTime.now();
+    final selectedDateOnly = DateTime(widget.selectedDate.year, widget.selectedDate.month, widget.selectedDate.day);
+    final todayDateOnly = DateTime(today.year, today.month, today.day);
+
+    if (selectedDateOnly.isAfter(todayDateOnly)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No puedes completar hábitos de un día futuro'),
+          backgroundColor: Colors.redAccent,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      _shakeController.forward(from: 0.0);
+      return;
+    }
+    
+    widget.onComplete();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return ScaleTransition(
-      scale: _scaleAnimation,
-      child: GestureDetector(
+    return AnimatedBuilder(
+      animation: _shakeAnimation,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(_shakeAnimation.value, 0),
+          child: child,
+        );
+      },
+      child: ScaleTransition(
+        scale: _scaleAnimation,
+        child: GestureDetector(
       onLongPress: () {
         setState(() {
           _isDeleteMode = true;
@@ -610,7 +639,7 @@ class _HabitTileState extends State<_HabitTile> with SingleTickerProviderStateMi
           ),
         ),
         GestureDetector(
-          onTap: widget.onComplete,
+          onTap: _handleComplete,
           child: Container(
             width: 40,
             height: 40,
