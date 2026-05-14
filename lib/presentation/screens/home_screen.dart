@@ -41,6 +41,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 return RefreshIndicator(
                   backgroundColor: AppColors.surface,
                   color: AppColors.primary,
+                  edgeOffset: 90, // Desplaza el indicador hacia abajo para que no quede detrás del header
                   onRefresh: () async {
                     // Refresca el provider del feed
                     ref.invalidate(feedStreamProvider);
