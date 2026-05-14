@@ -180,15 +180,18 @@ class _ProfileBody extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  (user?.username.isNotEmpty == true) ? user!.username : 'Usuario',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                Expanded(
+                  child: Text(
+                    (user?.username.isNotEmpty == true) ? user!.username : 'Usuario',
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 16),
                 _StatPair(
                   value: _formatCount(user?.stats.followersCount ?? 0),
                   label: 'Seguidores',

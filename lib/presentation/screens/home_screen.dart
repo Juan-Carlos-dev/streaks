@@ -320,6 +320,7 @@ class _PostCardState extends ConsumerState<_PostCard> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userByIdProvider(widget.post.userId));
+    debugPrint('PostCard build - Image URL: ${widget.post.imageUrl}');
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

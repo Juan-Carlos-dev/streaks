@@ -111,11 +111,14 @@ class _UserProfileBody extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Text(
-                  (user?.username.isNotEmpty == true) ? user!.username : 'Usuario',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                Expanded(
+                  child: Text(
+                    (user?.username.isNotEmpty == true) ? user!.username : 'Usuario',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 16),
                 _LiveStatPair(uid: user?.uid ?? '', label: 'Seguidores', isFollowers: true),
                 const SizedBox(width: 24),
                 _LiveStatPair(uid: user?.uid ?? '', label: 'Siguiendo', isFollowers: false),
