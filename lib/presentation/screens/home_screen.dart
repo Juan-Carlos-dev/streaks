@@ -15,7 +15,6 @@ import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
-import 'package:permission_handler/permission_handler.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -591,8 +590,9 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
 
   Future<void> _requestContacts() async {
     try {
-      final status = await Permission.contacts.request();
-      if (status.isGranted) {
+      // flutter_contacts handles the permission dialog natively on iOS & Android
+      final granted = await FlutterContacts.requestPermission();
+      if (granted) {
         final contacts = await FlutterContacts.getContacts(withProperties: true);
         final phones = contacts
             .expand((c) => c.phones.map((p) => p.number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '')))
@@ -602,8 +602,8 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
       } else {
         if (mounted) setState(() => _contactsPermissionRequested = true);
       }
-    } catch (_) {
-      // Plugin not available yet (needs full rebuild) — fail silently
+    } catch (e) {
+      debugPrint('Contacts error: $e');
       if (mounted) setState(() => _contactsPermissionRequested = true);
     }
   }
