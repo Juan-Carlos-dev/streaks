@@ -22,24 +22,30 @@ final userByIdProvider =
   return ref.watch(userRepositoryProvider).getUserStream(userId);
 });
 
-final gradientControllerProvider = Provider<void>((ref) {
+final gradientControllerProvider = Provider<List<String>>((ref) {
   final userAsync = ref.watch(currentUserProvider);
-  userAsync.whenData((user) {
-    if (user != null && user.customGradient.length == 2) {
-      AppColors.blueGradient = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
-          Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
-        ],
-      );
-    } else {
-      AppColors.blueGradient = const LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],
-      );
-    }
-  });
+  return userAsync.when(
+    data: (user) {
+      if (user != null && user.customGradient.length == 2) {
+        AppColors.blueGradient = LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [
+            Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
+            Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
+          ],
+        );
+        return user.customGradient;
+      } else {
+        AppColors.blueGradient = const LinearGradient(
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+          colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],
+        );
+        return [];
+      }
+    },
+    loading: () => [],
+    error: (_, __) => [],
+  );
 });
