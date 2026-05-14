@@ -16,36 +16,32 @@ class StatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: CustomScrollView(
-          slivers: [
-            SliverToBoxAdapter(
-              child: Column(
-                children: [
-                  const SizedBox(height: 24),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 24),
 
-                  // ── Streak hero ──────────────────────────────────────────────
-                  userAsync.when(
-                    data: (user) {
-                      final streak = user?.stats.currentGlobalStreak ?? 0;
-                      final name = user?.username ?? '';
-                      return _StreakHero(streak: streak, username: name);
-                    },
-                    loading: () => const SizedBox(
-                      height: 120,
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                    error: (_, __) => const SizedBox.shrink(),
-                  ),
-
-                  const SizedBox(height: 28),
-                ],
+              // ── Streak hero ──────────────────────────────────────────────
+              userAsync.when(
+                data: (user) {
+                  final streak = user?.stats.currentGlobalStreak ?? 0;
+                  final name = user?.username ?? '';
+                  return _StreakHero(streak: streak, username: name);
+                },
+                loading: () => const SizedBox(
+                  height: 120,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, __) => const SizedBox.shrink(),
               ),
-            ),
 
-            // ── Cards Container ──────────────────────────────────────────
-            SliverFillRemaining(
-              hasScrollBody: false,
-              child: Container(
+              const SizedBox(height: 28),
+
+              // ── Cards Container ──────────────────────────────────────────
+              Container(
+                constraints: BoxConstraints(
+                  minHeight: MediaQuery.of(context).size.height - 300,
+                ),
                 decoration: const BoxDecoration(
                   color: Color(0xFFF5F5F5), // Light grey background
                   borderRadius: BorderRadius.only(
@@ -89,8 +85,8 @@ class StatsScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
