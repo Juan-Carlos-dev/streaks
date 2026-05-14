@@ -274,6 +274,21 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                           habit: filtered[index],
                           selectedDate: _selectedDate,
                           onComplete: () {
+                            final today = DateTime.now();
+                            final selectedDateOnly = DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+                            final todayDateOnly = DateTime(today.year, today.month, today.day);
+                            
+                            if (selectedDateOnly.isAfter(todayDateOnly)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('No puedes completar hábitos de un día futuro'),
+                                  backgroundColor: Colors.redAccent,
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                              return;
+                            }
+
                             ref
                                 .read(habitControllerProvider.notifier)
                                 .toggleHabitCompletion(filtered[index].id, _selectedDate);
