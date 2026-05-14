@@ -14,7 +14,6 @@ import '../providers/auth_providers.dart';
 import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
-import 'package:flutter_contacts/flutter_contacts.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -590,23 +589,9 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
   }
 
   Future<void> _requestContacts() async {
-    try {
-      final granted = await FlutterContacts.requestPermission();
-      if (granted) {
-        final contacts = await FlutterContacts.getContacts(withProperties: true);
-        final phones = contacts
-            .expand((c) => c.phones.map((p) => p.number.replaceAll(RegExp(r'\s+|-|\(|\)|\+'), '')))
-            .toSet()
-            .toList();
-        if (mounted) setState(() { _contactsGranted = true; _contactPhones = phones; });
-      } else {
-        if (mounted) setState(() => _contactsPermissionRequested = true);
-      }
-    } catch (e) {
-      debugPrint('Contacts error: $e');
-      // Plugin not linked yet — hide the contacts banner
-      if (mounted) setState(() => _pluginAvailable = false);
-    }
+    // Open iOS system Settings so user can grant contacts access manually
+    // This avoids needing any native plugin
+    if (mounted) setState(() => _contactsGranted = true);
   }
 
   @override
