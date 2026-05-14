@@ -459,7 +459,7 @@ class _ProfileBody extends StatelessWidget {
               icon: Icons.palette_outlined,
               title: 'Personalizar degradado',
               onTap: () {
-                Navigator.of(context).pop();
+                Navigator.of(context, rootNavigator: true).pop();
                 _showGradientPicker(context, ref);
               },
             ),
