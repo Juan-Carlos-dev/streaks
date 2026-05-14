@@ -585,13 +585,19 @@ class _ProfileBody extends StatelessWidget {
                 // Color 1
                 Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _parseColor(color1Controller.text),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey[300]!, width: 2),
+                    GestureDetector(
+                      onTap: () => _showColorPresets(context, (color) {
+                        color1Controller.text = _colorToHex(color);
+                        setState(() {});
+                      }),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _parseColor(color1Controller.text),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey[300]!, width: 2),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -615,13 +621,19 @@ class _ProfileBody extends StatelessWidget {
                 // Color 2
                 Row(
                   children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: _parseColor(color2Controller.text),
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.grey[300]!, width: 2),
+                    GestureDetector(
+                      onTap: () => _showColorPresets(context, (color) {
+                        color2Controller.text = _colorToHex(color);
+                        setState(() {});
+                      }),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _parseColor(color2Controller.text),
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.grey[300]!, width: 2),
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -702,6 +714,55 @@ class _ProfileBody extends StatelessWidget {
   bool _isValidHex(String hex) {
     final regExp = RegExp(r'^#[0-9A-Fa-f]{6}$');
     return regExp.hasMatch(hex);
+  }
+
+  void _showColorPresets(BuildContext context, Function(Color) onColorSelected) {
+    final colors = [
+      Colors.red, Colors.pink, Colors.purple, Colors.deepPurple,
+      Colors.blue, Colors.lightBlue, Colors.cyan, Colors.teal,
+      Colors.green, Colors.lightGreen, Colors.lime, Colors.yellow,
+      Colors.orange, Colors.deepOrange, Colors.brown, Colors.grey,
+      Colors.black, Colors.white,
+    ];
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Selecciona un color'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: GridView.builder(
+            shrinkWrap: true,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 6,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+            ),
+            itemCount: colors.length,
+            itemBuilder: (ctx, index) {
+              final color = colors[index];
+              return GestureDetector(
+                onTap: () {
+                  onColorSelected(color);
+                  Navigator.of(ctx).pop();
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: color,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.grey[300]!, width: 1),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _colorToHex(Color color) {
+    return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
 
   void _showDeleteConfirmation(BuildContext context) {
