@@ -240,7 +240,7 @@ class _FloatingBubblesBackground extends ConsumerWidget {
           },
           blendMode: BlendMode.dstIn,
           child: Stack(
-            children: List.generate(min(users.length, 8), (index) {
+            children: List.generate(min(users.length, 15), (index) {
               return _FloatingBubble(user: users[index]);
             }),
           ),
@@ -288,7 +288,7 @@ class _FloatingBubbleState extends State<_FloatingBubble> with SingleTickerProvi
       }
     });
 
-    _controller.forward();
+    _controller.forward(from: Random().nextDouble());
   }
 
   void _randomize() {
