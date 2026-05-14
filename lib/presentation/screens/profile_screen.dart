@@ -126,11 +126,7 @@ class _ProfileBody extends StatelessWidget {
                   height: bannerHeight,
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: AppColors.blueGradient.colors,
-                      ),
+                      gradient: AppColors.blueGradient,
                     ),
                   ),
                 ),
