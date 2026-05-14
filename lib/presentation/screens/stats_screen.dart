@@ -308,14 +308,6 @@ class _StatColumn extends StatelessWidget {
 class _HeatmapCard extends StatelessWidget {
   const _HeatmapCard();
 
-  // Blue shades from darkest to lightest for different activity levels
-  static const List<Color> _heatColors = [
-    Color(0xFF1565C0), // level 4 – darkest blue
-    Color(0xFF1976D2), // level 3
-    Color(0xFF42A5F5), // level 2
-    Color(0xFF90CAF9), // level 1 – lightest blue
-  ];
-
   // Simulated heatmap: 4 rows × 8 columns = 32 cells (last partial row)
   static const List<int> _pattern = [
     3, 3, 2, 2, 3, 2, 3, 3,
@@ -328,6 +320,9 @@ class _HeatmapCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final now = DateTime.now();
     final monthName = _monthName(now.month);
+
+    final color1 = AppColors.blueGradient.colors.first;
+    final color2 = AppColors.blueGradient.colors.last;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
@@ -351,7 +346,7 @@ class _HeatmapCard extends StatelessWidget {
               final level = _pattern[index];
               final color = level == 0
                   ? Colors.transparent
-                  : _heatColors[4 - level - 1 < 0 ? 0 : 4 - level - 1];
+                  : Color.lerp(color1, color2, level / 3.0)!;
               return Container(
                 decoration: BoxDecoration(
                   color: level == 0 ? Colors.transparent : color,
