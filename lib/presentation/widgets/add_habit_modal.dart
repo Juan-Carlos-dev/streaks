@@ -66,7 +66,7 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
         title: _titleController.text.trim(),
         icon: _selectedIcon,
         color: _selectedColor,
-        frequency: HabitFrequency(daysOfWeek: List.from(_selectedDays)),
+        frequency: HabitFrequency(daysOfWeek: List<int>.from(_selectedDays)),
         isPrivateHabit: false,
         startDate: DateTime.now(),
       );

@@ -48,8 +48,8 @@ class Habit {
           ? DateTime.parse(data['startDate'])
           : DateTime.now(),
       completedDates: data['completedDates'] != null
-          ? (data['completedDates'] as Map<String, dynamic>).map(
-              (key, value) => MapEntry(key, DateTime.parse(value as String)))
+          ? Map<String, dynamic>.from(data['completedDates'] as Map).map(
+              (key, value) => MapEntry(key, DateTime.parse(value.toString())))
           : {},
     );
   }
@@ -110,7 +110,7 @@ class HabitFrequency {
   factory HabitFrequency.fromMap(Map<String, dynamic> map) {
     final list = map['daysOfWeek'] as List<dynamic>?;
     return HabitFrequency(
-      daysOfWeek: list != null ? list.cast<int>().toList() : [1, 2, 3, 4, 5, 6, 7],
+      daysOfWeek: list != null ? list.map((e) => (e as num).toInt()).toList() : [1, 2, 3, 4, 5, 6, 7],
     );
   }
 
