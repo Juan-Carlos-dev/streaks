@@ -16,6 +16,7 @@ class StatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
+        bottom: false,
         child: SingleChildScrollView(
           child: Column(
             children: [
@@ -64,9 +65,16 @@ class StatsScreen extends ConsumerWidget {
 
                     const SizedBox(height: 16),
 
-                    // Habits card
+                    // Habits card (stretched to fill the rest of the screen)
                     habitsAsync.when(
-                      data: (habits) => _HabitsCard(habits: habits),
+                      data: (habits) => Container(
+                        constraints: BoxConstraints(
+                          minHeight: MediaQuery.of(context).size.height - 400 > 0
+                              ? MediaQuery.of(context).size.height - 400
+                              : 200,
+                        ),
+                        child: _HabitsCard(habits: habits),
+                      ),
                       loading: () => const SizedBox.shrink(),
                       error: (_, __) => const SizedBox.shrink(),
                     ),
