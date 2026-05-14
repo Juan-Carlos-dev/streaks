@@ -91,9 +91,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: 24),
                   DecoratedBox(
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       gradient: AppColors.blueGradient,
-                      borderRadius: BorderRadius.all(Radius.circular(14)),
+                      borderRadius: const BorderRadius.all(Radius.circular(14)),
                     ),
                     child: ElevatedButton(
                       onPressed: loginState.isLoading

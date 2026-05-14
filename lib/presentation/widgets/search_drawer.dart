@@ -6,6 +6,7 @@ import '../../domain/entities/user.dart';
 import '../providers/search_providers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter/scheduler.dart';
 import 'dart:math';
 
 class SearchView extends ConsumerWidget {

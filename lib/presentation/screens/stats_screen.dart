@@ -457,7 +457,7 @@ class _HabitBar extends StatelessWidget {
                   FractionallySizedBox(
                     widthFactor: progress,
                     child: Container(
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         gradient: AppColors.blueGradient,
                       ),
                     ),

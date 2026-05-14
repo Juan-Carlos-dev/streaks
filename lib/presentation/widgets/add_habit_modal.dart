@@ -195,9 +195,9 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
 
               const SizedBox(height: 28),
               DecoratedBox(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: AppColors.blueGradient,
-                  borderRadius: BorderRadius.all(Radius.circular(14)),
+                  borderRadius: const BorderRadius.all(Radius.circular(14)),
                 ),
                 child: ElevatedButton(
                   onPressed: _submit,

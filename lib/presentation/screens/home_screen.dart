@@ -190,7 +190,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           child: Container(
                             width: 44,
                             height: 44,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
                               gradient: AppColors.blueGradient,
                             ),
@@ -216,7 +216,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                         Container(
                           width: 44,
                           height: 44,
-                          decoration: const BoxDecoration(
+                          decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             gradient: AppColors.blueGradient,
                           ),
