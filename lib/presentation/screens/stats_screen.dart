@@ -16,85 +16,81 @@ class StatsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.black,
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return SingleChildScrollView(
-              child: ConstrainedBox(
-                constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                child: IntrinsicHeight(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 24),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                children: [
+                  const SizedBox(height: 24),
 
-                      // ── Streak hero ──────────────────────────────────────────────
-                      userAsync.when(
-                        data: (user) {
-                          final streak = user?.stats.currentGlobalStreak ?? 0;
-                          final name = user?.username ?? '';
-                          return _StreakHero(streak: streak, username: name);
-                        },
-                        loading: () => const SizedBox(
-                          height: 120,
-                          child: Center(child: CircularProgressIndicator()),
-                        ),
-                        error: (_, __) => const SizedBox.shrink(),
-                      ),
+                  // ── Streak hero ──────────────────────────────────────────────
+                  userAsync.when(
+                    data: (user) {
+                      final streak = user?.stats.currentGlobalStreak ?? 0;
+                      final name = user?.username ?? '';
+                      return _StreakHero(streak: streak, username: name);
+                    },
+                    loading: () => const SizedBox(
+                      height: 120,
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
 
-                      const SizedBox(height: 28),
+                  const SizedBox(height: 28),
+                ],
+              ),
+            ),
 
-                      // ── Cards Container ──────────────────────────────────────────
-                      Expanded(
-                        child: Container(
-                          decoration: const BoxDecoration(
-                            color: Color(0xFFF5F5F5), // Light grey background
-                            borderRadius: BorderRadius.only(
-                              topLeft: Radius.circular(30),
-                              topRight: Radius.circular(30),
-                            ),
-                          ),
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-                          child: Column(
-                            children: [
-                              // Stats card
-                              userAsync.when(
-                                data: (user) {
-                                  final stats = user?.stats;
-                                  return _StatsCard(
-                                    streak: stats?.currentGlobalStreak ?? 0,
-                                    tasks: stats?.postsCount ?? 0,
-                                    followers: 112,
-                                    minutes: stats?.totalMinutes ?? 0,
-                                  );
-                                },
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, __) => const SizedBox.shrink(),
-                              ),
-
-                              const SizedBox(height: 16),
-
-                              // Heatmap card
-                              const _HeatmapCard(),
-
-                              const SizedBox(height: 16),
-
-                              // Habits card
-                              habitsAsync.when(
-                                data: (habits) => _HabitsCard(habits: habits),
-                                loading: () => const SizedBox.shrink(),
-                                error: (_, __) => const SizedBox.shrink(),
-                              ),
-
-                              const SizedBox(height: 32),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
+            // ── Cards Container ──────────────────────────────────────────
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F5F5), // Light grey background
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(30),
+                    topRight: Radius.circular(30),
                   ),
                 ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                child: Column(
+                  children: [
+                    // Stats card
+                    userAsync.when(
+                      data: (user) {
+                        final stats = user?.stats;
+                        return _StatsCard(
+                          streak: stats?.currentGlobalStreak ?? 0,
+                          tasks: stats?.postsCount ?? 0,
+                          followers: 112,
+                          minutes: stats?.totalMinutes ?? 0,
+                        );
+                      },
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // Heatmap card
+                    const _HeatmapCard(),
+
+                    const SizedBox(height: 16),
+
+                    // Habits card
+                    habitsAsync.when(
+                      data: (habits) => _HabitsCard(habits: habits),
+                      loading: () => const SizedBox.shrink(),
+                      error: (_, __) => const SizedBox.shrink(),
+                    ),
+
+                    const SizedBox(height: 32),
+                  ],
+                ),
               ),
-            );
-          },
+            ),
+          ],
         ),
       ),
     );
