@@ -38,39 +38,50 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             child: feedAsync.when(
               data: (posts) {
                 if (posts.isEmpty) return _EmptyFeed();
-                return ListView.builder(
-                  padding: const EdgeInsets.only(top: 72, bottom: 120),
-                  itemCount: posts.length + 1,
-                  itemBuilder: (context, index) {
-                    if (index == posts.length) {
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 40, bottom: 40),
-                        child: Column(
-                          children: [
-                            Icon(Icons.check_circle_outline, size: 48, color: Colors.grey[700]),
-                            const SizedBox(height: 16),
-                            const Text(
-                              '¡Estás al día!',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'No quedan más publicaciones por ver.',
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                    return _PostCard(post: posts[index]);
+                return RefreshIndicator(
+                  backgroundColor: AppColors.surface,
+                  color: AppColors.primary,
+                  onRefresh: () async {
+                    // Refresca el provider del feed
+                    ref.invalidate(feedStreamProvider);
+                    // Pequeño delay visual
+                    await Future.delayed(const Duration(milliseconds: 800));
                   },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(top: 72, bottom: 120),
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: posts.length + 1,
+                    itemBuilder: (context, index) {
+                      if (index == posts.length) {
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 40, bottom: 40),
+                          child: Column(
+                            children: [
+                              Icon(Icons.check_circle_outline, size: 48, color: Colors.grey[700]),
+                              const SizedBox(height: 16),
+                              const Text(
+                                '¡Estás al día!',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              const Text(
+                                'No quedan más publicaciones por ver.',
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
+                      return _PostCard(post: posts[index]);
+                    },
+                  ),
                 );
               },
               loading: () => const Center(child: CircularProgressIndicator()),
