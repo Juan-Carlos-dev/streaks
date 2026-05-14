@@ -218,140 +218,223 @@ class _SearchHistoryView extends ConsumerWidget {
   }
 }
 
-class _FloatingBubblesBackground extends ConsumerWidget {
+class _FloatingBubblesBackground extends ConsumerStatefulWidget {
   const _FloatingBubblesBackground();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final suggestedUsersAsync = ref.watch(suggestedUsersProvider);
-
-    return suggestedUsersAsync.when(
-      data: (users) {
-        if (users.isEmpty) return const SizedBox.shrink();
-        
-        return ShaderMask(
-          shaderCallback: (bounds) {
-            return const LinearGradient(
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-              colors: [Colors.white, Colors.transparent],
-              stops: [0.3, 0.6],
-            ).createShader(bounds);
-          },
-          blendMode: BlendMode.dstIn,
-          child: Stack(
-            children: List.generate(15, (index) {
-              return _FloatingBubble(user: users[index % users.length]);
-            }),
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (_, __) => const SizedBox.shrink(),
-    );
-  }
+  ConsumerState<_FloatingBubblesBackground> createState() => _FloatingBubblesBackgroundState();
 }
 
-class _FloatingBubble extends StatefulWidget {
-  final User user;
-  const _FloatingBubble({required this.user});
-
-  @override
-  State<_FloatingBubble> createState() => _FloatingBubbleState();
-}
-
-class _FloatingBubbleState extends State<_FloatingBubble> with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  late double _randomX;
-  late double _size;
-  late double _waveAmplitude;
-  late double _waveFrequency;
+class _FloatingBubblesBackgroundState extends ConsumerState<_FloatingBubblesBackground> with SingleTickerProviderStateMixin {
+  late Ticker _ticker;
+  List<_BubbleData> _bubbles = [];
+  bool _initialized = false;
+  Size _screenSize = Size.zero;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-    );
-    
-    _animation = Tween<double>(begin: 1.2, end: -0.2).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.linear),
-    );
-
-    _randomize();
-
-    _controller.addStatusListener((status) {
-      if (status == AnimationStatus.completed) {
-        _randomize();
-        _controller.forward(from: 0.0);
-      }
-    });
-
-    _controller.forward(from: Random().nextDouble());
-  }
-
-  void _randomize() {
-    final rand = Random();
-    _randomX = 0.05 + rand.nextDouble() * 0.9; // 5% to 95% of width
-    _size = 35.0 + rand.nextDouble() * 30.0; // 35 to 65
-    _waveAmplitude = 10.0 + rand.nextDouble() * 25.0; // 10 to 35
-    _waveFrequency = 2.0 + rand.nextDouble() * 2.0; // 2 to 4 waves
-    _controller.duration = Duration(seconds: 5 + rand.nextInt(5)); // 5 to 10 seconds
+    _ticker = createTicker(_onTick);
+    _ticker.start();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _ticker.dispose();
     super.dispose();
+  }
+
+  void _onTick(Duration elapsed) {
+    if (!_initialized || _screenSize == Size.zero) return;
+
+    setState(() {
+      for (int i = 0; i < _bubbles.length; i++) {
+        final b = _bubbles[i];
+        
+        // Move
+        b.position += b.velocity;
+        
+        // Wave motion (S-curve)
+        b.waveOffset = sin(b.position.dy / b.waveFrequency) * b.waveAmplitude;
+
+        // Bounce off side walls (considering wave offset)
+        final actualX = b.position.dx + b.waveOffset;
+        if (actualX < b.radius) {
+          b.velocity = Offset(b.velocity.dx.abs(), b.velocity.dy);
+        } else if (actualX > _screenSize.width - b.radius) {
+          b.velocity = Offset(-b.velocity.dx.abs(), b.velocity.dy);
+        }
+
+        // Reset at top
+        if (b.position.dy < -b.radius * 2) {
+          _resetBubble(b);
+        }
+
+        // Collision detection
+        for (int j = i + 1; j < _bubbles.length; j++) {
+          final b2 = _bubbles[j];
+          final pos1 = Offset(b.position.dx + b.waveOffset, b.position.dy);
+          final pos2 = Offset(b2.position.dx + b2.waveOffset, b2.position.dy);
+          
+          final dist = (pos1 - pos2).distance;
+          final minDist = b.radius + b2.radius;
+
+          if (dist < minDist) {
+            // Collision detected!
+            final overlap = minDist - dist;
+            final normal = (pos1 - pos2) / dist;
+
+            // Push apart
+            b.position += normal * (overlap / 2);
+            b2.position -= normal * (overlap / 2);
+
+            // Bounce velocities (simple reflection)
+            final relativeVelocity = b.velocity - b2.velocity;
+            final velocityAlongNormal = relativeVelocity.dx * normal.dx + relativeVelocity.dy * normal.dy;
+
+            if (velocityAlongNormal < 0) {
+              final impulse = normal * velocityAlongNormal;
+              b.velocity -= impulse;
+              b2.velocity += impulse;
+            }
+          }
+        }
+      }
+    });
+  }
+
+  void _resetBubble(_BubbleData b) {
+    final rand = Random();
+    b.radius = 17.5 + rand.nextDouble() * 15.0; // 35 to 65 diameter -> 17.5 to 32.5 radius
+    b.position = Offset(
+      b.radius + rand.nextDouble() * (_screenSize.width - b.radius * 2),
+      _screenSize.height + b.radius * 2,
+    );
+    b.velocity = Offset(
+      (rand.nextDouble() - 0.5) * 1.0, // Slight horizontal movement
+      -1.0 - rand.nextDouble() * 1.0, // Moving up
+    );
+    b.waveAmplitude = 10.0 + rand.nextDouble() * 20.0;
+    b.waveFrequency = 40.0 + rand.nextDouble() * 40.0;
+  }
+
+  void _initializeBubbles(List<User> users) {
+    if (_initialized || _screenSize == Size.zero) return;
+    
+    final rand = Random();
+    _bubbles = List.generate(15, (index) {
+      final user = users[index % users.length];
+      final radius = 17.5 + rand.nextDouble() * 15.0;
+      return _BubbleData(
+        position: Offset(
+          radius + rand.nextDouble() * (_screenSize.width - radius * 2),
+          rand.nextDouble() * _screenSize.height, // Start at random heights initially
+        ),
+        velocity: Offset(
+          (rand.nextDouble() - 0.5) * 1.0,
+          -1.0 - rand.nextDouble() * 1.0,
+        ),
+        radius: radius,
+        user: user,
+        waveAmplitude: 10.0 + rand.nextDouble() * 20.0,
+        waveFrequency: 40.0 + rand.nextDouble() * 40.0,
+      );
+    });
+    _initialized = true;
   }
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    final user = widget.user;
-
-    return AnimatedBuilder(
-      animation: _animation,
-      builder: (context, child) {
-        final wave = sin(_animation.value * _waveFrequency * pi) * _waveAmplitude;
-        return Positioned(
-          left: (_randomX * size.width) + wave,
-          top: _animation.value * size.height,
-          child: Opacity(
-            opacity: 0.4,
-            child: GestureDetector(
-              onTap: () {
-                context.go('/home/user/${user.uid}');
+    final suggestedUsersAsync = ref.watch(suggestedUsersProvider);
+    
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        _screenSize = Size(constraints.maxWidth, constraints.maxHeight);
+        
+        return suggestedUsersAsync.when(
+          data: (users) {
+            if (users.isEmpty) return const SizedBox.shrink();
+            
+            if (!_initialized) {
+              _initializeBubbles(users);
+            }
+            
+            return ShaderMask(
+              shaderCallback: (bounds) {
+                return const LinearGradient(
+                  begin: Alignment.bottomCenter,
+                  end: Alignment.topCenter,
+                  colors: [Colors.white, Colors.transparent],
+                  stops: [0.3, 0.6],
+                ).createShader(bounds);
               },
-              child: Container(
-                width: _size,
-                height: _size,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white24, width: 2),
-                ),
-                child: ClipOval(
-                  child: user.photoUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: ImageUtils.wrapProxy(user.photoUrl),
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          color: AppColors.surface,
-                          child: Center(
-                            child: Text(
-                              user.username.isNotEmpty ? user.username[0].toUpperCase() : 'U',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: _size * 0.4),
-                            ),
+              blendMode: BlendMode.dstIn,
+              child: Stack(
+                children: _bubbles.map((b) {
+                  final size = b.radius * 2;
+                  return Positioned(
+                    left: b.position.dx + b.waveOffset - b.radius,
+                    top: b.position.dy - b.radius,
+                    child: Opacity(
+                      opacity: 0.4,
+                      child: GestureDetector(
+                        onTap: () {
+                          context.go('/home/user/${b.user.uid}');
+                        },
+                        child: Container(
+                          width: size,
+                          height: size,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white24, width: 2),
+                          ),
+                          child: ClipOval(
+                            child: b.user.photoUrl.isNotEmpty
+                                ? CachedNetworkImage(
+                                    imageUrl: ImageUtils.wrapProxy(b.user.photoUrl),
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: AppColors.surface,
+                                    child: Center(
+                                      child: Text(
+                                        b.user.username.isNotEmpty ? b.user.username[0].toUpperCase() : 'U',
+                                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: size * 0.4),
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
-                ),
+                      ),
+                    ),
+                  );
+                }).toList(),
               ),
-            ),
-          ),
+            );
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
         );
       },
     );
   }
+}
+
+class _BubbleData {
+  Offset position;
+  Offset velocity;
+  double radius;
+  User user;
+  double waveOffset = 0.0;
+  double waveAmplitude;
+  double waveFrequency;
+
+  _BubbleData({
+    required this.position,
+    required this.velocity,
+    required this.radius,
+    required this.user,
+    required this.waveAmplitude,
+    required this.waveFrequency,
+  });
 }
