@@ -438,9 +438,9 @@ class _HabitTileState extends State<_HabitTile> {
           boxShadow: _isDeleteMode
               ? [
                   BoxShadow(
-                    color: Colors.redAccent.withOpacity(0.6),
-                    blurRadius: 15,
-                    spreadRadius: 2,
+                    color: Colors.red.withOpacity(0.95),
+                    blurRadius: 24,
+                    spreadRadius: 6,
                   )
                 ]
               : [],
