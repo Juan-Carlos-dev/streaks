@@ -569,6 +569,7 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
     with SingleTickerProviderStateMixin {
   bool _contactsPermissionRequested = false;
   bool _contactsGranted = false;
+  bool _pluginAvailable = true; // false if MissingPluginException
   List<String> _contactPhones = [];
   late AnimationController _animController;
 
@@ -579,7 +580,7 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
       vsync: this,
       duration: const Duration(milliseconds: 900),
     )..forward();
-    _requestContacts();
+    // Don't auto-request — wait for explicit user tap
   }
 
   @override
@@ -590,7 +591,6 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
 
   Future<void> _requestContacts() async {
     try {
-      // flutter_contacts handles the permission dialog natively on iOS & Android
       final granted = await FlutterContacts.requestPermission();
       if (granted) {
         final contacts = await FlutterContacts.getContacts(withProperties: true);
@@ -604,7 +604,8 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
       }
     } catch (e) {
       debugPrint('Contacts error: $e');
-      if (mounted) setState(() => _contactsPermissionRequested = true);
+      // Plugin not linked yet — hide the contacts banner
+      if (mounted) setState(() => _pluginAvailable = false);
     }
   }
 
@@ -642,7 +643,7 @@ class _EmptySuggestionsViewState extends ConsumerState<_EmptySuggestionsView>
                 const SizedBox(height: 32),
 
                 // ── Contacts banner ────────────────────────────────────
-                if (!_contactsGranted)
+                if (_pluginAvailable && !_contactsGranted)
                   GestureDetector(
                     onTap: _requestContacts,
                     child: Container(
