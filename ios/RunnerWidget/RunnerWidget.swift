@@ -93,121 +93,122 @@ struct RunnerWidgetEntryView : View {
         let previewTextColor = isDarkBg ? Color.white : Color.white.opacity(0.95)
         let previewSubtextColor = isDarkBg ? Color.white.opacity(0.6) : Color.white.opacity(0.7)
 
-        ZStack {
-            // Background Layer
-            if data.widgetBg == "dark" {
-                Color(red: 30/255, green: 30/255, blue: 30/255)
-            } else if data.widgetBg == "gradient" {
-                LinearGradient(
-                    gradient: Gradient(colors: [Color(hex: data.gradientStart), Color(hex: data.gradientEnd)]),
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            } else {
-                accentColor
-            }
-
-            // Content Layer
-            VStack(alignment: .leading, spacing: 8) {
-                if data.widgetType == "streak" {
-                    // STREAK WIDGET
-                    HStack(spacing: 6) {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: 22))
-                            .foregroundColor(previewAccentColor)
-                        Text("RACHA GLOBAL")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(previewSubtextColor)
-                            .tracking(0.8)
-                    }
-
-                    Spacer().frame(height: 2)
-
-                    Text("🔥 \(data.streakCount) Días")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(previewTextColor)
-
-                    Text("¡Cada día cuenta! Sigue sumando.")
-                        .font(.system(size: 10))
-                        .foregroundColor(previewSubtextColor)
-
-                } else if data.widgetType == "progress" {
-                    // PROGRESS WIDGET
-                    Text("PROGRESO DIARIO")
+        // Content Layer
+        VStack(alignment: .leading, spacing: 8) {
+            if data.widgetType == "streak" {
+                // STREAK WIDGET
+                HStack(spacing: 6) {
+                    Image(systemName: "flame.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(previewAccentColor)
+                    Text("RACHA GLOBAL")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(previewSubtextColor)
                         .tracking(0.8)
+                }
 
-                    Spacer().frame(height: 2)
+                Spacer().frame(height: 2)
 
-                    HStack {
-                        Text("\(data.progressCompleted) de \(data.progressTotal) completados")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(previewTextColor)
-                        Spacer()
-                        let percent = data.progressTotal > 0 ? Int((Double(data.progressCompleted) / Double(data.progressTotal)) * 100) : 66
-                        Text("\(percent)%")
-                            .font(.system(size: 14, weight: .bold))
-                            .foregroundColor(previewAccentColor)
+                Text("🔥 \(data.streakCount) Días")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(previewTextColor)
+
+                Text("¡Cada día cuenta! Sigue sumando.")
+                    .font(.system(size: 10))
+                    .foregroundColor(previewSubtextColor)
+
+            } else if data.widgetType == "progress" {
+                // PROGRESS WIDGET
+                Text("PROGRESO DIARIO")
+                    .font(.system(size: 10, weight: .bold))
+                    .foregroundColor(previewSubtextColor)
+                    .tracking(0.8)
+
+                Spacer().frame(height: 2)
+
+                HStack {
+                    Text("\(data.progressCompleted) de \(data.progressTotal) completados")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(previewTextColor)
+                    Spacer()
+                    let percent = data.progressTotal > 0 ? Int((Double(data.progressCompleted) / Double(data.progressTotal)) * 100) : 66
+                    Text("\(percent)%")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(previewAccentColor)
+                }
+
+                // Progress bar
+                GeometryReader { geo in
+                    ZStack(alignment: .leading) {
+                        Capsule()
+                            .fill(previewTextColor.opacity(0.15))
+                            .frame(height: 6)
+                        Capsule()
+                            .fill(previewAccentColor)
+                            .frame(width: geo.size.width * CGFloat(data.progressTotal > 0 ? Double(data.progressCompleted) / Double(data.progressTotal) : 0.66), height: 6)
                     }
+                }
+                .frame(height: 6)
 
-                    // Progress bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            Capsule()
-                                .fill(previewTextColor.opacity(0.15))
-                                .frame(height: 6)
-                            Capsule()
-                                .fill(previewAccentColor)
-                                .frame(width: geo.size.width * CGFloat(data.progressTotal > 0 ? Double(data.progressCompleted) / Double(data.progressTotal) : 0.66), height: 6)
-                        }
-                    }
-                    .frame(height: 6)
+                Text("¡Vas por buen camino hoy!")
+                    .font(.system(size: 9))
+                    .foregroundColor(previewSubtextColor)
 
-                    Text("¡Vas por buen camino hoy!")
-                        .font(.system(size: 9))
+            } else {
+                // STAR HABIT WIDGET
+                HStack(spacing: 6) {
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 18))
+                        .foregroundColor(previewAccentColor)
+                    Text("HABITO ESTRELLA")
+                        .font(.system(size: 10, weight: .bold))
                         .foregroundColor(previewSubtextColor)
+                        .tracking(0.8)
+                }
 
-                } else {
-                    // STAR HABIT WIDGET
-                    HStack(spacing: 6) {
-                        Image(systemName: "star.fill")
+                Spacer().frame(height: 4)
+
+                HStack(spacing: 10) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(previewTextColor.opacity(0.1))
+                            .frame(width: 38, height: 38)
+                        
+                        // Map icon names to SF Symbols
+                        Image(systemName: getSFSymbol(for: data.starHabitIcon))
                             .font(.system(size: 18))
                             .foregroundColor(previewAccentColor)
-                        Text("HABITO ESTRELLA")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(previewSubtextColor)
-                            .tracking(0.8)
                     }
 
-                    Spacer().frame(height: 4)
-
-                    HStack(spacing: 10) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(previewTextColor.opacity(0.1))
-                                .frame(width: 38, height: 38)
-                            
-                            // Map icon names to SF Symbols
-                            Image(systemName: getSFSymbol(for: data.starHabitIcon))
-                                .font(.system(size: 18))
-                                .foregroundColor(previewAccentColor)
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(data.starHabitTitle)
-                                .font(.system(size: 14, weight: .bold))
-                                .foregroundColor(previewTextColor)
-                                .lineLimit(1)
-                            Text("\(data.starHabitCount) completados")
-                                .font(.system(size: 11))
-                                .foregroundColor(previewSubtextColor)
-                        }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(data.starHabitTitle)
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(previewTextColor)
+                            .lineLimit(1)
+                        Text("\(data.starHabitCount) completados")
+                            .font(.system(size: 11))
+                            .foregroundColor(previewSubtextColor)
                     }
                 }
             }
-            .padding(16)
         }
+        .padding(16)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .widgetBackground(
+            Group {
+                if data.widgetBg == "dark" {
+                    Color(red: 30/255, green: 30/255, blue: 30/255)
+                } else if data.widgetBg == "gradient" {
+                    LinearGradient(
+                        gradient: Gradient(colors: [Color(hex: data.gradientStart), Color(hex: data.gradientEnd)]),
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                } else {
+                    accentColor
+                }
+            }
+        )
     }
 
     private func getSFSymbol(for iconName: String) -> String {
@@ -231,21 +232,30 @@ struct RunnerWidgetEntryView : View {
     }
 }
 
+// Custom View extension to handle edge-to-edge backgrounds backward-compatibly on iOS 17+
+extension View {
+    func widgetBackground<T: View>(_ backgroundView: T) -> some View {
+        if #available(iOS 17.0, *) {
+            return self.containerBackground(for: .widget) {
+                backgroundView
+            }
+        } else {
+            return self.background(backgroundView)
+        }
+    }
+}
+
 struct RunnerWidget: Widget {
     let kind: String = "RunnerWidget"
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
-            if #available(iOS 17.0, *) {
-                RunnerWidgetEntryView(entry: entry)
-                    .containerBackground(.clear, for: .widget)
-            } else {
-                RunnerWidgetEntryView(entry: entry)
-            }
+            RunnerWidgetEntryView(entry: entry)
         }
         .configurationDisplayName("Streaks Widget")
         .description("Sigue tus rachas y progreso diario de hábitos directamente en tu pantalla de inicio.")
         .supportedFamilies([.systemSmall])
+        .contentMarginsDisabled()
     }
 }
 
