@@ -356,7 +356,11 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Nombre de usuario',
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showEditUsernameModal(context, ref);
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showEditUsernameModal(context, ref);
+                    }
+                  });
                 },
               ),
               const _Divider(),
@@ -365,7 +369,11 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Descripción / Bio',
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showEditBioModal(context, ref);
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showEditBioModal(context, ref);
+                    }
+                  });
                 },
               ),
               const _Divider(),
@@ -374,7 +382,11 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Personalizar widget',
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showWidgetCustomizer(context, ref);
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showWidgetCustomizer(context, ref);
+                    }
+                  });
                 },
               ),
               const _Divider(),
@@ -383,7 +395,11 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Personalizar degradado',
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showGradientPicker(context, ref);
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showGradientPicker(context, ref);
+                    }
+                  });
                 },
               ),
               const _Divider(),
@@ -392,7 +408,11 @@ class _ProfileBody extends StatelessWidget {
                 title: 'Cambiar contraseña',
                 onTap: () {
                   Navigator.of(bottomSheetContext).pop();
-                  _showChangePasswordModal(context, ref);
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showChangePasswordModal(context, ref);
+                    }
+                  });
                 },
               ),
               const _Divider(),
@@ -486,7 +506,11 @@ class _ProfileBody extends StatelessWidget {
                                 ? null
                                 : () {
                                     Navigator.of(sheetContext).pop();
-                                    _showSettingsModal(context, ref);
+                                    Future.delayed(Duration.zero, () {
+                                      if (context.mounted) {
+                                        _showSettingsModal(context, ref);
+                                      }
+                                    });
                                   },
                           ),
                           const SizedBox(width: 8),
@@ -673,7 +697,11 @@ class _ProfileBody extends StatelessWidget {
                                 ? null
                                 : () {
                                     Navigator.of(sheetContext).pop();
-                                    _showSettingsModal(context, ref);
+                                    Future.delayed(Duration.zero, () {
+                                      if (context.mounted) {
+                                        _showSettingsModal(context, ref);
+                                      }
+                                    });
                                   },
                           ),
                           const SizedBox(width: 8),
@@ -860,7 +888,11 @@ class _ProfileBody extends StatelessWidget {
                                 ? null
                                 : () {
                                     Navigator.of(sheetContext).pop();
-                                    _showSettingsModal(context, ref);
+                                    Future.delayed(Duration.zero, () {
+                                      if (context.mounted) {
+                                        _showSettingsModal(context, ref);
+                                      }
+                                    });
                                   },
                           ),
                           const SizedBox(width: 8),
