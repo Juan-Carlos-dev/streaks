@@ -1288,12 +1288,15 @@ class _ProfileBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    Expanded(
+                    const SizedBox(width: 16),
+                    SizedBox(
+                      width: 180,
                       child: TextField(
                         controller: color1Controller,
-                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        style: const TextStyle(color: Colors.black87, fontSize: 15, fontWeight: FontWeight.w600),
+                        maxLength: 7,
                         decoration: InputDecoration(
-                          hintText: 'Color 1 (HEX) ej: #00C6FF',
+                          hintText: '#00C6FF',
                           hintStyle: const TextStyle(color: Colors.black38),
                           filled: true,
                           fillColor: Colors.black.withOpacity(0.05),
@@ -1303,6 +1306,7 @@ class _ProfileBody extends StatelessWidget {
                             borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          counterText: '',
                         ),
                         onChanged: (val) {
                           setState(() {});
@@ -1331,13 +1335,15 @@ class _ProfileBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
+                    const SizedBox(width: 16),
+                    SizedBox(
+                      width: 180,
                       child: TextField(
                         controller: color2Controller,
-                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        style: const TextStyle(color: Colors.black87, fontSize: 15, fontWeight: FontWeight.w600),
+                        maxLength: 7,
                         decoration: InputDecoration(
-                          hintText: 'Color 2 (HEX) ej: #0072FF',
+                          hintText: '#0072FF',
                           hintStyle: const TextStyle(color: Colors.black38),
                           filled: true,
                           fillColor: Colors.black.withOpacity(0.05),
@@ -1347,6 +1353,7 @@ class _ProfileBody extends StatelessWidget {
                             borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
                           ),
                           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          counterText: '',
                         ),
                         onChanged: (val) {
                           setState(() {});
