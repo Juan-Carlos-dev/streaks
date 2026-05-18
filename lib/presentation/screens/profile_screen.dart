@@ -1219,9 +1219,25 @@ class _ProfileBody extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Text(
-                  'Personalizar degradado',
-                  style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                      onPressed: () {
+                        Navigator.of(ctx).pop();
+                        Future.delayed(Duration.zero, () {
+                          if (context.mounted) {
+                            _showSettingsModal(context, ref);
+                          }
+                        });
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Personalizar degradado',
+                      style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 const Text(
@@ -1594,9 +1610,25 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const Text(
-                    'Personalizar Widget',
-                    style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                        onPressed: () {
+                          Navigator.of(ctx).pop();
+                          Future.delayed(Duration.zero, () {
+                            if (context.mounted) {
+                              _showSettingsModal(context, ref);
+                            }
+                          });
+                        },
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Personalizar Widget',
+                        style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 20),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 4),
                   const Text(
