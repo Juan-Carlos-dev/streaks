@@ -386,163 +386,386 @@ class _ProfileBody extends StatelessWidget {
         bool isLoading = false;
         String? errorMessage;
         
+        bool obscureCurrent = true;
+        bool obscureNew = true;
+        bool obscureConfirm = true;
+        
         return StatefulBuilder(
           builder: (context, setState) {
-            return AlertDialog(
-              backgroundColor: AppColors.surface,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Cambiar contraseña', style: TextStyle(color: Colors.white)),
-              content: SingleChildScrollView(
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.5),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Header
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.12),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.lock_reset_rounded,
+                            color: AppColors.primary,
+                            size: 26,
+                          ),
+                        ),
+                        const SizedBox(width: 14),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Seguridad',
+                                style: TextStyle(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 1.0,
+                                ),
+                              ),
+                              SizedBox(height: 2),
+                              Text(
+                                'Cambiar contraseña',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    // Error Message
                     if (errorMessage != null) ...[
                       Container(
-                        padding: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.redAccent.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
                         ),
-                        child: Text(
-                          errorMessage!,
-                          style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                errorMessage!,
+                                style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                     ],
+
+                    // Current Password
                     TextField(
                       controller: currentPasswordController,
-                      obscureText: true,
+                      obscureText: obscureCurrent,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Contraseña actual...',
+                        hintText: 'Contraseña actual',
                         hintStyle: const TextStyle(color: Colors.white38),
+                        prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.white54, size: 18),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscureCurrent ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            color: Colors.white54,
+                            size: 18,
+                          ),
+                          onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
+                        ),
                         filled: true,
-                        fillColor: Colors.white10,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: Colors.white.withOpacity(0.06),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // Forgot Password Button
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        ),
+                        onPressed: isLoading
+                            ? null
+                            : () async {
+                                final currentUser = fba.FirebaseAuth.instance.currentUser;
+                                if (currentUser == null || currentUser.email == null) {
+                                  setState(() {
+                                    errorMessage = 'No se pudo obtener tu correo electrónico.';
+                                  });
+                                  return;
+                                }
+                                final email = currentUser.email!;
+
+                                setState(() {
+                                  isLoading = true;
+                                  errorMessage = null;
+                                });
+
+                                try {
+                                  await fba.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                                  
+                                  setState(() {
+                                    isLoading = false;
+                                  });
+
+                                  if (ctx.mounted) {
+                                    Navigator.of(ctx).pop();
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        backgroundColor: Colors.blueAccent,
+                                        behavior: SnackBarBehavior.floating,
+                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                        content: Text('Hemos enviado un correo de recuperación a: $email'),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setState(() {
+                                    isLoading = false;
+                                    errorMessage = 'Error al enviar recuperación: $e';
+                                  });
+                                }
+                              },
+                        child: Text(
+                          '¿Has olvidado tu contraseña?',
+                          style: TextStyle(
+                            color: AppColors.primary.withOpacity(0.9),
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // New Password
                     TextField(
                       controller: newPasswordController,
-                      obscureText: true,
+                      obscureText: obscureNew,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Nueva contraseña...',
+                        hintText: 'Nueva contraseña',
                         hintStyle: const TextStyle(color: Colors.white38),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.white54, size: 18),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            color: Colors.white54,
+                            size: 18,
+                          ),
+                          onPressed: () => setState(() => obscureNew = !obscureNew),
+                        ),
                         filled: true,
-                        fillColor: Colors.white10,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: Colors.white.withOpacity(0.06),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
+
+                    // Confirm Password
                     TextField(
                       controller: confirmPasswordController,
-                      obscureText: true,
+                      obscureText: obscureConfirm,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white),
+                      style: const TextStyle(color: Colors.white, fontSize: 15),
                       decoration: InputDecoration(
-                        hintText: 'Confirmar nueva contraseña...',
+                        hintText: 'Confirmar nueva contraseña',
                         hintStyle: const TextStyle(color: Colors.white38),
+                        prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Colors.white54, size: 18),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                            color: Colors.white54,
+                            size: 18,
+                          ),
+                          onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                        ),
                         filled: true,
-                        fillColor: Colors.white10,
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                        fillColor: Colors.white.withOpacity(0.06),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                       ),
+                    ),
+                    const SizedBox(height: 28),
+
+                    // Actions
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            onPressed: isLoading ? null : () => Navigator.of(ctx).pop(),
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
+                            child: const Text(
+                              'Cancelar',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              gradient: isLoading ? null : AppColors.blueGradient,
+                              color: isLoading ? Colors.white10 : null,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: ElevatedButton(
+                              onPressed: isLoading
+                                  ? null
+                                  : () async {
+                                      final currentPassword = currentPasswordController.text.trim();
+                                      final newPassword = newPasswordController.text.trim();
+                                      final confirmPassword = confirmPasswordController.text.trim();
+
+                                      if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                                        setState(() {
+                                          errorMessage = 'Por favor, rellena todos los campos.';
+                                        });
+                                        return;
+                                      }
+
+                                      if (newPassword.length < 6) {
+                                        setState(() {
+                                          errorMessage = 'La nueva contraseña debe tener al menos 6 caracteres.';
+                                        });
+                                        return;
+                                      }
+
+                                      if (newPassword != confirmPassword) {
+                                        setState(() {
+                                          errorMessage = 'La nueva contraseña y la confirmación no coinciden.';
+                                        });
+                                        return;
+                                      }
+
+                                      setState(() {
+                                        isLoading = true;
+                                        errorMessage = null;
+                                      });
+
+                                      try {
+                                        final currentUser = fba.FirebaseAuth.instance.currentUser;
+                                        if (currentUser == null || currentUser.email == null) {
+                                          throw Exception('No se encontró un usuario activo.');
+                                        }
+
+                                        final credential = fba.EmailAuthProvider.credential(
+                                          email: currentUser.email!,
+                                          password: currentPassword,
+                                        );
+
+                                        await currentUser.reauthenticateWithCredential(credential);
+                                        await currentUser.updatePassword(newPassword);
+
+                                        if (ctx.mounted) {
+                                          Navigator.of(ctx).pop();
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              backgroundColor: Colors.green,
+                                              behavior: SnackBarBehavior.floating,
+                                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                              content: const Text('Contraseña actualizada correctamente.'),
+                                            ),
+                                          );
+                                        }
+                                      } on fba.FirebaseAuthException catch (e) {
+                                        setState(() {
+                                          isLoading = false;
+                                          if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+                                            errorMessage = 'La contraseña actual es incorrecta.';
+                                          } else if (e.code == 'weak-password') {
+                                            errorMessage = 'La nueva contraseña es demasiado débil.';
+                                          } else {
+                                            errorMessage = e.message ?? 'Ocurrió un error al actualizar la contraseña.';
+                                          }
+                                        });
+                                      } catch (e) {
+                                        setState(() {
+                                          isLoading = false;
+                                          errorMessage = 'Error inesperado: $e';
+                                        });
+                                      }
+                                    },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              child: isLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    )
+                                  : const Text(
+                                      'Guardar',
+                                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                    ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              actions: [
-                TextButton(
-                  onPressed: isLoading ? null : () => Navigator.of(ctx).pop(),
-                  child: const Text('Cancelar'),
-                ),
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () async {
-                          final currentPassword = currentPasswordController.text.trim();
-                          final newPassword = newPasswordController.text.trim();
-                          final confirmPassword = confirmPasswordController.text.trim();
-
-                          if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-                            setState(() {
-                              errorMessage = 'Por favor, rellena todos los campos.';
-                            });
-                            return;
-                          }
-
-                          if (newPassword.length < 6) {
-                            setState(() {
-                              errorMessage = 'La nueva contraseña debe tener al menos 6 caracteres.';
-                            });
-                            return;
-                          }
-
-                          if (newPassword != confirmPassword) {
-                            setState(() {
-                              errorMessage = 'La nueva contraseña y la confirmación no coinciden.';
-                            });
-                            return;
-                          }
-
-                          setState(() {
-                            isLoading = true;
-                            errorMessage = null;
-                          });
-
-                          try {
-                            final currentUser = fba.FirebaseAuth.instance.currentUser;
-                            if (currentUser == null || currentUser.email == null) {
-                              throw Exception('No se encontró un usuario activo.');
-                            }
-
-                            final credential = fba.EmailAuthProvider.credential(
-                              email: currentUser.email!,
-                              password: currentPassword,
-                            );
-
-                            await currentUser.reauthenticateWithCredential(credential);
-                            await currentUser.updatePassword(newPassword);
-
-                            if (ctx.mounted) {
-                              Navigator.of(ctx).pop();
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  backgroundColor: Colors.green,
-                                  content: Text('Contraseña actualizada correctamente.'),
-                                ),
-                              );
-                            }
-                          } on fba.FirebaseAuthException catch (e) {
-                            setState(() {
-                              isLoading = false;
-                              if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-                                errorMessage = 'La contraseña actual es incorrecta.';
-                              } else if (e.code == 'weak-password') {
-                                errorMessage = 'La nueva contraseña es demasiado débil.';
-                              } else {
-                                errorMessage = e.message ?? 'Ocurrió un error al actualizar la contraseña.';
-                              }
-                            });
-                          } catch (e) {
-                            setState(() {
-                              isLoading = false;
-                              errorMessage = 'Error inesperado: $e';
-                            });
-                          }
-                        },
-                  child: isLoading
-                      ? const SizedBox(
-                          width: 16,
-                          height: 16,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
-                        )
-                      : const Text('Cambiar', style: TextStyle(color: AppColors.primary)),
-                ),
-              ],
             );
           },
         );
