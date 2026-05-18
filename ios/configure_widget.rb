@@ -42,6 +42,7 @@ end
 widget_target.build_configurations.each do |config|
   config.build_settings['PRODUCT_NAME'] = 'RunnerWidget'
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.example.streaks.runnerwidget'
+  config.build_settings['PRODUCT_BUNDLE_PACKAGE_TYPE'] = 'XPC!'
   config.build_settings['INFOPLIST_FILE'] = 'RunnerWidget/Info.plist'
   config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'RunnerWidget/RunnerWidget.entitlements'
   config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
