@@ -120,30 +120,34 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
                   style: TextStyle(
                       color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _icons.map((item) {
-                  final isSelected = _selectedIcon == item['name'];
-                  return GestureDetector(
-                    onTap: () =>
-                        setState(() => _selectedIcon = item['name']),
-                    child: Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        gradient: isSelected ? AppColors.blueGradient : null,
-                        color: isSelected ? null : AppColors.surfaceLight,
-                        borderRadius: BorderRadius.circular(10),
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _icons.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
+                  itemBuilder: (context, index) {
+                    final item = _icons[index];
+                    final isSelected = _selectedIcon == item['name'];
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedIcon = item['name']),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          gradient: isSelected ? AppColors.blueGradient : null,
+                          color: isSelected ? null : AppColors.surfaceLight,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          item['icon'] as IconData,
+                          color: isSelected ? Colors.white : Colors.grey,
+                          size: 20,
+                        ),
                       ),
-                      child: Icon(
-                        item['icon'] as IconData,
-                        color: isSelected ? Colors.white : Colors.grey,
-                        size: 20,
-                      ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 20),
 
