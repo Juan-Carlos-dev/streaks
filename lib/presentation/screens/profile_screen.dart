@@ -15,6 +15,7 @@ import '../../core/utils/image_utils.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fba;
 
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
@@ -374,6 +375,181 @@ class _ProfileBody extends StatelessWidget {
     );
   }
 
+  void _showChangePasswordDialog(BuildContext context) {
+    final currentPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isLoading = false;
+        String? errorMessage;
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surface,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              title: const Text('Cambiar contraseña', style: TextStyle(color: Colors.white)),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (errorMessage != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withOpacity(0.15),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          errorMessage!,
+                          style: const TextStyle(color: Colors.redAccent, fontSize: 12),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    TextField(
+                      controller: currentPasswordController,
+                      obscureText: true,
+                      enabled: !isLoading,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Contraseña actual...',
+                        hintStyle: const TextStyle(color: Colors.white38),
+                        filled: true,
+                        fillColor: Colors.white10,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: newPasswordController,
+                      obscureText: true,
+                      enabled: !isLoading,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Nueva contraseña...',
+                        hintStyle: const TextStyle(color: Colors.white38),
+                        filled: true,
+                        fillColor: Colors.white10,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: confirmPasswordController,
+                      obscureText: true,
+                      enabled: !isLoading,
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Confirmar nueva contraseña...',
+                        hintStyle: const TextStyle(color: Colors.white38),
+                        filled: true,
+                        fillColor: Colors.white10,
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isLoading ? null : () => Navigator.of(ctx).pop(),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          final currentPassword = currentPasswordController.text.trim();
+                          final newPassword = newPasswordController.text.trim();
+                          final confirmPassword = confirmPasswordController.text.trim();
+
+                          if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                            setState(() {
+                              errorMessage = 'Por favor, rellena todos los campos.';
+                            });
+                            return;
+                          }
+
+                          if (newPassword.length < 6) {
+                            setState(() {
+                              errorMessage = 'La nueva contraseña debe tener al menos 6 caracteres.';
+                            });
+                            return;
+                          }
+
+                          if (newPassword != confirmPassword) {
+                            setState(() {
+                              errorMessage = 'La nueva contraseña y la confirmación no coinciden.';
+                            });
+                            return;
+                          }
+
+                          setState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+
+                          try {
+                            final currentUser = fba.FirebaseAuth.instance.currentUser;
+                            if (currentUser == null || currentUser.email == null) {
+                              throw Exception('No se encontró un usuario activo.');
+                            }
+
+                            final credential = fba.EmailAuthProvider.credential(
+                              email: currentUser.email!,
+                              password: currentPassword,
+                            );
+
+                            await currentUser.reauthenticateWithCredential(credential);
+                            await currentUser.updatePassword(newPassword);
+
+                            if (ctx.mounted) {
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  backgroundColor: Colors.green,
+                                  content: Text('Contraseña actualizada correctamente.'),
+                                ),
+                              );
+                            }
+                          } on fba.FirebaseAuthException catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+                                errorMessage = 'La contraseña actual es incorrecta.';
+                              } else if (e.code == 'weak-password') {
+                                errorMessage = 'La nueva contraseña es demasiado débil.';
+                              } else {
+                                errorMessage = e.message ?? 'Ocurrió un error al actualizar la contraseña.';
+                              }
+                            });
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              errorMessage = 'Error inesperado: $e';
+                            });
+                          }
+                        },
+                  child: isLoading
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+                        )
+                      : const Text('Cambiar', style: TextStyle(color: AppColors.primary)),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _showEditBioDialog(BuildContext context) {
     final controller = TextEditingController(text: user?.bio ?? '');
     showDialog(
@@ -470,7 +646,14 @@ class _ProfileBody extends StatelessWidget {
               },
             ),
             const _Divider(),
-            _SettingsTile(icon: Icons.phonelink_lock_outlined, title: 'Cambiar contraseña', onTap: () {}),
+            _SettingsTile(
+              icon: Icons.phonelink_lock_outlined,
+              title: 'Cambiar contraseña',
+              onTap: () {
+                Navigator.of(context, rootNavigator: true).pop();
+                _showChangePasswordDialog(context);
+              },
+            ),
             const _Divider(),
             _SettingsTile(icon: Icons.notifications_none_rounded, title: 'Notificaciones y recordatorios', onTap: () {}),
             const _Divider(),
