@@ -37,6 +37,20 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
     {'name': 'brush', 'icon': Icons.brush},
     {'name': 'pets', 'icon': Icons.pets},
     {'name': 'shopping_cart', 'icon': Icons.shopping_cart},
+    {'name': 'attach_money', 'icon': Icons.attach_money},
+    {'name': 'school', 'icon': Icons.school},
+    {'name': 'sports_basketball', 'icon': Icons.sports_basketball},
+    {'name': 'favorite', 'icon': Icons.favorite},
+    {'name': 'coffee', 'icon': Icons.coffee},
+    {'name': 'flight', 'icon': Icons.flight},
+    {'name': 'smartphone', 'icon': Icons.smartphone},
+    {'name': 'cleaning_services', 'icon': Icons.cleaning_services},
+    {'name': 'timer', 'icon': Icons.timer},
+    {'name': 'local_bar', 'icon': Icons.local_bar},
+    {'name': 'lightbulb', 'icon': Icons.lightbulb},
+    {'name': 'sports_esports', 'icon': Icons.sports_esports},
+    {'name': 'home', 'icon': Icons.home},
+    {'name': 'translate', 'icon': Icons.translate},
   ];
 
   @override

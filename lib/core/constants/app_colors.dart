@@ -122,6 +122,34 @@ class AppColors {
         return Icons.directions_run;
       case 'brush':
         return Icons.brush;
+      case 'attach_money':
+        return Icons.attach_money;
+      case 'school':
+        return Icons.school;
+      case 'sports_basketball':
+        return Icons.sports_basketball;
+      case 'favorite':
+        return Icons.favorite;
+      case 'coffee':
+        return Icons.coffee;
+      case 'flight':
+        return Icons.flight;
+      case 'smartphone':
+        return Icons.smartphone;
+      case 'cleaning_services':
+        return Icons.cleaning_services;
+      case 'timer':
+        return Icons.timer;
+      case 'local_bar':
+        return Icons.local_bar;
+      case 'lightbulb':
+        return Icons.lightbulb;
+      case 'sports_esports':
+        return Icons.sports_esports;
+      case 'home':
+        return Icons.home;
+      case 'translate':
+        return Icons.translate;
       default:
         return Icons.check_circle_outline;
     }
