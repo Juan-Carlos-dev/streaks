@@ -1288,14 +1288,21 @@ class _ProfileBody extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Expanded(
                       child: TextField(
                         controller: color1Controller,
-                        decoration: const InputDecoration(
-                          labelText: 'Color 1 (HEX)',
-                          hintText: '#00C6FF',
-                          border: OutlineInputBorder(),
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Color 1 (HEX) ej: #00C6FF',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                         onChanged: (val) {
                           setState(() {});
@@ -1328,10 +1335,18 @@ class _ProfileBody extends StatelessWidget {
                     Expanded(
                       child: TextField(
                         controller: color2Controller,
-                        decoration: const InputDecoration(
-                          labelText: 'Color 2 (HEX)',
-                          hintText: '#0072FF',
-                          border: OutlineInputBorder(),
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Color 2 (HEX) ej: #0072FF',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                         onChanged: (val) {
                           setState(() {});
