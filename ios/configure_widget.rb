@@ -40,6 +40,7 @@ file_references.each do |ref|
 end
 
 widget_target.build_configurations.each do |config|
+  config.build_settings['PRODUCT_NAME'] = 'RunnerWidget'
   config.build_settings['PRODUCT_BUNDLE_IDENTIFIER'] = 'com.example.streaks.RunnerWidget'
   config.build_settings['INFOPLIST_FILE'] = 'RunnerWidget/Info.plist'
   config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'RunnerWidget/RunnerWidget.entitlements'

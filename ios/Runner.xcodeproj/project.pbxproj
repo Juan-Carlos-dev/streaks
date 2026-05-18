@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B98932FBDA110BA5B5344E8 /* RunnerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */; };
 		1403909343BC57FAF48063F7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ACFA03AEDD82B98378DA8F9 /* Foundation.framework */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
-		39456EB896CFD6F0F9362EBB /* RunnerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1FAA02118FBC5F05AD58F79 /* RunnerWidgetBundle.swift */; };
 		3AFD6E5EA7374FA1C0DF0EA5 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28A4C9964CD367E7B81C5A3D /* Pods_Runner.framework */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
-		85B47803CB90AFE91B7ADCEB /* RunnerWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9BD35A3827916C206439381C /* RunnerWidget.appex */; };
 		86FE81E65A32EBCD662D039B /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A9FB7A0EA8078450A581057 /* Pods_RunnerTests.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		EAD1CB1ACFB3AD1F28254FFA /* RunnerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 502E685CCD504CA5E32279AD /* RunnerWidget.swift */; };
+		D0F31D08AEBFACDFAD54611E /* RunnerWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9BD35A3827916C206439381C /* RunnerWidget.appex */; };
+		F143311B3085EBE0B66187A5 /* RunnerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,7 +46,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				85B47803CB90AFE91B7ADCEB /* RunnerWidget.appex in Embed App Extensions */,
+				D0F31D08AEBFACDFAD54611E /* RunnerWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -72,8 +72,9 @@
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
-		502E685CCD504CA5E32279AD /* RunnerWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidget.swift; path = RunnerWidget/RunnerWidget.swift; sourceTree = "<group>"; };
+		539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidgetBundle.swift; path = RunnerWidget/RunnerWidgetBundle.swift; sourceTree = "<group>"; };
 		5A9FB7A0EA8078450A581057 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidget.swift; path = RunnerWidget/RunnerWidget.swift; sourceTree = "<group>"; };
 		692A3C680F033E77D347AA1E /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -86,13 +87,12 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9BD35A3827916C206439381C /* RunnerWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = RunnerWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		A26774599846D95349C20A4E /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = RunnerWidget/Info.plist; sourceTree = "<group>"; };
 		AF4229B864471BDBE301D1CE /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
-		B1FAA02118FBC5F05AD58F79 /* RunnerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidgetBundle.swift; path = RunnerWidget/RunnerWidgetBundle.swift; sourceTree = "<group>"; };
 		B9D3D627C28E4B1D8FD6005B /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		BD6289538F976DD192EF033A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		C366D5C0ACEAFB22A68CF752 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
-		D25A67FC3679156FA07213D8 /* RunnerWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = RunnerWidget.entitlements; path = RunnerWidget/RunnerWidget.entitlements; sourceTree = "<group>"; };
+		CDDCA9A8B9D28C48D29F1F6D /* RunnerWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = RunnerWidget.entitlements; path = RunnerWidget/RunnerWidget.entitlements; sourceTree = "<group>"; };
+		CEE83D98F5503C4F27A30E8D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = RunnerWidget/Info.plist; sourceTree = "<group>"; };
 		ED66078BC94D6D45945965DE /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -207,10 +207,10 @@
 		B3360EB1FAB7166CC12E3E3D /* RunnerWidget */ = {
 			isa = PBXGroup;
 			children = (
-				502E685CCD504CA5E32279AD /* RunnerWidget.swift */,
-				B1FAA02118FBC5F05AD58F79 /* RunnerWidgetBundle.swift */,
-				A26774599846D95349C20A4E /* Info.plist */,
-				D25A67FC3679156FA07213D8 /* RunnerWidget.entitlements */,
+				5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */,
+				539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */,
+				CEE83D98F5503C4F27A30E8D /* Info.plist */,
+				CDDCA9A8B9D28C48D29F1F6D /* RunnerWidget.entitlements */,
 			);
 			name = RunnerWidget;
 			sourceTree = "<group>";
@@ -456,8 +456,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EAD1CB1ACFB3AD1F28254FFA /* RunnerWidget.swift in Sources */,
-				39456EB896CFD6F0F9362EBB /* RunnerWidgetBundle.swift in Sources */,
+				F143311B3085EBE0B66187A5 /* RunnerWidget.swift in Sources */,
+				0B98932FBDA110BA5B5344E8 /* RunnerWidgetBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -528,6 +528,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.streaks.RunnerWidget;
+				PRODUCT_NAME = RunnerWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -828,6 +829,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.streaks.RunnerWidget;
+				PRODUCT_NAME = RunnerWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
@@ -849,6 +851,7 @@
 					"@executable_path/../../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.example.streaks.RunnerWidget;
+				PRODUCT_NAME = RunnerWidget;
 				SDKROOT = iphoneos;
 				SKIP_INSTALL = YES;
 				SWIFT_VERSION = 5.0;
