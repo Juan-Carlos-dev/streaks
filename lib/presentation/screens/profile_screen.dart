@@ -1289,8 +1289,7 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    SizedBox(
-                      width: 180,
+                    Expanded(
                       child: TextField(
                         controller: color1Controller,
                         style: const TextStyle(color: Colors.black87, fontSize: 15, fontWeight: FontWeight.w600),
@@ -1336,8 +1335,7 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 16),
-                    SizedBox(
-                      width: 180,
+                    Expanded(
                       child: TextField(
                         controller: color2Controller,
                         style: const TextStyle(color: Colors.black87, fontSize: 15, fontWeight: FontWeight.w600),
