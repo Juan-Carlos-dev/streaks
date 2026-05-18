@@ -8,6 +8,8 @@ import 'package:flutter/foundation.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'firebase_options.dart';
+import 'presentation/providers/session_provider.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -46,7 +48,10 @@ class SocialHabitTrackerApp extends ConsumerWidget {
 
     return MaterialApp.router(
       locale: kIsWeb ? DevicePreview.locale(context) : null,
-      builder: kIsWeb ? DevicePreview.appBuilder : null,
+      builder: (context, child) {
+        final content = kIsWeb ? DevicePreview.appBuilder(context, child) : child;
+        return AppSessionTracker(child: content ?? const SizedBox.shrink());
+      },
       title: 'Streaks',
       theme: AppTheme.darkTheme,
       routerConfig: router,
