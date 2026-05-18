@@ -245,6 +245,18 @@ extension View {
     }
 }
 
+// Safe wrapper to call contentMarginsDisabled only on iOS 17+
+extension WidgetConfiguration {
+    func disableContentMarginsIfNeeded() -> some WidgetConfiguration {
+        #if compiler(>=5.9)
+        if #available(iOS 17.0, *) {
+            return self.contentMarginsDisabled()
+        }
+        #endif
+        return self
+    }
+}
+
 struct RunnerWidget: Widget {
     let kind: String = "RunnerWidget"
 
@@ -255,7 +267,7 @@ struct RunnerWidget: Widget {
         .configurationDisplayName("Streaks Widget")
         .description("Sigue tus rachas y progreso diario de hábitos directamente en tu pantalla de inicio.")
         .supportedFamilies([.systemSmall])
-        .contentMarginsDisabled()
+        .disableContentMarginsIfNeeded()
     }
 }
 
