@@ -1261,8 +1261,8 @@ class _ProfileBody extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    baseline: TextBaseline.alphabetic,
-                    alignment: PlaceholderAlignment.baseline,
+                    crossAxisAlignment: CrossAxisAlignment.baseline,
+                    textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
                         '$completed/$total',
