@@ -241,55 +241,13 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
                 // ── Habits list ───────────────────────────────────────────
                 Expanded(
-                  child: habitsAsync.when(
-                    data: (habits) {
-                      if (habits.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No tienes hábitos aún\n¡Crea tu primer hábito!',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(color: Colors.white54, height: 1.6),
-                          ),
-                        );
-                      }
-
-                      final filtered = habits.where((h) {
-                        return h.frequency.daysOfWeek.contains(_selectedDate.weekday);
-                      }).toList();
-
-                      if (filtered.isEmpty) {
-                        return const Center(
-                          child: Text(
-                            'No hay hábitos para este día',
-                            style: TextStyle(color: Colors.white54),
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
-                        itemCount: filtered.length,
-                        itemBuilder: (context, index) => _HabitTile(
-                          key: ValueKey(filtered[index].id),
-                          habit: filtered[index],
-                          selectedDate: _selectedDate,
-                          onComplete: () {
-                            ref
-                                .read(habitControllerProvider.notifier)
-                                .toggleHabitCompletion(filtered[index].id, _selectedDate);
-                          },
-                          onDelete: () {
-                            ref
-                                .read(habitControllerProvider.notifier)
-                                .deleteHabit(filtered[index].id);
-                          },
+                  child: habitsAsync.hasValue
+                      ? _buildHabitsList(habitsAsync.value ?? [])
+                      : habitsAsync.when(
+                          data: (habits) => _buildHabitsList(habits),
+                          loading: () => const Center(child: CircularProgressIndicator()),
+                          error: (e, _) => Center(child: Text('Error: $e')),
                         ),
-                      );
-                    },
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => Center(child: Text('Error: $e')),
-                  ),
                 ),
               ],
             ),
@@ -330,6 +288,51 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildHabitsList(List<Habit> habits) {
+    if (habits.isEmpty) {
+      return const Center(
+        child: Text(
+          'No tienes hábitos aún\n¡Crea tu primer hábito!',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.white54, height: 1.6),
+        ),
+      );
+    }
+
+    final filtered = habits.where((h) {
+      return h.frequency.daysOfWeek.contains(_selectedDate.weekday);
+    }).toList();
+
+    if (filtered.isEmpty) {
+      return const Center(
+        child: Text(
+          'No hay hábitos para este día',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
+      itemCount: filtered.length,
+      itemBuilder: (context, index) => _HabitTile(
+        key: ValueKey(filtered[index].id),
+        habit: filtered[index],
+        selectedDate: _selectedDate,
+        onComplete: () {
+          ref
+              .read(habitControllerProvider.notifier)
+              .toggleHabitCompletion(filtered[index].id, _selectedDate);
+        },
+        onDelete: () {
+          ref
+              .read(habitControllerProvider.notifier)
+              .deleteHabit(filtered[index].id);
+        },
       ),
     );
   }
