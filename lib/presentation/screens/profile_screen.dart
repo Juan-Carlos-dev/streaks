@@ -1085,7 +1085,7 @@ class _ProfileBody extends StatelessWidget {
                               setState(() => selectedHabitId = val);
                             }
                           },
-                          items: habits.map((h) {
+                          items: habits.map<DropdownMenuItem<String>>((h) {
                             return DropdownMenuItem<String>(
                               value: h.id,
                               child: Row(
