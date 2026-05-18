@@ -5,6 +5,8 @@ import '../../core/constants/app_colors.dart';
 import '../../domain/entities/habit.dart';
 import '../providers/auth_providers.dart';
 import '../providers/habit_providers.dart';
+import '../providers/user_providers.dart';
+import '../../core/utils/widget_utils.dart';
 
 class AddHabitModal extends ConsumerStatefulWidget {
   const AddHabitModal({super.key});
@@ -85,7 +87,19 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
         startDate: DateTime.now(),
       );
 
-      ref.read(habitControllerProvider.notifier).createHabit(newHabit).then((_) {
+      ref.read(habitControllerProvider.notifier).createHabit(newHabit).then((_) async {
+        // Sync with native home screen widget
+        final user = ref.read(currentUserProvider).value;
+        final habitsList = ref.read(habitListProvider).value;
+        final globalStreak = ref.read(globalStreakProvider);
+        if (user != null && habitsList != null) {
+          await WidgetUtils.updateNativeWidget(
+            user: user,
+            habits: habitsList,
+            globalStreak: globalStreak,
+          );
+        }
+
         if (mounted) Navigator.of(context).pop();
       });
     }

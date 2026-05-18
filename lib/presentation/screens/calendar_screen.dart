@@ -6,6 +6,7 @@ import '../../domain/entities/habit.dart';
 import '../providers/user_providers.dart';
 import '../providers/habit_providers.dart';
 import '../widgets/add_habit_modal.dart';
+import '../../core/utils/widget_utils.dart';
 
 class CalendarScreen extends ConsumerStatefulWidget {
   const CalendarScreen({super.key});
@@ -323,15 +324,39 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
         key: ValueKey(filtered[index].id),
         habit: filtered[index],
         selectedDate: _selectedDate,
-        onComplete: () {
-          ref
+        onComplete: () async {
+          await ref
               .read(habitControllerProvider.notifier)
               .toggleHabitCompletion(filtered[index].id, _selectedDate);
+
+          // Update native iOS/Android home screen widget
+          final user = ref.read(currentUserProvider).value;
+          final habitsList = ref.read(habitListProvider).value;
+          final globalStreak = ref.read(globalStreakProvider);
+          if (user != null && habitsList != null) {
+            await WidgetUtils.updateNativeWidget(
+              user: user,
+              habits: habitsList,
+              globalStreak: globalStreak,
+            );
+          }
         },
-        onDelete: () {
-          ref
+        onDelete: () async {
+          await ref
               .read(habitControllerProvider.notifier)
               .deleteHabit(filtered[index].id);
+
+          // Update native iOS/Android home screen widget
+          final user = ref.read(currentUserProvider).value;
+          final habitsList = ref.read(habitListProvider).value;
+          final globalStreak = ref.read(globalStreakProvider);
+          if (user != null && habitsList != null) {
+            await WidgetUtils.updateNativeWidget(
+              user: user,
+              habits: habitsList,
+              globalStreak: globalStreak,
+            );
+          }
         },
       ),
     );

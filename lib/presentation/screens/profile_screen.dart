@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/habit.dart';
+import '../../core/utils/widget_utils.dart';
 import '../providers/user_providers.dart';
 import '../providers/auth_providers.dart';
 import '../providers/habit_providers.dart';
@@ -1112,18 +1113,27 @@ class _ProfileBody extends StatelessWidget {
                     child: ElevatedButton(
                       onPressed: () async {
                         try {
+                          final updatedConfig = {
+                            ...config,
+                            'widgetType': widgetType,
+                            'widgetBg': widgetBg,
+                            'widgetColor': widgetColor,
+                            'selectedHabitId': selectedHabitId,
+                          };
+
                           await FirebaseFirestore.instance
                               .collection('users')
                               .doc(user.uid)
                               .update({
-                            'widgetConfig': {
-                              ...config,
-                              'widgetType': widgetType,
-                              'widgetBg': widgetBg,
-                              'widgetColor': widgetColor,
-                              'selectedHabitId': selectedHabitId,
-                            }
+                            'widgetConfig': updatedConfig
                           });
+
+                          // Update native home screen widget
+                          await WidgetUtils.updateNativeWidget(
+                            user: user.copyWith(widgetConfig: updatedConfig),
+                            habits: habits,
+                            globalStreak: globalStreak,
+                          );
 
                           ref.invalidate(currentUserProvider);
                           
