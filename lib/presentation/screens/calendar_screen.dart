@@ -36,51 +36,51 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final screenWidth = MediaQuery.of(context).size.width;
       _dayScrollController.jumpTo(
-        (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2)
+        10.0 + (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2)
       );
     });
   }
 
   void _scrollToToday() {
-  final screenWidth = MediaQuery.of(context).size.width;
-  // Calculamos la posición exacta de "Hoy" (el índice inicial)
-  final double targetOffset = (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2);
+    final screenWidth = MediaQuery.of(context).size.width;
+    // Calculamos la posición exacta de "Hoy" (el índice inicial) con el offset de padding de 10px
+    final double targetOffset = 10.0 + (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2);
 
-  // Animamos el scroll hasta esa posición
-  _dayScrollController.animateTo(
-    targetOffset,
-    duration: const Duration(milliseconds: 500),
-    curve: Curves.easeInOutCubic,
-  );
+    // Animamos el scroll hasta esa posición
+    _dayScrollController.animateTo(
+      targetOffset,
+      duration: const Duration(milliseconds: 500),
+      curve: Curves.easeInOutCubic,
+    );
 
-  // Opcional: Si quieres que también se seleccione el día de hoy al hacer doble click
-  setState(() {
-    _selectedDate = _today;
-    _visibleDate = _today;
-  });
-}
+    // Opcional: Si quieres que también se seleccione el día de hoy al hacer doble click
+    setState(() {
+      _selectedDate = _today;
+      _visibleDate = _today;
+    });
+  }
 
   // 2. Métodos de ayuda (Los que faltaban según el error)
   
   void _onScroll() {
-  final screenWidth = MediaQuery.of(context).size.width;
-  
-  // Calculamos la posición del centro de la pantalla
-  final centerX = _dayScrollController.offset + (screenWidth / 2);
-  
-  // Determinamos el índice del elemento que está en el centro
-  final index = (centerX / _itemWidth).floor();
-  
-  // Obtenemos la fecha correspondiente a ese índice
-  final dateAtCenter = _getDateFromIndex(index);
+    final screenWidth = MediaQuery.of(context).size.width;
+    
+    // Calculamos la posición del centro de la pantalla
+    final centerX = _dayScrollController.offset + (screenWidth / 2);
+    
+    // Determinamos el índice del elemento que está en el centro restando el padding de 10px
+    final index = ((centerX - 10.0) / _itemWidth).round();
+    
+    // Obtenemos la fecha correspondiente a ese índice
+    final dateAtCenter = _getDateFromIndex(index);
 
-  // Si el mes o el año de la fecha en el centro es distinto al actual...
-  if (dateAtCenter.month != _visibleDate.month || dateAtCenter.year != _visibleDate.year) {
-    setState(() {
-      _visibleDate = dateAtCenter; // Actualizamos el título de arriba
-    });
+    // Si el mes o el año de la fecha en el centro es distinto al actual...
+    if (dateAtCenter.month != _visibleDate.month || dateAtCenter.year != _visibleDate.year) {
+      setState(() {
+        _visibleDate = dateAtCenter; // Actualizamos el título de arriba
+      });
+    }
   }
-}
 
   DateTime _getDateFromIndex(int index) {
     return DateTime(_today.year, _today.month, _today.day + (index - _initialIndex));
