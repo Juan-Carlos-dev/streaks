@@ -83,6 +83,7 @@ struct SimpleEntry: TimelineEntry {
 
 struct RunnerWidgetEntryView : View {
     var entry: Provider.Entry
+    @Environment(\.widgetFamily) var family
 
     var body: some View {
         let data = entry.data
@@ -93,106 +94,227 @@ struct RunnerWidgetEntryView : View {
         let previewTextColor = isDarkBg ? Color.white : Color.white.opacity(0.95)
         let previewSubtextColor = isDarkBg ? Color.white.opacity(0.6) : Color.white.opacity(0.7)
 
-        // Content Layer
-        VStack(alignment: .leading, spacing: 8) {
-            if data.widgetType == "streak" {
-                // STREAK WIDGET
-                HStack(spacing: 6) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(previewAccentColor)
-                    Text("RACHA GLOBAL")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(previewSubtextColor)
-                        .tracking(0.8)
-                }
-
-                Spacer().frame(height: 2)
-
-                Text("🔥 \(data.streakCount) Días")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundColor(previewTextColor)
-
-                Text("¡Cada día cuenta! Sigue sumando.")
-                    .font(.system(size: 10))
-                    .foregroundColor(previewSubtextColor)
-
-            } else if data.widgetType == "progress" {
-                // PROGRESS WIDGET
-                Text("PROGRESO DIARIO")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(previewSubtextColor)
-                    .tracking(0.8)
-
-                Spacer().frame(height: 2)
-
-                HStack {
-                    Text("\(data.progressCompleted) de \(data.progressTotal) completados")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(previewTextColor)
-                    Spacer()
-                    let percent = data.progressTotal > 0 ? Int((Double(data.progressCompleted) / Double(data.progressTotal)) * 100) : 66
-                    Text("\(percent)%")
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(previewAccentColor)
-                }
-
-                // Progress bar
-                GeometryReader { geo in
-                    ZStack(alignment: .leading) {
-                        Capsule()
-                            .fill(previewTextColor.opacity(0.15))
-                            .frame(height: 6)
-                        Capsule()
-                            .fill(previewAccentColor)
-                            .frame(width: geo.size.width * CGFloat(data.progressTotal > 0 ? Double(data.progressCompleted) / Double(data.progressTotal) : 0.66), height: 6)
+        Group {
+            if family == .systemMedium {
+                // SYSTEM MEDIUM (HORIZONTAL RECTANGULAR WIDGET)
+                VStack(alignment: .leading, spacing: 10) {
+                    if data.widgetType == "streak" {
+                        // STREAK WIDGET (MEDIUM)
+                        HStack(alignment: .center, spacing: 16) {
+                            // Large Left Icon / Streak Info
+                            VStack(alignment: .center, spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                    .font(.system(size: 32))
+                                    .foregroundColor(previewAccentColor)
+                                Text("\(data.streakCount) Días")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                            }
+                            .frame(width: 80)
+                            
+                            Divider()
+                                .background(previewTextColor.opacity(0.15))
+                            
+                            // Right Details
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("RACHA GLOBAL")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(previewSubtextColor)
+                                    .tracking(1.0)
+                                
+                                Text("¡Cada día cuenta!")
+                                    .font(.system(size: 15, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                                
+                                Text("Mantén encendido el fuego. Completa tus hábitos hoy para no perder el progreso.")
+                                    .font(.system(size: 10.5))
+                                    .foregroundColor(previewSubtextColor)
+                                    .lineLimit(2)
+                            }
+                        }
+                    } else if data.widgetType == "progress" {
+                        // PROGRESS WIDGET (MEDIUM)
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("PROGRESO DIARIO")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(previewSubtextColor)
+                                .tracking(1.0)
+                            
+                            HStack(alignment: .firstTextBaseline) {
+                                Text("\(data.progressCompleted) de \(data.progressTotal) completados")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                                
+                                Spacer()
+                                
+                                let percent = data.progressTotal > 0 ? Int((Double(data.progressCompleted) / Double(data.progressTotal)) * 100) : 0
+                                Text("\(percent)%")
+                                    .font(.system(size: 20, weight: .black))
+                                    .foregroundColor(previewAccentColor)
+                            }
+                            
+                            // Large Progress bar
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(previewTextColor.opacity(0.15))
+                                        .frame(height: 8)
+                                    Capsule()
+                                        .fill(previewAccentColor)
+                                        .frame(width: geo.size.width * CGFloat(data.progressTotal > 0 ? min(Double(data.progressCompleted) / Double(data.progressTotal), 1.0) : 0.0), height: 8)
+                                }
+                            }
+                            .frame(height: 8)
+                            
+                            Text("¡Vas por buen camino hoy!")
+                                .font(.system(size: 10.5))
+                                .foregroundColor(previewSubtextColor)
+                        }
+                    } else {
+                        // STAR HABIT WIDGET (MEDIUM)
+                        HStack(spacing: 16) {
+                            // Icon Card
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(previewTextColor.opacity(0.1))
+                                    .frame(width: 48, height: 48)
+                                
+                                Image(systemName: getSFSymbol(for: data.starHabitIcon))
+                                    .font(.system(size: 22))
+                                    .foregroundColor(previewAccentColor)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("HÁBITO ESTRELLA")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(previewSubtextColor)
+                                    .tracking(1.0)
+                                
+                                Text(data.starHabitTitle)
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                                    .lineLimit(1)
+                                
+                                HStack(spacing: 4) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(previewAccentColor)
+                                    Text("\(data.starHabitCount) veces completado")
+                                        .font(.system(size: 11))
+                                        .foregroundColor(previewSubtextColor)
+                                }
+                            }
+                        }
                     }
                 }
-                .frame(height: 6)
-
-                Text("¡Vas por buen camino hoy!")
-                    .font(.system(size: 9))
-                    .foregroundColor(previewSubtextColor)
-
+                .padding(14)
             } else {
-                // STAR HABIT WIDGET
-                HStack(spacing: 6) {
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 18))
-                        .foregroundColor(previewAccentColor)
-                    Text("HABITO ESTRELLA")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(previewSubtextColor)
-                        .tracking(0.8)
-                }
+                // SYSTEM SMALL (SQUARE WIDGET) - OPTIMIZED FOR COMPACT SCREEN
+                VStack(alignment: .leading, spacing: 8) {
+                    if data.widgetType == "streak" {
+                        HStack(spacing: 6) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(previewAccentColor)
+                            Text("RACHA G.")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(previewSubtextColor)
+                                .tracking(0.8)
+                        }
 
-                Spacer().frame(height: 4)
+                        Spacer().frame(height: 2)
 
-                HStack(spacing: 10) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(previewTextColor.opacity(0.1))
-                            .frame(width: 38, height: 38)
-                        
-                        // Map icon names to SF Symbols
-                        Image(systemName: getSFSymbol(for: data.starHabitIcon))
-                            .font(.system(size: 18))
-                            .foregroundColor(previewAccentColor)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(data.starHabitTitle)
-                            .font(.system(size: 14, weight: .bold))
+                        Text("🔥 \(data.streakCount) Días")
+                            .font(.system(size: 20, weight: .bold))
                             .foregroundColor(previewTextColor)
-                            .lineLimit(1)
-                        Text("\(data.starHabitCount) completados")
-                            .font(.system(size: 11))
+
+                        Text("Sigue sumando.")
+                            .font(.system(size: 9))
                             .foregroundColor(previewSubtextColor)
+
+                    } else if data.widgetType == "progress" {
+                        Text("PROGRESO")
+                            .font(.system(size: 9, weight: .bold))
+                            .foregroundColor(previewSubtextColor)
+                            .tracking(0.8)
+
+                        Spacer().frame(height: 2)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            let percent = data.progressTotal > 0 ? Int((Double(data.progressCompleted) / Double(data.progressTotal)) * 100) : 0
+                            
+                            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                                Text("\(data.progressCompleted)/\(data.progressTotal)")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                                Text("hechos")
+                                    .font(.system(size: 10))
+                                    .foregroundColor(previewSubtextColor)
+                                Spacer()
+                                Text("\(percent)%")
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(previewAccentColor)
+                            }
+
+                            // Progress bar
+                            GeometryReader { geo in
+                                ZStack(alignment: .leading) {
+                                    Capsule()
+                                        .fill(previewTextColor.opacity(0.15))
+                                        .frame(height: 6)
+                                    Capsule()
+                                        .fill(previewAccentColor)
+                                        .frame(width: geo.size.width * CGFloat(data.progressTotal > 0 ? min(Double(data.progressCompleted) / Double(data.progressTotal), 1.0) : 0.0), height: 6)
+                                }
+                            }
+                            .frame(height: 6)
+                        }
+
+                        Spacer().frame(height: 2)
+
+                        Text("¡Buen ritmo!")
+                            .font(.system(size: 9))
+                            .foregroundColor(previewSubtextColor)
+
+                    } else {
+                        HStack(spacing: 4) {
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 14))
+                                .foregroundColor(previewAccentColor)
+                            Text("ESTRELLA")
+                                .font(.system(size: 9, weight: .bold))
+                                .foregroundColor(previewSubtextColor)
+                                .tracking(0.8)
+                        }
+
+                        Spacer().frame(height: 2)
+
+                        HStack(spacing: 8) {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 6)
+                                    .fill(previewTextColor.opacity(0.1))
+                                    .frame(width: 30, height: 30)
+                                
+                                Image(systemName: getSFSymbol(for: data.starHabitIcon))
+                                    .font(.system(size: 14))
+                                    .foregroundColor(previewAccentColor)
+                            }
+
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(data.starHabitTitle)
+                                    .font(.system(size: 12, weight: .bold))
+                                    .foregroundColor(previewTextColor)
+                                    .lineLimit(1)
+                                Text("\(data.starHabitCount) hechos")
+                                    .font(.system(size: 9))
+                                    .foregroundColor(previewSubtextColor)
+                            }
+                        }
                     }
                 }
+                .padding(12)
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
         .widgetBackground(
             Group {
@@ -266,7 +388,7 @@ struct RunnerWidget: Widget {
         }
         .configurationDisplayName("Streaks Widget")
         .description("Sigue tus rachas y progreso diario de hábitos directamente en tu pantalla de inicio.")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .systemMedium])
         .disableContentMarginsIfNeeded()
     }
 }
