@@ -397,12 +397,12 @@ class _ProfileBody extends StatelessWidget {
               insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
               child: Container(
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white.withOpacity(0.08), width: 1),
+                  border: Border.all(color: Colors.black.withOpacity(0.08), width: 1),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.black.withOpacity(0.3),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -446,7 +446,7 @@ class _ProfileBody extends StatelessWidget {
                               Text(
                                 'Cambiar contraseña',
                                 style: TextStyle(
-                                  color: Colors.white,
+                                  color: Colors.black87,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18,
                                 ),
@@ -488,21 +488,21 @@ class _ProfileBody extends StatelessWidget {
                       controller: currentPasswordController,
                       obscureText: obscureCurrent,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: const TextStyle(color: Colors.black87, fontSize: 15),
                       decoration: InputDecoration(
                         hintText: 'Contraseña actual',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.white54, size: 18),
+                        hintStyle: const TextStyle(color: Colors.black38),
+                        prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.black45, size: 18),
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscureCurrent ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                            color: Colors.white54,
+                            color: Colors.black45,
                             size: 18,
                           ),
                           onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
+                        fillColor: Colors.black.withOpacity(0.05),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -567,7 +567,7 @@ class _ProfileBody extends StatelessWidget {
                         child: Text(
                           '¿Has olvidado tu contraseña?',
                           style: TextStyle(
-                            color: AppColors.primary.withOpacity(0.9),
+                            color: AppColors.primary.withOpacity(0.95),
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
                           ),
@@ -581,21 +581,21 @@ class _ProfileBody extends StatelessWidget {
                       controller: newPasswordController,
                       obscureText: obscureNew,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: const TextStyle(color: Colors.black87, fontSize: 15),
                       decoration: InputDecoration(
                         hintText: 'Nueva contraseña',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.white54, size: 18),
+                        hintStyle: const TextStyle(color: Colors.black38),
+                        prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.black45, size: 18),
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                            color: Colors.white54,
+                            color: Colors.black45,
                             size: 18,
                           ),
                           onPressed: () => setState(() => obscureNew = !obscureNew),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
+                        fillColor: Colors.black.withOpacity(0.05),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -611,21 +611,21 @@ class _ProfileBody extends StatelessWidget {
                       controller: confirmPasswordController,
                       obscureText: obscureConfirm,
                       enabled: !isLoading,
-                      style: const TextStyle(color: Colors.white, fontSize: 15),
+                      style: const TextStyle(color: Colors.black87, fontSize: 15),
                       decoration: InputDecoration(
                         hintText: 'Confirmar nueva contraseña',
-                        hintStyle: const TextStyle(color: Colors.white38),
-                        prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Colors.white54, size: 18),
+                        hintStyle: const TextStyle(color: Colors.black38),
+                        prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Colors.black45, size: 18),
                         suffixIcon: IconButton(
                           icon: Icon(
                             obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                            color: Colors.white54,
+                            color: Colors.black45,
                             size: 18,
                           ),
                           onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
                         ),
                         filled: true,
-                        fillColor: Colors.white.withOpacity(0.06),
+                        fillColor: Colors.black.withOpacity(0.05),
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -649,7 +649,7 @@ class _ProfileBody extends StatelessWidget {
                             child: const Text(
                               'Cancelar',
                               style: TextStyle(
-                                color: Colors.white70,
+                                color: Colors.black54,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 15,
                               ),
@@ -661,7 +661,7 @@ class _ProfileBody extends StatelessWidget {
                           child: DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: isLoading ? null : AppColors.blueGradient,
-                              color: isLoading ? Colors.white10 : null,
+                              color: isLoading ? Colors.grey[200] : null,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: ElevatedButton(
