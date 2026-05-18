@@ -16,7 +16,7 @@ class AddHabitModal extends ConsumerStatefulWidget {
 class _AddHabitModalState extends ConsumerState<AddHabitModal> {
   final _titleController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  String _selectedColor = '#007BFF';
+  String _selectedColor = '#0052FF';
   String _selectedIcon = 'fitness_center';
   final List<int> _selectedDays = [1, 2, 3, 4, 5, 6, 7];
 
