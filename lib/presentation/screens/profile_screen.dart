@@ -334,11 +334,487 @@ class _ProfileBody extends StatelessWidget {
       ),
       isScrollControlled: true,
       builder: (bottomSheetContext) {
-        String currentView = 'menu';
-        
+        return Padding(
+          padding: const EdgeInsets.only(top: 12, bottom: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Handle
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              _SettingsTile(icon: Icons.mail_outline_rounded, title: 'Email', onTap: () {}),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.person_add_alt_1_outlined,
+                title: 'Nombre de usuario',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _showEditUsernameModal(context, ref);
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.edit_outlined,
+                title: 'Descripción / Bio',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _showEditBioModal(context, ref);
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.grid_view_rounded,
+                title: 'Personalizar widget',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _showWidgetCustomizer(context, ref);
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.palette_outlined,
+                title: 'Personalizar degradado',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _showGradientPicker(context, ref);
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.phonelink_lock_outlined,
+                title: 'Cambiar contraseña',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  _showChangePasswordModal(context, ref);
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(icon: Icons.notifications_none_rounded, title: 'Notificaciones y recordatorios', onTap: () {}),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.cancel_outlined,
+                title: 'Cerrar sesión',
+                onTap: () async {
+                  Navigator.of(bottomSheetContext).pop();
+                  await ref.read(authRepositoryProvider).signOut();
+                },
+              ),
+              const _Divider(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.of(bottomSheetContext).pop();
+                      _showDeleteConfirmation(context);
+                    },
+                    icon: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
+                    label: const Text(
+                      'Eliminar cuenta',
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showEditUsernameModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
         final usernameController = TextEditingController(text: user?.username ?? '');
-        final bioController = TextEditingController(text: user?.bio ?? '');
+        bool isLoading = false;
+        String? errorMessage;
         
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 12,
+                bottom: keyboardPadding > 0 ? keyboardPadding + 16 : 24,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(sheetContext).pop();
+                                    _showSettingsModal(context, ref);
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Nombre de usuario',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  errorMessage!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextField(
+                        controller: usernameController,
+                        enabled: !isLoading,
+                        maxLength: 30,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Tu nombre de usuario...',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.black45, size: 18),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                          counterText: '',
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: isLoading ? null : AppColors.blueGradient,
+                            color: isLoading ? Colors.grey[200] : null,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    final newUsername = usernameController.text.trim();
+                                    if (newUsername.isEmpty) {
+                                      setState(() {
+                                        errorMessage = 'Por favor, introduce un nombre de usuario.';
+                                      });
+                                      return;
+                                    }
+                                    setState(() {
+                                      isLoading = true;
+                                      errorMessage = null;
+                                    });
+                                    try {
+                                      final authUid = ref.read(authStateProvider).value;
+                                      if (authUid == null) throw Exception('Usuario no autenticado.');
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(authUid)
+                                          .set({'username': newUsername}, SetOptions(merge: true));
+                                      ref.invalidate(currentUserProvider);
+                                      if (sheetContext.mounted) {
+                                        Navigator.of(sheetContext).pop();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.green,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            content: const Text('Nombre de usuario actualizado correctamente.'),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                        errorMessage = 'Error al guardar: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text(
+                                    'Guardar nombre de usuario',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditBioModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final bioController = TextEditingController(text: user?.bio ?? '');
+        bool isLoading = false;
+        String? errorMessage;
+        
+        return StatefulBuilder(
+          builder: (context, setState) {
+            final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 12,
+                bottom: keyboardPadding > 0 ? keyboardPadding + 16 : 24,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(sheetContext).pop();
+                                    _showSettingsModal(context, ref);
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Descripción / Bio',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  errorMessage!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextField(
+                        controller: bioController,
+                        enabled: !isLoading,
+                        maxLines: 4,
+                        maxLength: 150,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Cuéntanos algo sobre ti...',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: isLoading ? null : AppColors.blueGradient,
+                            color: isLoading ? Colors.grey[200] : null,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    final newBio = bioController.text.trim();
+                                    setState(() {
+                                      isLoading = true;
+                                      errorMessage = null;
+                                    });
+                                    try {
+                                      final authUid = ref.read(authStateProvider).value;
+                                      if (authUid == null) throw Exception('Usuario no autenticado.');
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(authUid)
+                                          .set({'bio': newBio}, SetOptions(merge: true));
+                                      ref.invalidate(currentUserProvider);
+                                      if (sheetContext.mounted) {
+                                        Navigator.of(sheetContext).pop();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.green,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            content: const Text('Descripción actualizada correctamente.'),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                        errorMessage = 'Error al guardar: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text(
+                                    'Guardar descripción',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showChangePasswordModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
         final currentPasswordController = TextEditingController();
         final newPasswordController = TextEditingController();
         final confirmPasswordController = TextEditingController();
@@ -353,34 +829,20 @@ class _ProfileBody extends StatelessWidget {
         return StatefulBuilder(
           builder: (context, setState) {
             final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
-            
             return Padding(
               padding: EdgeInsets.only(
                 top: 12,
-                bottom: currentView == 'menu' ? 24 : (keyboardPadding > 0 ? keyboardPadding + 16 : 24),
+                bottom: keyboardPadding > 0 ? keyboardPadding + 16 : 24,
               ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 250),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(
-                    opacity: animation,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0.08, 0.0),
-                        end: Offset.zero,
-                      ).animate(animation),
-                      child: child,
-                    ),
-                  );
-                },
-                child: () {
-                  if (currentView == 'menu') {
-                    return Column(
-                      key: const ValueKey('menu_view'),
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Handle
-                        Container(
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
                           width: 40,
                           height: 4,
                           margin: const EdgeInsets.only(bottom: 16),
@@ -389,720 +851,294 @@ class _ProfileBody extends StatelessWidget {
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
-                        _SettingsTile(icon: Icons.mail_outline_rounded, title: 'Email', onTap: () {}),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.person_add_alt_1_outlined,
-                          title: 'Nombre de usuario',
-                          onTap: () {
-                            setState(() {
-                              currentView = 'change_username';
-                              errorMessage = null;
-                            });
-                          },
-                        ),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.edit_outlined,
-                          title: 'Descripción / Bio',
-                          onTap: () {
-                            setState(() {
-                              currentView = 'change_bio';
-                              errorMessage = null;
-                            });
-                          },
-                        ),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.grid_view_rounded,
-                          title: 'Personalizar widget',
-                          onTap: () {
-                            Navigator.of(bottomSheetContext).pop();
-                            _showWidgetCustomizer(context, ref);
-                          },
-                        ),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.palette_outlined,
-                          title: 'Personalizar degradado',
-                          onTap: () {
-                            Navigator.of(bottomSheetContext).pop();
-                            _showGradientPicker(context, ref);
-                          },
-                        ),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.phonelink_lock_outlined,
-                          title: 'Cambiar contraseña',
-                          onTap: () {
-                            setState(() {
-                              currentView = 'change_password';
-                              errorMessage = null;
-                            });
-                          },
-                        ),
-                        const _Divider(),
-                        _SettingsTile(icon: Icons.notifications_none_rounded, title: 'Notificaciones y recordatorios', onTap: () {}),
-                        const _Divider(),
-                        _SettingsTile(
-                          icon: Icons.cancel_outlined,
-                          title: 'Cerrar sesión',
-                          onTap: () async {
-                            Navigator.of(bottomSheetContext).pop();
-                            await ref.read(authRepositoryProvider).signOut();
-                          },
-                        ),
-                        const _Divider(),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 52,
-                            child: ElevatedButton.icon(
-                              onPressed: () {
-                                Navigator.of(bottomSheetContext).pop();
-                                _showDeleteConfirmation(context);
-                              },
-                              icon: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
-                              label: const Text(
-                                'Eliminar cuenta',
-                                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 15),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(sheetContext).pop();
+                                    _showSettingsModal(context, ref);
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Cambiar contraseña',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  errorMessage!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
                               ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.black,
-                                foregroundColor: Colors.white,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextField(
+                        controller: currentPasswordController,
+                        obscureText: obscureCurrent,
+                        enabled: !isLoading,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Contraseña actual',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.black45, size: 18),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscureCurrent ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                              color: Colors.black45,
+                              size: 18,
+                            ),
+                            onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
+                          ),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  final currentUser = fba.FirebaseAuth.instance.currentUser;
+                                  if (currentUser == null || currentUser.email == null) {
+                                    setState(() {
+                                      errorMessage = 'No se pudo obtener tu correo electrónico.';
+                                    });
+                                    return;
+                                  }
+                                  final email = currentUser.email!;
+                                  setState(() {
+                                    isLoading = true;
+                                    errorMessage = null;
+                                  });
+                                  try {
+                                    await fba.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+                                    setState(() {
+                                      isLoading = false;
+                                    });
+                                    if (sheetContext.mounted) {
+                                      Navigator.of(sheetContext).pop();
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          backgroundColor: Colors.blueAccent,
+                                          behavior: SnackBarBehavior.floating,
+                                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                          content: Text('Hemos enviado un correo de recuperación a: $email'),
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    setState(() {
+                                      isLoading = false;
+                                      errorMessage = 'Error al enviar recuperación: $e';
+                                    });
+                                  }
+                                },
+                          child: Text(
+                            '¿Has olvidado tu contraseña?',
+                            style: TextStyle(
+                              color: AppColors.primary.withOpacity(0.95),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                      ],
-                    );
-                  } else if (currentView == 'change_username') {
-                    return SingleChildScrollView(
-                      key: const ValueKey('username_view'),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            currentView = 'menu';
-                                            errorMessage = null;
-                                          });
-                                        },
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Nombre de usuario',
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: newPasswordController,
+                        obscureText: obscureNew,
+                        enabled: !isLoading,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Nueva contraseña',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.black45, size: 18),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                              color: Colors.black45,
+                              size: 18,
                             ),
-                            const SizedBox(height: 16),
-                            if (errorMessage != null) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        errorMessage!,
-                                        style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                            TextField(
-                              controller: usernameController,
-                              enabled: !isLoading,
-                              maxLength: 30,
-                              style: const TextStyle(color: Colors.black87, fontSize: 15),
-                              decoration: InputDecoration(
-                                hintText: 'Tu nombre de usuario...',
-                                hintStyle: const TextStyle(color: Colors.black38),
-                                prefixIcon: const Icon(Icons.person_outline_rounded, color: Colors.black45, size: 18),
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.05),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                                counterText: '',
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: isLoading ? null : AppColors.blueGradient,
-                                  color: isLoading ? Colors.grey[200] : null,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: isLoading
-                                      ? null
-                                      : () async {
-                                          final newUsername = usernameController.text.trim();
-                                          if (newUsername.isEmpty) {
-                                            setState(() {
-                                              errorMessage = 'Por favor, introduce un nombre de usuario.';
-                                            });
-                                            return;
-                                          }
-                                          setState(() {
-                                            isLoading = true;
-                                            errorMessage = null;
-                                          });
-                                          try {
-                                            final authUid = ref.read(authStateProvider).value;
-                                            if (authUid == null) throw Exception('Usuario no autenticado.');
-                                            await FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(authUid)
-                                                .set({'username': newUsername}, SetOptions(merge: true));
-                                            ref.invalidate(currentUserProvider);
-                                            if (bottomSheetContext.mounted) {
-                                              Navigator.of(bottomSheetContext).pop();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  backgroundColor: Colors.green,
-                                                  behavior: SnackBarBehavior.floating,
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                                  content: const Text('Nombre de usuario actualizado correctamente.'),
-                                                ),
-                                              );
-                                            }
-                                          } catch (e) {
-                                            setState(() {
-                                              isLoading = false;
-                                              errorMessage = 'Error al guardar: $e';
-                                            });
-                                          }
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                        )
-                                      : const Text(
-                                          'Guardar nombre de usuario',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                ),
-                              ),
-                            ),
-                          ],
+                            onPressed: () => setState(() => obscureNew = !obscureNew),
+                          ),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                       ),
-                    );
-                  } else if (currentView == 'change_bio') {
-                    return SingleChildScrollView(
-                      key: const ValueKey('bio_view'),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            currentView = 'menu';
-                                            errorMessage = null;
-                                          });
-                                        },
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Descripción / Bio',
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
+                      const SizedBox(height: 14),
+                      TextField(
+                        controller: confirmPasswordController,
+                        obscureText: obscureConfirm,
+                        enabled: !isLoading,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Confirmar nueva contraseña',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Colors.black45, size: 18),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                              color: Colors.black45,
+                              size: 18,
                             ),
-                            const SizedBox(height: 16),
-                            if (errorMessage != null) ...[
-                              Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                decoration: BoxDecoration(
-                                  color: Colors.redAccent.withOpacity(0.12),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
-                                ),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
-                                    const SizedBox(width: 10),
-                                    Expanded(
-                                      child: Text(
-                                        errorMessage!,
-                                        style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                            ],
-                            TextField(
-                              controller: bioController,
-                              enabled: !isLoading,
-                              maxLines: 4,
-                              maxLength: 150,
-                              style: const TextStyle(color: Colors.black87, fontSize: 15),
-                              decoration: InputDecoration(
-                                hintText: 'Cuéntanos algo sobre ti...',
-                                hintStyle: const TextStyle(color: Colors.black38),
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.05),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: isLoading ? null : AppColors.blueGradient,
-                                  color: isLoading ? Colors.grey[200] : null,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: isLoading
-                                      ? null
-                                      : () async {
-                                          final newBio = bioController.text.trim();
-                                          setState(() {
-                                            isLoading = true;
-                                            errorMessage = null;
-                                          });
-                                          try {
-                                            final authUid = ref.read(authStateProvider).value;
-                                            if (authUid == null) throw Exception('Usuario no autenticado.');
-                                            await FirebaseFirestore.instance
-                                                .collection('users')
-                                                .doc(authUid)
-                                                .set({'bio': newBio}, SetOptions(merge: true));
-                                            ref.invalidate(currentUserProvider);
-                                            if (bottomSheetContext.mounted) {
-                                              Navigator.of(bottomSheetContext).pop();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  backgroundColor: Colors.green,
-                                                  behavior: SnackBarBehavior.floating,
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                                  content: const Text('Descripción actualizada correctamente.'),
-                                                ),
-                                              );
-                                            }
-                                          } catch (e) {
-                                            setState(() {
-                                              isLoading = false;
-                                              errorMessage = 'Error al guardar: $e';
-                                            });
-                                          }
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                        )
-                                      : const Text(
-                                          'Guardar descripción',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                ),
-                              ),
-                            ),
-                          ],
+                            onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
+                          ),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                         ),
                       ),
-                    );
-                  } else {
-                    return SingleChildScrollView(
-                      key: const ValueKey('password_view'),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Top Bar / Navigation inside bottom sheet
-                            Row(
-                              children: [
-                                IconButton(
-                                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
-                                  onPressed: isLoading
-                                      ? null
-                                      : () {
-                                          setState(() {
-                                            currentView = 'menu';
-                                            errorMessage = null;
-                                            currentPasswordController.clear();
-                                            newPasswordController.clear();
-                                            confirmPasswordController.clear();
-                                          });
-                                        },
-                                ),
-                                const SizedBox(width: 8),
-                                const Text(
-                                  'Cambiar contraseña',
-                                  style: TextStyle(
-                                    color: Colors.black87,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 18,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 16),
-
-                            // Error Message
-                            if (errorMessage != null) ...[
-                              Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent.withOpacity(0.12),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
-                                      const SizedBox(width: 10),
-                                      Expanded(
-                                        child: Text(
-                                          errorMessage!,
-                                          style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              const SizedBox(height: 16),
-                            ],
-
-                            // Current Password
-                            TextField(
-                              controller: currentPasswordController,
-                              obscureText: obscureCurrent,
-                              enabled: !isLoading,
-                              style: const TextStyle(color: Colors.black87, fontSize: 15),
-                              decoration: InputDecoration(
-                                hintText: 'Contraseña actual',
-                                hintStyle: const TextStyle(color: Colors.black38),
-                                prefixIcon: const Icon(Icons.vpn_key_outlined, color: Colors.black45, size: 18),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    obscureCurrent ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                                    color: Colors.black45,
-                                    size: 18,
-                                  ),
-                                  onPressed: () => setState(() => obscureCurrent = !obscureCurrent),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.05),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-
-                            // Forgot Password Button
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                  minimumSize: Size.zero,
-                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                onPressed: isLoading
-                                    ? null
-                                    : () async {
-                                        final currentUser = fba.FirebaseAuth.instance.currentUser;
-                                        if (currentUser == null || currentUser.email == null) {
-                                          setState(() {
-                                            errorMessage = 'No se pudo obtener tu correo electrónico.';
-                                          });
-                                          return;
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: isLoading ? null : AppColors.blueGradient,
+                            color: isLoading ? Colors.grey[200] : null,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    final currentPassword = currentPasswordController.text.trim();
+                                    final newPassword = newPasswordController.text.trim();
+                                    final confirmPassword = confirmPasswordController.text.trim();
+                                    if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+                                      setState(() {
+                                        errorMessage = 'Por favor, rellena todos los campos.';
+                                      });
+                                      return;
+                                    }
+                                    if (newPassword.length < 6) {
+                                      setState(() {
+                                        errorMessage = 'La nueva contraseña debe tener al menos 6 caracteres.';
+                                      });
+                                      return;
+                                    }
+                                    if (newPassword != confirmPassword) {
+                                      setState(() {
+                                        errorMessage = 'La nueva contraseña y la confirmación no coinciden.';
+                                      });
+                                      return;
+                                    }
+                                    setState(() {
+                                      isLoading = true;
+                                      errorMessage = null;
+                                    });
+                                    try {
+                                      final currentUser = fba.FirebaseAuth.instance.currentUser;
+                                      if (currentUser == null || currentUser.email == null) {
+                                        throw Exception('No se encontró un usuario activo.');
+                                      }
+                                      final credential = fba.EmailAuthProvider.credential(
+                                        email: currentUser.email!,
+                                        password: currentPassword,
+                                      );
+                                      await currentUser.reauthenticateWithCredential(credential);
+                                      await currentUser.updatePassword(newPassword);
+                                      if (sheetContext.mounted) {
+                                        Navigator.of(sheetContext).pop();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: Colors.green,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            content: const Text('Contraseña actualizada correctamente.'),
+                                          ),
+                                        );
+                                      }
+                                    } on fba.FirebaseAuthException catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                        if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
+                                          errorMessage = 'La contraseña actual es incorrecta.';
+                                        } else if (e.code == 'weak-password') {
+                                          errorMessage = 'La nueva contraseña es demasiado débil.';
+                                        } else {
+                                          errorMessage = e.message ?? 'Ocurrió un error al actualizar la contraseña.';
                                         }
-                                        final email = currentUser.email!;
-
-                                        setState(() {
-                                          isLoading = true;
-                                          errorMessage = null;
-                                        });
-
-                                        try {
-                                          await fba.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
-                                          
-                                          setState(() {
-                                            isLoading = false;
-                                          });
-
-                                          if (bottomSheetContext.mounted) {
-                                            Navigator.of(bottomSheetContext).pop();
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                backgroundColor: Colors.blueAccent,
-                                                behavior: SnackBarBehavior.floating,
-                                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                                content: Text('Hemos enviado un correo de recuperación a: $email'),
-                                              ),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          setState(() {
-                                            isLoading = false;
-                                            errorMessage = 'Error al enviar recuperación: $e';
-                                          });
-                                        }
-                                      },
-                                child: Text(
-                                  '¿Has olvidado tu contraseña?',
-                                  style: TextStyle(
-                                    color: AppColors.primary.withOpacity(0.95),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
+                                      });
+                                    } catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                        errorMessage = 'Error inesperado: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                             ),
-                            const SizedBox(height: 8),
-
-                            // New Password
-                            TextField(
-                              controller: newPasswordController,
-                              obscureText: obscureNew,
-                              enabled: !isLoading,
-                              style: const TextStyle(color: Colors.black87, fontSize: 15),
-                              decoration: InputDecoration(
-                                hintText: 'Nueva contraseña',
-                                hintStyle: const TextStyle(color: Colors.black38),
-                                prefixIcon: const Icon(Icons.lock_outline_rounded, color: Colors.black45, size: 18),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    obscureNew ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                                    color: Colors.black45,
-                                    size: 18,
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text(
+                                    'Guardar nueva contraseña',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                   ),
-                                  onPressed: () => setState(() => obscureNew = !obscureNew),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.05),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              ),
-                            ),
-                            const SizedBox(height: 14),
-
-                            // Confirm Password
-                            TextField(
-                              controller: confirmPasswordController,
-                              obscureText: obscureConfirm,
-                              enabled: !isLoading,
-                              style: const TextStyle(color: Colors.black87, fontSize: 15),
-                              decoration: InputDecoration(
-                                hintText: 'Confirmar nueva contraseña',
-                                hintStyle: const TextStyle(color: Colors.black38),
-                                prefixIcon: const Icon(Icons.check_circle_outline_rounded, color: Colors.black45, size: 18),
-                                suffixIcon: IconButton(
-                                  icon: Icon(
-                                    obscureConfirm ? Icons.visibility_off_rounded : Icons.visibility_rounded,
-                                    color: Colors.black45,
-                                    size: 18,
-                                  ),
-                                  onPressed: () => setState(() => obscureConfirm = !obscureConfirm),
-                                ),
-                                filled: true,
-                                fillColor: Colors.black.withOpacity(0.05),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-
-                            // Save Button
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: DecoratedBox(
-                                decoration: BoxDecoration(
-                                  gradient: isLoading ? null : AppColors.blueGradient,
-                                  color: isLoading ? Colors.grey[200] : null,
-                                  borderRadius: BorderRadius.circular(14),
-                                ),
-                                child: ElevatedButton(
-                                  onPressed: isLoading
-                                      ? null
-                                      : () async {
-                                          final currentPassword = currentPasswordController.text.trim();
-                                          final newPassword = newPasswordController.text.trim();
-                                          final confirmPassword = confirmPasswordController.text.trim();
-
-                                          if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
-                                            setState(() {
-                                              errorMessage = 'Por favor, rellena todos los campos.';
-                                            });
-                                            return;
-                                          }
-
-                                          if (newPassword.length < 6) {
-                                            setState(() {
-                                              errorMessage = 'La nueva contraseña debe tener al menos 6 caracteres.';
-                                            });
-                                            return;
-                                          }
-
-                                          if (newPassword != confirmPassword) {
-                                            setState(() {
-                                              errorMessage = 'La nueva contraseña y la confirmación no coinciden.';
-                                            });
-                                            return;
-                                          }
-
-                                          setState(() {
-                                            isLoading = true;
-                                            errorMessage = null;
-                                          });
-
-                                          try {
-                                            final currentUser = fba.FirebaseAuth.instance.currentUser;
-                                            if (currentUser == null || currentUser.email == null) {
-                                              throw Exception('No se encontró un usuario activo.');
-                                            }
-
-                                            final credential = fba.EmailAuthProvider.credential(
-                                              email: currentUser.email!,
-                                              password: currentPassword,
-                                            );
-
-                                            await currentUser.reauthenticateWithCredential(credential);
-                                            await currentUser.updatePassword(newPassword);
-
-                                            if (bottomSheetContext.mounted) {
-                                              Navigator.of(bottomSheetContext).pop();
-                                              ScaffoldMessenger.of(context).showSnackBar(
-                                                SnackBar(
-                                                  backgroundColor: Colors.green,
-                                                  behavior: SnackBarBehavior.floating,
-                                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                                                  content: const Text('Contraseña actualizada correctamente.'),
-                                                ),
-                                              );
-                                            }
-                                          } on fba.FirebaseAuthException catch (e) {
-                                            setState(() {
-                                              isLoading = false;
-                                              if (e.code == 'wrong-password' || e.code == 'invalid-credential') {
-                                                errorMessage = 'La contraseña actual es incorrecta.';
-                                              } else if (e.code == 'weak-password') {
-                                                errorMessage = 'La nueva contraseña es demasiado débil.';
-                                              } else {
-                                                errorMessage = e.message ?? 'Ocurrió un error al actualizar la contraseña.';
-                                              }
-                                            });
-                                          } catch (e) {
-                                            setState(() {
-                                              isLoading = false;
-                                              errorMessage = 'Error inesperado: $e';
-                                            });
-                                          }
-                                        },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.transparent,
-                                    shadowColor: Colors.transparent,
-                                    foregroundColor: Colors.white,
-                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                                  ),
-                                  child: isLoading
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                        )
-                                      : const Text(
-                                          'Guardar nueva contraseña',
-                                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-                                        ),
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
                       ),
-                    );
-                  }
-                }(),
+                    ],
+                  ),
+                ),
               ),
             );
           },
