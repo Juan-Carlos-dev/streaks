@@ -15,6 +15,8 @@ import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
 import '../widgets/search_drawer.dart';
+import 'messages_screen.dart';
+import '../providers/message_providers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -213,15 +215,57 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           }),
                         ),
                         const Spacer(),
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: AppColors.blueGradient,
-                          ),
-                          child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                        ),
+                        Consumer(
+                        builder: (context, msgRef, _) {           // ← "msgRef" no "ref"
+                          final unread = msgRef.watch(totalUnreadProvider);
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context, rootNavigator: true).push(
+                                MaterialPageRoute(
+                                  builder: (_) => InboxScreen(),
+                                ),
+                              );
+                            },
+                            child: Stack(
+                              children: [
+                                Container(
+                                  width: 44,
+                                  height: 44,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: AppColors.blueGradient,
+                                  ),
+                                  child: const Icon(Icons.send_rounded,
+                                      color: Colors.white, size: 20),
+                                ),
+                                if (unread > 0)
+                                  Positioned(
+                                    right: 0,
+                                    top: 0,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          unread > 9 ? '9+' : '$unread',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                       ],
                       ),
                     ),

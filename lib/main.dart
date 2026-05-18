@@ -13,11 +13,10 @@ import 'presentation/providers/session_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (Firebase.apps.isEmpty) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-  }
+  
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   timeago.setLocaleMessages('es', timeago.EsMessages());
   timeago.setDefaultLocale('es');
