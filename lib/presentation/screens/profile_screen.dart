@@ -939,14 +939,14 @@ class _ProfileBody extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  Center(
-                    child: Container(
-                      width: 155,
-                      height: 155,
-                      padding: const EdgeInsets.all(12),
-                      decoration: previewBoxDecoration.copyWith(
-                        borderRadius: BorderRadius.circular(22),
-                      ),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: previewBoxDecoration.copyWith(
+                      borderRadius: BorderRadius.circular(22),
+                    ),
+                    child: SizedBox(
+                      height: 110,
                       child: _buildPreviewContent(
                         widgetType: widgetType,
                         globalStreak: globalStreak,
@@ -1189,49 +1189,42 @@ class _ProfileBody extends StatelessWidget {
     if (widgetType == 'streak') {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
               Icon(
                 Icons.local_fire_department_rounded,
                 color: previewAccentColor,
-                size: 18,
+                size: 28,
               ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'RACHA G.',
-                  style: TextStyle(
-                    color: previewSubtextColor,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+              const SizedBox(width: 6),
               Text(
-                '🔥 ${globalStreak > 0 ? globalStreak : 14} Días',
+                'RACHA GLOBAL',
                 style: TextStyle(
-                  color: previewTextColor,
-                  fontSize: 20,
+                  color: previewSubtextColor,
+                  fontSize: 10,
                   fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Text(
-            'Sigue sumando.',
+            '🔥 ${globalStreak > 0 ? globalStreak : 14} Días',
+            style: TextStyle(
+              color: previewTextColor,
+              fontSize: 26,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '¡Cada día cuenta! Sigue sumando.',
             style: TextStyle(
               color: previewSubtextColor,
-              fontSize: 9,
+              fontSize: 11,
             ),
           ),
         ],
@@ -1243,72 +1236,55 @@ class _ProfileBody extends StatelessWidget {
       
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Text(
-            'PROGRESO',
+            'PROGRESO DIARIO',
             style: TextStyle(
               color: previewSubtextColor,
-              fontSize: 9,
+              fontSize: 10,
               fontWeight: FontWeight.bold,
               letterSpacing: 0.8,
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.baseline,
-                    textBaseline: TextBaseline.alphabetic,
-                    children: [
-                      Text(
-                        '$completed/$total',
-                        style: TextStyle(
-                          color: previewTextColor,
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(width: 2),
-                      Text(
-                        'hechos',
-                        style: TextStyle(
-                          color: previewSubtextColor,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    '${(percent * 100).toInt()}%',
-                    style: TextStyle(
-                      color: previewAccentColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
+              Text(
+                '$completed de $total completados',
+                style: TextStyle(
+                  color: previewTextColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(6),
-                child: LinearProgressIndicator(
-                  value: percent,
-                  minHeight: 6,
-                  backgroundColor: previewTextColor.withOpacity(0.15),
-                  valueColor: AlwaysStoppedAnimation<Color>(previewAccentColor),
+              Text(
+                '${(percent * 100).toInt()}%',
+                style: TextStyle(
+                  color: previewAccentColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: percent,
+              minHeight: 8,
+              backgroundColor: previewTextColor.withOpacity(0.15),
+              valueColor: AlwaysStoppedAnimation<Color>(previewAccentColor),
+            ),
+          ),
+          const SizedBox(height: 6),
           Text(
-            '¡Buen ritmo!',
+            '¡Vas por buen camino hoy!',
             style: TextStyle(
               color: previewSubtextColor,
-              fontSize: 9,
+              fontSize: 10,
             ),
           ),
         ],
@@ -1334,46 +1310,43 @@ class _ProfileBody extends StatelessWidget {
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
             children: [
               Icon(
                 Icons.star_rounded,
                 color: previewAccentColor,
-                size: 14,
+                size: 24,
               ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'ESTRELLA',
-                  style: TextStyle(
-                    color: previewSubtextColor,
-                    fontSize: 9,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.8,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+              const SizedBox(width: 6),
+              Text(
+                'HABITO ESTRELLA',
+                style: TextStyle(
+                  color: previewSubtextColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
                 ),
               ),
             ],
           ),
+          const SizedBox(height: 8),
           Row(
             children: [
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: previewTextColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(6),
+                  borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
                   AppColors.habitIconFromString(selectedHabit.icon),
                   color: previewAccentColor,
-                  size: 14,
+                  size: 24,
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -1382,21 +1355,19 @@ class _ProfileBody extends StatelessWidget {
                       selectedHabit.title,
                       style: TextStyle(
                         color: previewTextColor,
-                        fontSize: 12,
+                        fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 1),
+                    const SizedBox(height: 2),
                     Text(
-                      '$completions hechos',
+                      '$completions completados en total',
                       style: TextStyle(
                         color: previewSubtextColor,
-                        fontSize: 9,
+                        fontSize: 11,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
