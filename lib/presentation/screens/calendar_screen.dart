@@ -630,6 +630,11 @@ class _HabitTileState extends State<_HabitTile> with TickerProviderStateMixin {
             color: color,
             borderRadius: BorderRadius.circular(13),
           ),
+          child: Icon(
+            AppColors.habitIconFromString(widget.habit.icon),
+            color: Colors.white,
+            size: 26,
+          ),
         ),
         const SizedBox(width: 14),
         Expanded(
