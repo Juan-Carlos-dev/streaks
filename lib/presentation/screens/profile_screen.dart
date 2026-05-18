@@ -473,8 +473,8 @@ class _ProfileBody extends StatelessWidget {
         String? errorMessage;
         
         return StatefulBuilder(
-          builder: (context, setState) {
-            final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+          builder: (stateContext, setState) {
+            final keyboardPadding = MediaQuery.of(stateContext).viewInsets.bottom;
             return Padding(
               padding: EdgeInsets.only(
                 top: 12,
@@ -664,8 +664,8 @@ class _ProfileBody extends StatelessWidget {
         String? errorMessage;
         
         return StatefulBuilder(
-          builder: (context, setState) {
-            final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+          builder: (stateContext, setState) {
+            final keyboardPadding = MediaQuery.of(stateContext).viewInsets.bottom;
             return Padding(
               padding: EdgeInsets.only(
                 top: 12,
@@ -855,8 +855,8 @@ class _ProfileBody extends StatelessWidget {
         bool obscureConfirm = true;
         
         return StatefulBuilder(
-          builder: (context, setState) {
-            final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+          builder: (stateContext, setState) {
+            final keyboardPadding = MediaQuery.of(stateContext).viewInsets.bottom;
             return Padding(
               padding: EdgeInsets.only(
                 top: 12,
