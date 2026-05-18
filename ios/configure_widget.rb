@@ -82,5 +82,17 @@ end
 embed_phase.clear
 embed_phase.add_file_reference(widget_target.product_reference)
 
+# Reorder build phases to prevent Xcode 15 dependency cycles
+# Copy App Extensions MUST run BEFORE Thin Binary / Embed Pods Frameworks scripts
+puts "Reordering build phases for Runner target to avoid dependency cycles..."
+runner_target.build_phases.delete(embed_phase)
+thin_binary_idx = runner_target.build_phases.index { |bp| bp.respond_to?(:name) && bp.name == 'Thin Binary' || bp.display_name == 'Thin Binary' }
+if thin_binary_idx
+  runner_target.build_phases.insert(thin_binary_idx, embed_phase)
+else
+  # Fallback: insert before the last elements (e.g. index 6)
+  runner_target.build_phases.insert(6, embed_phase)
+end
+
 project.save
 puts "Xcode project configured successfully!"

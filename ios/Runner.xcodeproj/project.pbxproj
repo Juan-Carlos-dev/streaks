@@ -7,19 +7,19 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0B98932FBDA110BA5B5344E8 /* RunnerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */; };
 		1403909343BC57FAF48063F7 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2ACFA03AEDD82B98378DA8F9 /* Foundation.framework */; };
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
+		29CF49F217C7E3BB627E46A7 /* RunnerWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9BD35A3827916C206439381C /* RunnerWidget.appex */; };
 		331C808B294A63AB00263BE5 /* RunnerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331C807B294A618700263BE5 /* RunnerTests.swift */; };
 		3AFD6E5EA7374FA1C0DF0EA5 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28A4C9964CD367E7B81C5A3D /* Pods_Runner.framework */; };
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
+		4BDF9AFC2F4FB19935F8CA5D /* RunnerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07D7746B61D37A11D76B7CED /* RunnerWidget.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		86FE81E65A32EBCD662D039B /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5A9FB7A0EA8078450A581057 /* Pods_RunnerTests.framework */; };
 		97C146FC1CF9000F007C117D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000F007C117D /* Main.storyboard */; };
 		97C146FE1CF9000F007C117D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000F007C117D /* Assets.xcassets */; };
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
-		D0F31D08AEBFACDFAD54611E /* RunnerWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9BD35A3827916C206439381C /* RunnerWidget.appex */; };
-		F143311B3085EBE0B66187A5 /* RunnerWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */; };
+		B4157457834B166C8653CB4C /* RunnerWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E493FC8C71E37B6164A9206 /* RunnerWidgetBundle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,7 +46,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				D0F31D08AEBFACDFAD54611E /* RunnerWidget.appex in Embed App Extensions */,
+				29CF49F217C7E3BB627E46A7 /* RunnerWidget.appex in Embed App Extensions */,
 			);
 			name = "Embed App Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -65,17 +65,18 @@
 
 /* Begin PBXFileReference section */
 		01508C9435752092C64A0A54 /* Runner.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
+		07D7746B61D37A11D76B7CED /* RunnerWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidget.swift; path = RunnerWidget/RunnerWidget.swift; sourceTree = "<group>"; };
 		1498D2321E8E86230040F4C2 /* GeneratedPluginRegistrant.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GeneratedPluginRegistrant.h; sourceTree = "<group>"; };
 		1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GeneratedPluginRegistrant.m; sourceTree = "<group>"; };
+		1EA0866CA9FD65755F68334E /* RunnerWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = RunnerWidget.entitlements; path = RunnerWidget/RunnerWidget.entitlements; sourceTree = "<group>"; };
 		28A4C9964CD367E7B81C5A3D /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		2ACFA03AEDD82B98378DA8F9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		331C807B294A618700263BE5 /* RunnerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RunnerTests.swift; sourceTree = "<group>"; };
 		331C8081294A63A400263BE5 /* RunnerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RunnerTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = AppFrameworkInfo.plist; path = Flutter/AppFrameworkInfo.plist; sourceTree = "<group>"; };
-		539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidgetBundle.swift; path = RunnerWidget/RunnerWidgetBundle.swift; sourceTree = "<group>"; };
 		5A9FB7A0EA8078450A581057 /* Pods_RunnerTests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_RunnerTests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
-		5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidget.swift; path = RunnerWidget/RunnerWidget.swift; sourceTree = "<group>"; };
 		692A3C680F033E77D347AA1E /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
+		6E493FC8C71E37B6164A9206 /* RunnerWidgetBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = RunnerWidgetBundle.swift; path = RunnerWidget/RunnerWidgetBundle.swift; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		7AFA3C8E1D35360C0083082E /* Release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Release.xcconfig; path = Flutter/Release.xcconfig; sourceTree = "<group>"; };
@@ -91,8 +92,7 @@
 		B9D3D627C28E4B1D8FD6005B /* Pods-RunnerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.debug.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.debug.xcconfig"; sourceTree = "<group>"; };
 		BD6289538F976DD192EF033A /* Pods-RunnerTests.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.profile.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.profile.xcconfig"; sourceTree = "<group>"; };
 		C366D5C0ACEAFB22A68CF752 /* Pods-RunnerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-RunnerTests.release.xcconfig"; path = "Target Support Files/Pods-RunnerTests/Pods-RunnerTests.release.xcconfig"; sourceTree = "<group>"; };
-		CDDCA9A8B9D28C48D29F1F6D /* RunnerWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; name = RunnerWidget.entitlements; path = RunnerWidget/RunnerWidget.entitlements; sourceTree = "<group>"; };
-		CEE83D98F5503C4F27A30E8D /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = RunnerWidget/Info.plist; sourceTree = "<group>"; };
+		CB7ECAAC2883D07583150865 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; name = Info.plist; path = RunnerWidget/Info.plist; sourceTree = "<group>"; };
 		ED66078BC94D6D45945965DE /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -207,10 +207,10 @@
 		B3360EB1FAB7166CC12E3E3D /* RunnerWidget */ = {
 			isa = PBXGroup;
 			children = (
-				5BA2C324641CA0DDB3DF65EA /* RunnerWidget.swift */,
-				539AADE80A450FE3D323B9AF /* RunnerWidgetBundle.swift */,
-				CEE83D98F5503C4F27A30E8D /* Info.plist */,
-				CDDCA9A8B9D28C48D29F1F6D /* RunnerWidget.entitlements */,
+				07D7746B61D37A11D76B7CED /* RunnerWidget.swift */,
+				6E493FC8C71E37B6164A9206 /* RunnerWidgetBundle.swift */,
+				CB7ECAAC2883D07583150865 /* Info.plist */,
+				1EA0866CA9FD65755F68334E /* RunnerWidget.entitlements */,
 			);
 			name = RunnerWidget;
 			sourceTree = "<group>";
@@ -257,9 +257,9 @@
 				97C146EB1CF9000F007C117D /* Frameworks */,
 				97C146EC1CF9000F007C117D /* Resources */,
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
+				73B95D99C393A6F4DA997D9D /* Embed App Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
 				950D931452106FE7080500F1 /* [CP] Embed Pods Frameworks */,
-				73B95D99C393A6F4DA997D9D /* Embed App Extensions */,
 			);
 			buildRules = (
 			);
@@ -456,8 +456,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F143311B3085EBE0B66187A5 /* RunnerWidget.swift in Sources */,
-				0B98932FBDA110BA5B5344E8 /* RunnerWidgetBundle.swift in Sources */,
+				4BDF9AFC2F4FB19935F8CA5D /* RunnerWidget.swift in Sources */,
+				B4157457834B166C8653CB4C /* RunnerWidgetBundle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
