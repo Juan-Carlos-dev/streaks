@@ -152,26 +152,32 @@ class _AddHabitModalState extends ConsumerState<AddHabitModal> {
                   style: TextStyle(
                       color: AppColors.textSecondary, fontSize: 13)),
               const SizedBox(height: 8),
-              Wrap(
-                spacing: 10,
-                children: _colors.map((color) {
-                  final isSelected = _selectedColor == color;
-                  final c = AppColors.habitColorFromHex(color);
-                  return GestureDetector(
-                    onTap: () => setState(() => _selectedColor = color),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: c,
-                        shape: BoxShape.circle,
-                        border: isSelected
-                            ? Border.all(color: Colors.white, width: 3)
-                            : null,
+              SizedBox(
+                height: 44,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _colors.length,
+                  separatorBuilder: (_, __) => const SizedBox(width: 10),
+                  itemBuilder: (context, index) {
+                    final color = _colors[index];
+                    final isSelected = _selectedColor == color;
+                    final c = AppColors.habitColorFromHex(color);
+                    return GestureDetector(
+                      onTap: () => setState(() => _selectedColor = color),
+                      child: Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: c,
+                          shape: BoxShape.circle,
+                          border: isSelected
+                              ? Border.all(color: Colors.white, width: 3.5)
+                              : null,
+                        ),
                       ),
-                    ),
-                  );
-                }).toList(),
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 20),
 

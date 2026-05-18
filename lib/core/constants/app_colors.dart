@@ -28,14 +28,22 @@ class AppColors {
 
   // Habit Colors
   static const List<String> habitColors = [
-    '#007BFF',
-    '#FF3B30',
-    '#34C759',
-    '#FF9500',
-    '#AF52DE',
-    '#FF2D55',
-    '#5AC8FA',
-    '#FFCC00',
+    '#007BFF', // Classic Blue
+    '#FF3B30', // Active Red
+    '#34C759', // Vibrant Green
+    '#FF9500', // Energizing Orange
+    '#AF52DE', // Deep Purple
+    '#FF2D55', // Bright Pink
+    '#5AC8FA', // Sky Blue
+    '#FFCC00', // Golden Yellow
+    '#00E5FF', // Bright Cyan
+    '#00DEC6', // Mint Teal
+    '#2ECC71', // Emerald Green
+    '#FA8072', // Sweet Salmon
+    '#F08080', // Coral Pink
+    '#D6A2E8', // Soft Lilac
+    '#FF7F50', // Warm Coral
+    '#8A2BE2', // Electric Violet
   ];
 
   // Profile gradient presets
