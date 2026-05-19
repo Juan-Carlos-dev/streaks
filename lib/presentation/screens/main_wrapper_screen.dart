@@ -33,16 +33,21 @@ class MainWrapperScreen extends ConsumerWidget {
           navigationShell,
 
           // Floating nav bar overlaid on top
-          AnimatedPositioned(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeInOut,
-            left: 24,
-            right: 24,
-            bottom: ref.watch(showBottomNavBarProvider) ? 18 : -100,
-            child: _FloatingNavBar(
-              currentIndex: navigationShell.currentIndex,
-              onTap: (index) => _onTap(context, index),
-            ),
+          Consumer(
+            builder: (context, ref, child) {
+              final showNavBar = ref.watch(showBottomNavBarProvider);
+              return AnimatedPositioned(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeInOut,
+                left: 24,
+                right: 24,
+                bottom: showNavBar ? 18 : -100,
+                child: _FloatingNavBar(
+                  currentIndex: navigationShell.currentIndex,
+                  onTap: (index) => _onTap(context, index),
+                ),
+              );
+            },
           ),
         ],
       ),

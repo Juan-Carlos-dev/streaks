@@ -117,9 +117,10 @@ class _ProfileBody extends StatelessWidget {
     const avatarRadius = 52.0;
     const avatarTop = bannerHeight - avatarRadius;
 
-    return Stack(
-      children: [
-        SingleChildScrollView(
+    return SizedBox.expand(
+      child: Stack(
+        children: [
+          SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -504,6 +505,7 @@ class _ProfileBody extends StatelessWidget {
       },
     ),
     ],
+    ),
     );
   }
 
