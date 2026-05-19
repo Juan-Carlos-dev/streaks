@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
 import '../../domain/entities/habit.dart';
+import '../../domain/entities/post.dart';
 import '../../core/utils/widget_utils.dart';
 import '../providers/user_providers.dart';
 import '../providers/auth_providers.dart';
