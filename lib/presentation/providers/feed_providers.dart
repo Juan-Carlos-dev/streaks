@@ -157,3 +157,16 @@ class LikePostController {
     await _repository.likePost(postId, userId);
   }
 }
+
+final deletePostControllerProvider = Provider((ref) {
+  return DeletePostController(ref.watch(postRepositoryProvider));
+});
+
+class DeletePostController {
+  final PostRepository _repository;
+  DeletePostController(this._repository);
+
+  Future<void> deletePost(String postId, String imageUrl) async {
+    await _repository.deletePost(postId, imageUrl);
+  }
+}

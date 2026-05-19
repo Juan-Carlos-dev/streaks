@@ -88,4 +88,24 @@ class PostRepositoryImpl implements PostRepository {
       return const Left(ServerFailure('Error al dar like'));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> deletePost(String postId, String imageUrl) async {
+    try {
+      // 1. Delete post document in Firestore
+      await _firestore.collection('posts').doc(postId).delete();
+
+      // 2. Best-effort delete from Storage
+      try {
+        await _storage.refFromURL(imageUrl).delete();
+      } catch (storageError) {
+        // Tolerated since Firestore document deletion is the absolute priority
+        print('Error deleting image from storage: $storageError');
+      }
+
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

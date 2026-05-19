@@ -328,13 +328,16 @@ class _ProfileBody extends StatelessWidget {
                           ref.read(likePostControllerProvider).likePost(posts[index].id, userId);
                         }
                       },
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
-                          errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                      child: GestureDetector(
+                        onTap: () => _showPostDetailModal(context, posts[index], ref),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: CachedNetworkImage(
+                            imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
+                            fit: BoxFit.cover,
+                            placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
+                            errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                          ),
                         ),
                       ),
                     );
@@ -345,6 +348,181 @@ class _ProfileBody extends StatelessWidget {
           ),
 
           const SizedBox(height: 100),
+        ],
+      ),
+    );
+  }
+
+  void _showPostDetailModal(BuildContext context, Post post, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1A1A1A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      isScrollControlled: true,
+      builder: (context) {
+        final hasCaption = post.caption.isNotEmpty;
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Pull indicator
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 5,
+                    decoration: BoxDecoration(
+                      color: Colors.white24,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Post Image
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: AspectRatio(
+                      aspectRatio: 5 / 4,
+                      child: CachedNetworkImage(
+                        imageUrl: ImageUtils.wrapProxy(post.imageUrl),
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // Post stats and details
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          const Icon(Icons.star_rounded, color: Colors.amber, size: 20),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${post.likesCount} estrellas',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (hasCaption) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          post.caption,
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14.5,
+                            height: 1.4,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                const Divider(color: Colors.white10, height: 24),
+                // Action Buttons
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                  child: TextButton.icon(
+                    onPressed: () => _confirmDeletePost(context, post, ref),
+                    icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                    label: const Text(
+                      'Eliminar publicación',
+                      style: TextStyle(
+                        color: Colors.redAccent,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      backgroundColor: Colors.redAccent.withOpacity(0.1),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmDeletePost(BuildContext parentContext, Post post, WidgetRef ref) {
+    showDialog(
+      context: parentContext,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        title: const Text(
+          '¿Eliminar publicación?',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Esta acción no se puede deshacer. ¿Seguro que quieres borrar este post permanentemente?',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
+          ),
+          TextButton(
+            onPressed: () async {
+              // Close dialog
+              Navigator.pop(context);
+              // Close bottom sheet
+              Navigator.pop(parentContext);
+              
+              // Show loading status
+              ScaffoldMessenger.of(parentContext).showSnackBar(
+                const SnackBar(
+                  content: Row(
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      ),
+                      SizedBox(width: 12),
+                      Text('Eliminando publicación...'),
+                    ],
+                  ),
+                  backgroundColor: Color(0xFF2A2A2A),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+
+              // Execute delete operation
+              await ref.read(deletePostControllerProvider).deletePost(post.id, post.imageUrl);
+
+              // Show success
+              if (parentContext.mounted) {
+                ScaffoldMessenger.of(parentContext).showSnackBar(
+                  const SnackBar(
+                    content: Text('Publicación eliminada correctamente'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
         ],
       ),
     );
