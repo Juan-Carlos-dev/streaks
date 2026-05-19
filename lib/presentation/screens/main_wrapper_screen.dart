@@ -33,10 +33,12 @@ class MainWrapperScreen extends ConsumerWidget {
           navigationShell,
 
           // Floating nav bar overlaid on top
-          Positioned(
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeInOut,
             left: 24,
             right: 24,
-            bottom: 18,
+            bottom: ref.watch(showBottomNavBarProvider) ? 18 : -100,
             child: _FloatingNavBar(
               currentIndex: navigationShell.currentIndex,
               onTap: (index) => _onTap(context, index),

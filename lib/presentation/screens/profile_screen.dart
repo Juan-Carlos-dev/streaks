@@ -376,10 +376,12 @@ class _ProfileBody extends StatelessWidget {
                           ),
                           onDragStarted: () {
                             _draggingPost.value = post;
+                            ref.read(showBottomNavBarProvider.notifier).state = false;
                           },
                           onDragEnd: (details) {
                             _draggingPost.value = null;
                             _isOverTrash.value = false;
+                            ref.read(showBottomNavBarProvider.notifier).state = true;
                           },
                           child: GestureDetector(
                             onTap: () {
@@ -428,69 +430,74 @@ class _ProfileBody extends StatelessWidget {
     ValueListenableBuilder<Post?>(
       valueListenable: _draggingPost,
       builder: (context, draggingPost, _) {
-        if (draggingPost == null) return const SizedBox.shrink();
-        return Positioned(
-          bottom: 110,
-          left: 0,
-          right: 0,
-          child: Center(
-            child: DragTarget<Post>(
-              onWillAcceptWithDetails: (details) {
-                _isOverTrash.value = true;
-                Feedback.forLongPress(context);
-                return true;
-              },
-              onLeave: (data) {
-                _isOverTrash.value = false;
-              },
-              onAcceptWithDetails: (details) {
-                _draggingPost.value = null;
-                _isOverTrash.value = false;
-                _confirmDeletePost(context, details.data, ref);
-              },
-              builder: (context, candidateData, rejectedData) {
-                return ValueListenableBuilder<bool>(
-                  valueListenable: _isOverTrash,
-                  builder: (context, isHovered, _) {
-                    return AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      width: isHovered ? 90 : 76,
-                      height: isHovered ? 90 : 76,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          colors: isHovered
-                              ? [Colors.red, Colors.redAccent]
-                              : [const Color(0xFF2E1515), const Color(0xFF1C0A0A)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        border: Border.all(
-                          color: isHovered ? Colors.white : Colors.redAccent.withOpacity(0.5),
-                          width: isHovered ? 2.5 : 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: isHovered
-                                ? Colors.redAccent.withOpacity(0.6)
-                                : Colors.redAccent.withOpacity(0.15),
-                            blurRadius: isHovered ? 24 : 12,
-                            spreadRadius: isHovered ? 6 : 2,
+        return IgnorePointer(
+          ignoring: draggingPost == null,
+          child: AnimatedPositioned(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutBack,
+            bottom: draggingPost != null ? 36 : -120,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: DragTarget<Post>(
+                onWillAcceptWithDetails: (details) {
+                  _isOverTrash.value = true;
+                  Feedback.forLongPress(context);
+                  return true;
+                },
+                onLeave: (data) {
+                  _isOverTrash.value = false;
+                },
+                onAcceptWithDetails: (details) {
+                  _draggingPost.value = null;
+                  _isOverTrash.value = false;
+                  ref.read(showBottomNavBarProvider.notifier).state = true;
+                  _confirmDeletePost(context, details.data, ref);
+                },
+                builder: (context, candidateData, rejectedData) {
+                  return ValueListenableBuilder<bool>(
+                    valueListenable: _isOverTrash,
+                    builder: (context, isHovered, _) {
+                      return AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeOutCubic,
+                        width: isHovered ? 90 : 76,
+                        height: isHovered ? 90 : 76,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: isHovered
+                                ? [Colors.red, Colors.redAccent]
+                                : [const Color(0xFF2E1515), const Color(0xFF1C0A0A)],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Icon(
-                          isHovered ? Icons.delete_forever_rounded : Icons.delete_outline_rounded,
-                          color: isHovered ? Colors.white : Colors.redAccent,
-                          size: isHovered ? 38 : 30,
+                          border: Border.all(
+                            color: isHovered ? Colors.white : Colors.redAccent.withOpacity(0.5),
+                            width: isHovered ? 2.5 : 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: isHovered
+                                  ? Colors.redAccent.withOpacity(0.6)
+                                  : Colors.redAccent.withOpacity(0.15),
+                              blurRadius: isHovered ? 24 : 12,
+                              spreadRadius: isHovered ? 6 : 2,
+                            ),
+                          ],
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                        child: Center(
+                          child: Icon(
+                            isHovered ? Icons.delete_forever_rounded : Icons.delete_outline_rounded,
+                            color: isHovered ? Colors.white : Colors.redAccent,
+                            size: isHovered ? 38 : 30,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
             ),
           ),
         );

@@ -49,3 +49,5 @@ final gradientControllerProvider = Provider<List<String>>((ref) {
     error: (_, __) => [],
   );
 });
+
+final showBottomNavBarProvider = StateProvider<bool>((ref) => true);
