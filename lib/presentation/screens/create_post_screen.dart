@@ -244,6 +244,36 @@ class ImageCropperDialog extends StatefulWidget {
 class _ImageCropperDialogState extends State<ImageCropperDialog> {
   final GlobalKey _repaintKey = GlobalKey();
   bool _isProcessing = false;
+  double? _imageAspectRatio;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadImageAspectRatio();
+  }
+
+  void _loadImageAspectRatio() {
+    final Image image = Image.file(widget.imageFile);
+    image.image.resolve(const ImageConfiguration()).addListener(
+      ImageStreamListener(
+        (ImageInfo info, bool synchronousCall) {
+          if (mounted) {
+            setState(() {
+              _imageAspectRatio = info.image.width / info.image.height;
+            });
+          }
+        },
+        onError: (dynamic exception, StackTrace? stackTrace) {
+          print('Error loading image dimensions: $exception');
+          if (mounted) {
+            setState(() {
+              _imageAspectRatio = 1.0; // fallback
+            });
+          }
+        },
+      ),
+    );
+  }
 
   Future<void> _cropAndSave() async {
     setState(() => _isProcessing = true);
@@ -285,6 +315,15 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
 
   @override
   Widget build(BuildContext context) {
+    if (_imageAspectRatio == null) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Colors.amber),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -337,14 +376,40 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                     key: _repaintKey,
                     child: Container(
                       color: const Color(0xFF1E1E1E),
-                      child: InteractiveViewer(
-                        minScale: 1.0,
-                        maxScale: 5.0,
-                        boundaryMargin: const EdgeInsets.all(double.infinity),
-                        child: Image.file(
-                          widget.imageFile,
-                          fit: BoxFit.contain,
-                        ),
+                      child: LayoutBuilder(
+                        builder: (context, constraints) {
+                          final viewportWidth = constraints.maxWidth;
+                          final viewportHeight = constraints.maxHeight;
+                          final viewportRatio = viewportWidth / viewportHeight;
+
+                          double childWidth;
+                          double childHeight;
+
+                          if (_imageAspectRatio! > viewportRatio) {
+                            // Landscape: height matches viewport, width overflows
+                            childHeight = viewportHeight;
+                            childWidth = viewportHeight * _imageAspectRatio!;
+                          } else {
+                            // Portrait: width matches viewport, height overflows
+                            childWidth = viewportWidth;
+                            childHeight = viewportWidth / _imageAspectRatio!;
+                          }
+
+                          return InteractiveViewer(
+                            minScale: 1.0,
+                            maxScale: 5.0,
+                            boundaryMargin: EdgeInsets.zero,
+                            clipBehavior: Clip.none,
+                            child: SizedBox(
+                              width: childWidth,
+                              height: childHeight,
+                              child: Image.file(
+                                widget.imageFile,
+                                fit: BoxFit.fill,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
