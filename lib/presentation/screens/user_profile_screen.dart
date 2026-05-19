@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../widgets/image_preview_popup.dart';
+import '../widgets/follow_list_modal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
@@ -119,9 +121,17 @@ class _UserProfileBody extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                _LiveStatPair(uid: user?.uid ?? '', label: 'Seguidores', isFollowers: true),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FollowListModal.show(context, user?.uid ?? '', true),
+                  child: _LiveStatPair(uid: user?.uid ?? '', label: 'Seguidores', isFollowers: true),
+                ),
                 const SizedBox(width: 24),
-                _LiveStatPair(uid: user?.uid ?? '', label: 'Siguiendo', isFollowers: false),
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FollowListModal.show(context, user?.uid ?? '', false),
+                  child: _LiveStatPair(uid: user?.uid ?? '', label: 'Siguiendo', isFollowers: false),
+                ),
               ],
             ),
           ),
@@ -170,13 +180,29 @@ class _UserProfileBody extends StatelessWidget {
                     crossAxisCount: 3, mainAxisSpacing: 6, crossAxisSpacing: 6,
                   ),
                   itemCount: posts.length,
-                  itemBuilder: (context, index) => ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
-                      fit: BoxFit.cover,
-                      placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
-                      errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                  itemBuilder: (context, index) => ImagePreviewWrapper(
+                    imageUrl: posts[index].imageUrl,
+                    username: user?.username ?? '',
+                    userPhotoUrl: user?.photoUrl ?? '',
+                    profileGradientIndex: user?.profileGradientIndex ?? 0,
+                    aspectRatio: 5 / 4,
+                    likesCount: posts[index].likesCount,
+                    caption: posts[index].caption,
+                    isLiked: posts[index].likedBy.contains(ref.read(authStateProvider).value),
+                    onLike: () {
+                      final userId = ref.read(authStateProvider).value;
+                      if (userId != null) {
+                        ref.read(likePostControllerProvider).likePost(posts[index].id, userId);
+                      }
+                    },
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: CachedNetworkImage(
+                        imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
+                        fit: BoxFit.cover,
+                        placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
+                        errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                      ),
                     ),
                   ),
                 ),

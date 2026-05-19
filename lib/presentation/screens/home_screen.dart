@@ -15,6 +15,7 @@ import '../providers/follow_providers.dart';
 import 'create_post_screen.dart';
 import '../../core/utils/image_utils.dart';
 import '../widgets/search_drawer.dart';
+import '../widgets/image_preview_popup.dart';
 import 'messages_screen.dart';
 import '../providers/message_providers.dart';
 

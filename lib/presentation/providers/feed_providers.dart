@@ -54,6 +54,32 @@ final suggestedUsersProvider = FutureProvider<List<Map<String, dynamic>>>((ref) 
       .toList();
 });
 
+const Map<String, List<String>> _groupKeywords = {
+  'hiking': ['hiking', 'senderismo', 'caminar', 'montaña', 'trekking', 'walk', 'hike', 'naturaleza'],
+  'running': ['running', 'correr', 'jogging', 'run', 'carrera', 'sprint', 'maraton', 'marathon'],
+  'gym': ['gym', 'gimnasio', 'entrenamiento', 'entrenar', 'deporte', 'workout', 'ejercicio', 'fitness', 'pesas', 'cardio', 'calistenia', 'crossfit', 'powerlifting', 'bodybuilding'],
+  'meditation': ['meditation', 'meditacion', 'meditar', 'mindfulness', 'respiracion', 'relax', 'paz', 'mental'],
+  'reading': ['reading', 'leer', 'lectura', 'libro', 'books', 'read', 'estudiar', 'study', 'aprender'],
+  'coding': ['coding', 'programar', 'code', 'python', 'javascript', 'developer', 'programming', 'software', 'java', 'c++', 'flutter', 'dart', 'react', 'html', 'css', 'desarrollo', 'programacion', 'backend', 'frontend', 'c#', 'rust', 'swift', 'kotlin', 'sql'],
+  'yoga': ['yoga', 'estiramientos', 'flexibilidad', 'stretching', 'pilates'],
+  'nutrition': ['nutrition', 'nutricion', 'comer', 'comida', 'dieta', 'diet', 'healthy', 'saludable', 'receta', 'cocinar', 'cook', 'agua', 'water'],
+};
+
+bool _isHabitInGroup(String habitTitle, String groupName) {
+  final cleanTitle = habitTitle.trim().toLowerCase();
+  final cleanGroupName = groupName.trim().toLowerCase();
+  
+  if (cleanTitle == cleanGroupName) return true;
+  
+  final keywords = _groupKeywords[cleanGroupName];
+  if (keywords != null) {
+    for (final kw in keywords) {
+      if (cleanTitle.contains(kw)) return true;
+    }
+  }
+  return false;
+}
+
 final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, selectedGroup) async {
   final allPosts = await ref.watch(feedStreamProvider.future);
   
@@ -61,10 +87,8 @@ final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, sele
   final currentUser = currentUserAsync.value;
   if (currentUser == null) return [];
   
-  final myHabitTitles = currentUser.followedGroups.map((g) => g.trim().toLowerCase()).toSet();
-  if (myHabitTitles.isEmpty) return [];
-
-  final filterTitle = selectedGroup?.trim().toLowerCase();
+  final followedGroups = currentUser.followedGroups.map((g) => g.trim().toLowerCase()).toSet();
+  if (followedGroups.isEmpty) return [];
 
   List<Post> filtered = [];
   for (final post in allPosts) {
@@ -72,13 +96,17 @@ final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, sele
       final habitDoc = await FirebaseFirestore.instance.collection('habits').doc(post.habitId).get();
       if (habitDoc.exists) {
         final title = (habitDoc.data()?['title'] as String?)?.trim().toLowerCase() ?? '';
-        if (filterTitle != null) {
-          if (title == filterTitle) {
+        if (selectedGroup != null) {
+          if (_isHabitInGroup(title, selectedGroup)) {
             filtered.add(post);
           }
         } else {
-          if (myHabitTitles.contains(title)) {
-            filtered.add(post);
+          // Show posts matching any of the user's followed groups
+          for (final group in followedGroups) {
+            if (_isHabitInGroup(title, group)) {
+              filtered.add(post);
+              break;
+            }
           }
         }
       }

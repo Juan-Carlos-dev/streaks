@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import '../widgets/image_preview_popup.dart';
+import '../widgets/follow_list_modal.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
@@ -192,14 +194,22 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                _StatPair(
-                  value: _formatCount(user?.stats.followersCount ?? 0),
-                  label: 'Seguidores',
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FollowListModal.show(context, user?.uid ?? '', true),
+                  child: _StatPair(
+                    value: _formatCount(user?.stats.followersCount ?? 0),
+                    label: 'Seguidores',
+                  ),
                 ),
                 const SizedBox(width: 24),
-                _StatPair(
-                  value: _formatCount(user?.stats.followingCount ?? 0),
-                  label: 'Siguiendo',
+                GestureDetector(
+                  behavior: HitTestBehavior.opaque,
+                  onTap: () => FollowListModal.show(context, user?.uid ?? '', false),
+                  child: _StatPair(
+                    value: _formatCount(user?.stats.followingCount ?? 0),
+                    label: 'Siguiendo',
+                  ),
                 ),
               ],
             ),
@@ -303,13 +313,29 @@ class _ProfileBody extends StatelessWidget {
                   ),
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: CachedNetworkImage(
-                        imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
-                        fit: BoxFit.cover,
-                        placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
-                        errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                    return ImagePreviewWrapper(
+                      imageUrl: posts[index].imageUrl,
+                      username: user?.username ?? '',
+                      userPhotoUrl: user?.photoUrl ?? '',
+                      profileGradientIndex: user?.profileGradientIndex ?? 0,
+                      aspectRatio: 5 / 4,
+                      likesCount: posts[index].likesCount,
+                      caption: posts[index].caption,
+                      isLiked: posts[index].likedBy.contains(ref.read(authStateProvider).value),
+                      onLike: () {
+                        final userId = ref.read(authStateProvider).value;
+                        if (userId != null) {
+                          ref.read(likePostControllerProvider).likePost(posts[index].id, userId);
+                        }
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
+                          errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                        ),
                       ),
                     );
                   },
@@ -349,7 +375,18 @@ class _ProfileBody extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-              _SettingsTile(icon: Icons.mail_outline_rounded, title: 'Email', onTap: () {}),
+              _SettingsTile(
+                icon: Icons.mail_outline_rounded,
+                title: 'Email',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showEditEmailModal(context, ref);
+                    }
+                  });
+                },
+              ),
               const _Divider(),
               _SettingsTile(
                 icon: Icons.person_add_alt_1_outlined,
@@ -633,6 +670,230 @@ class _ProfileBody extends StatelessWidget {
                                   )
                                 : const Text(
                                     'Guardar nombre de usuario',
+                                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                                  ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _showEditEmailModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final emailController = TextEditingController(text: user?.email ?? '');
+        bool isLoading = false;
+        String? errorMessage;
+
+        return StatefulBuilder(
+          builder: (stateContext, setState) {
+            final keyboardPadding = MediaQuery.of(stateContext).viewInsets.bottom;
+            return Padding(
+              padding: EdgeInsets.only(
+                top: 12,
+                bottom: keyboardPadding > 0 ? keyboardPadding + 16 : 24,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: isLoading
+                                ? null
+                                : () {
+                                    Navigator.of(sheetContext).pop();
+                                    Future.delayed(Duration.zero, () {
+                                      if (context.mounted) {
+                                        _showSettingsModal(context, ref);
+                                      }
+                                    });
+                                  },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Correo electrónico',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      if (errorMessage != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withOpacity(0.12),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.redAccent.withOpacity(0.2), width: 1),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 18),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  errorMessage!,
+                                  style: const TextStyle(color: Colors.redAccent, fontSize: 13, fontWeight: FontWeight.w500),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      TextField(
+                        controller: emailController,
+                        enabled: !isLoading,
+                        keyboardType: TextInputType.emailAddress,
+                        style: const TextStyle(color: Colors.black87, fontSize: 15),
+                        decoration: InputDecoration(
+                          hintText: 'Tu nuevo correo...',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          prefixIcon: const Icon(Icons.mail_outline_rounded, color: Colors.black45, size: 18),
+                          filled: true,
+                          fillColor: Colors.black.withOpacity(0.05),
+                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+                          ),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: isLoading ? null : AppColors.blueGradient,
+                            color: isLoading ? Colors.grey[200] : null,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                          child: ElevatedButton(
+                            onPressed: isLoading
+                                ? null
+                                : () async {
+                                    final newEmail = emailController.text.trim();
+                                    if (newEmail.isEmpty) {
+                                      setState(() {
+                                        errorMessage = 'Por favor, introduce un correo electrónico.';
+                                      });
+                                      return;
+                                    }
+                                    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+                                    if (!emailRegex.hasMatch(newEmail)) {
+                                      setState(() {
+                                        errorMessage = 'Por favor, introduce un correo electrónico válido.';
+                                      });
+                                      return;
+                                    }
+                                    setState(() {
+                                      isLoading = true;
+                                      errorMessage = null;
+                                    });
+                                    try {
+                                      final authUid = ref.read(authStateProvider).value;
+                                      if (authUid == null) throw Exception('Usuario no autenticado.');
+                                      
+                                      bool authUpdated = true;
+                                      String? authWarning;
+                                      
+                                      // 1. Update in Firebase Auth
+                                      try {
+                                        final currentUser = fba.FirebaseAuth.instance.currentUser;
+                                        if (currentUser != null) {
+                                          await currentUser.updateEmail(newEmail);
+                                        }
+                                      } on fba.FirebaseAuthException catch (authError) {
+                                        authUpdated = false;
+                                        if (authError.code == 'requires-recent-login') {
+                                          authWarning = 'Inicia sesión de nuevo para cambiar las credenciales.';
+                                        } else {
+                                          authWarning = authError.message;
+                                        }
+                                      } catch (e) {
+                                        authUpdated = false;
+                                        authWarning = e.toString();
+                                      }
+                                      
+                                      // 2. Update in Firestore
+                                      await FirebaseFirestore.instance
+                                          .collection('users')
+                                          .doc(authUid)
+                                          .set({'email': newEmail}, SetOptions(merge: true));
+
+                                      ref.invalidate(currentUserProvider);
+                                      if (sheetContext.mounted) {
+                                        Navigator.of(sheetContext).pop();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: authUpdated ? Colors.green : Colors.orangeAccent,
+                                            behavior: SnackBarBehavior.floating,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                            duration: const Duration(seconds: 5),
+                                            content: Text(authUpdated 
+                                                ? 'Correo electrónico actualizado correctamente.'
+                                                : 'Perfil actualizado. Nota: No se pudo cambiar las credenciales de inicio de sesión (${authWarning ?? "Verificación requerida"}). Modifícalo en Firebase Console si es necesario.'),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      setState(() {
+                                        isLoading = false;
+                                        errorMessage = 'Error al guardar: $e';
+                                      });
+                                    }
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            ),
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Text(
+                                    'Guardar correo electrónico',
                                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                                   ),
                           ),

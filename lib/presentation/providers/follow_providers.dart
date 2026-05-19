@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../data/repositories/follow_repository_impl.dart';
 import '../../domain/repositories/follow_repository.dart';
+import '../../domain/entities/user.dart';
 import 'auth_providers.dart';
 
 final followRepositoryProvider = Provider<FollowRepository>((ref) {
@@ -81,3 +82,45 @@ class FollowController extends StateNotifier<AsyncValue<void>> {
     );
   }
 }
+
+final followersListProvider = StreamProvider.family<List<User>, String>((ref, targetUid) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(targetUid)
+      .collection('followers')
+      .snapshots()
+      .asyncMap((snapshot) async {
+        final uids = snapshot.docs.map((doc) => doc.id).toList();
+        if (uids.isEmpty) return [];
+
+        final userDocs = await Future.wait(
+          uids.map((uid) => FirebaseFirestore.instance.collection('users').doc(uid).get())
+        );
+
+        return userDocs
+            .where((doc) => doc.exists)
+            .map((doc) => User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList();
+      });
+});
+
+final followingListProvider = StreamProvider.family<List<User>, String>((ref, targetUid) {
+  return FirebaseFirestore.instance
+      .collection('users')
+      .doc(targetUid)
+      .collection('following')
+      .snapshots()
+      .asyncMap((snapshot) async {
+        final uids = snapshot.docs.map((doc) => doc.id).toList();
+        if (uids.isEmpty) return [];
+
+        final userDocs = await Future.wait(
+          uids.map((uid) => FirebaseFirestore.instance.collection('users').doc(uid).get())
+        );
+
+        return userDocs
+            .where((doc) => doc.exists)
+            .map((doc) => User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>))
+            .toList();
+      });
+});
