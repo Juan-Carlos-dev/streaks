@@ -13,6 +13,7 @@ class User {
   final List<String> followedGroups;
   final List<String> recentSearches;
   final List<String> customGradient;
+  final Map<String, dynamic> notificationConfig;
 
   const User({
     required this.uid,
@@ -27,6 +28,13 @@ class User {
     this.followedGroups = const [],
     this.recentSearches = const [],
     this.customGradient = const ['#3D8EF0', '#64B5F6'], // Default blue gradient
+    this.notificationConfig = const {
+      'dailyReminderEnabled': true,
+      'dailyReminderTime': '20:00',
+      'notifyLikes': true,
+      'notifyComments': true,
+      'notifyFollowers': true,
+    },
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -48,6 +56,15 @@ class User {
       followedGroups: List<String>.from(data['followedGroups'] ?? []),
       recentSearches: List<String>.from(data['recentSearches'] ?? []),
       customGradient: List<String>.from(data['customGradient'] ?? ['#3D8EF0', '#64B5F6']),
+      notificationConfig: data['notificationConfig'] != null
+          ? Map<String, dynamic>.from(data['notificationConfig'])
+          : {
+              'dailyReminderEnabled': true,
+              'dailyReminderTime': '20:00',
+              'notifyLikes': true,
+              'notifyComments': true,
+              'notifyFollowers': true,
+            },
     );
   }
 
@@ -65,6 +82,7 @@ class User {
       'followedGroups': followedGroups,
       'recentSearches': recentSearches,
       'customGradient': customGradient,
+      'notificationConfig': notificationConfig,
     };
   }
 
@@ -81,6 +99,7 @@ class User {
     List<String>? followedGroups,
     List<String>? recentSearches,
     List<String>? customGradient,
+    Map<String, dynamic>? notificationConfig,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -95,6 +114,7 @@ class User {
       followedGroups: followedGroups ?? this.followedGroups,
       recentSearches: recentSearches ?? this.recentSearches,
       customGradient: customGradient ?? this.customGradient,
+      notificationConfig: notificationConfig ?? this.notificationConfig,
     );
   }
 }

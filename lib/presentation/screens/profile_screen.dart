@@ -790,7 +790,18 @@ class _ProfileBody extends StatelessWidget {
                 },
               ),
               const _Divider(),
-              _SettingsTile(icon: Icons.notifications_none_rounded, title: 'Notificaciones y recordatorios', onTap: () {}),
+              _SettingsTile(
+                icon: Icons.notifications_none_rounded,
+                title: 'Notificaciones y recordatorios',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showNotificationsModal(context, ref);
+                    }
+                  });
+                },
+              ),
               const _Divider(),
               _SettingsTile(
                 icon: Icons.cancel_outlined,
@@ -1775,6 +1786,231 @@ class _ProfileBody extends StatelessWidget {
         );
       },
     );
+  }
+
+  void _showNotificationsModal(BuildContext context, WidgetRef ref) {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+
+    final config = Map<String, dynamic>.from(user.notificationConfig);
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (stateContext, setState) {
+            final dailyEnabled = config['dailyReminderEnabled'] ?? true;
+            final dailyTime = config['dailyReminderTime'] ?? '20:00';
+            final notifyLikes = config['notifyLikes'] ?? true;
+            final notifyComments = config['notifyComments'] ?? true;
+            final notifyFollowers = config['notifyFollowers'] ?? true;
+
+            return Padding(
+              padding: const EdgeInsets.only(
+                top: 12,
+                bottom: 24,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: () {
+                              Navigator.of(sheetContext).pop();
+                              Future.delayed(Duration.zero, () {
+                                if (context.mounted) {
+                                  _showSettingsModal(context, ref);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Notificaciones y recordatorios',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+                      
+                      // Reminders Section Title
+                      const Text(
+                        'RECORDATORIO DIARIO DE HÁBITOS',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      // Daily reminder Switch
+                      _NotificationSwitchTile(
+                        title: 'Activar recordatorio diario',
+                        subtitle: 'Te enviaremos una alerta para que no pierdas tu racha.',
+                        value: dailyEnabled,
+                        onChanged: (val) async {
+                          setState(() {
+                            config['dailyReminderEnabled'] = val;
+                          });
+                          await _updateNotificationConfig(ref, config);
+                        },
+                      ),
+                      
+                      if (dailyEnabled) ...[
+                        const SizedBox(height: 8),
+                        ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                          title: const Text(
+                            'Hora del recordatorio',
+                            style: TextStyle(color: Colors.black87, fontSize: 15, fontWeight: FontWeight.bold),
+                          ),
+                          trailing: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              dailyTime,
+                              style: const TextStyle(
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          onTap: () async {
+                            final parts = dailyTime.split(':');
+                            final hour = int.tryParse(parts[0]) ?? 20;
+                            final minute = int.tryParse(parts[1]) ?? 0;
+                            
+                            final selectedTime = await showTimePicker(
+                              context: stateContext,
+                              initialTime: TimeOfDay(hour: hour, minute: minute),
+                              builder: (context, child) {
+                                return Theme(
+                                  data: Theme.of(context).copyWith(
+                                    colorScheme: const ColorScheme.light(
+                                      primary: Colors.blueAccent,
+                                      onPrimary: Colors.white,
+                                      onSurface: Colors.black87,
+                                    ),
+                                  ),
+                                  child: child!,
+                                );
+                              },
+                            );
+                            
+                            if (selectedTime != null) {
+                              final formattedTime = '${selectedTime.hour.toString().padLeft(2, '0')}:${selectedTime.minute.toString().padLeft(2, '0')}';
+                              setState(() {
+                                config['dailyReminderTime'] = formattedTime;
+                              });
+                              await _updateNotificationConfig(ref, config);
+                            }
+                          },
+                        ),
+                      ],
+                      
+                      const SizedBox(height: 24),
+                      
+                      // Social Notifications Section Title
+                      const Text(
+                        'NOTIFICACIONES DE ACTIVIDAD',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      
+                      _NotificationSwitchTile(
+                        title: 'Me gusta',
+                        subtitle: 'Cuando a alguien le gusta una de tus publicaciones.',
+                        value: notifyLikes,
+                        onChanged: (val) async {
+                          setState(() {
+                            config['notifyLikes'] = val;
+                          });
+                          await _updateNotificationConfig(ref, config);
+                        },
+                      ),
+                      
+                      const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                      
+                      _NotificationSwitchTile(
+                        title: 'Comentarios',
+                        subtitle: 'Cuando comentan en uno de tus hábitos o publicaciones.',
+                        value: notifyComments,
+                        onChanged: (val) async {
+                          setState(() {
+                            config['notifyComments'] = val;
+                          });
+                          await _updateNotificationConfig(ref, config);
+                        },
+                      ),
+                      
+                      const Divider(height: 1, color: Color(0xFFF0F0F0)),
+                      
+                      _NotificationSwitchTile(
+                        title: 'Nuevos seguidores',
+                        subtitle: 'Cuando alguien comienza a seguirte.',
+                        value: notifyFollowers,
+                        onChanged: (val) async {
+                          setState(() {
+                            config['notifyFollowers'] = val;
+                          });
+                          await _updateNotificationConfig(ref, config);
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _updateNotificationConfig(WidgetRef ref, Map<String, dynamic> config) async {
+    final user = ref.read(currentUserProvider).value;
+    if (user != null) {
+      final updatedUser = user.copyWith(notificationConfig: config);
+      await ref.read(userRepositoryProvider).updateUser(updatedUser);
+    }
   }
 
   void _showGradientPicker(BuildContext context, WidgetRef ref) {
@@ -2864,6 +3100,61 @@ class _Divider extends StatelessWidget {
       indent: 56,
       endIndent: 16,
       color: Color(0xFFE0E0E0),
+    );
+  }
+}
+
+class _NotificationSwitchTile extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _NotificationSwitchTile({
+    required this.title,
+    required this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: const TextStyle(
+                    color: Colors.black54,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          Switch.adaptive(
+            value: value,
+            activeColor: Colors.blueAccent,
+            onChanged: onChanged,
+          ),
+        ],
+      ),
     );
   }
 }
