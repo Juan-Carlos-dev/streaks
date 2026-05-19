@@ -431,14 +431,14 @@ class _ProfileBody extends StatelessWidget {
     ValueListenableBuilder<Post?>(
       valueListenable: _draggingPost,
       builder: (context, draggingPost, _) {
-        return IgnorePointer(
-          ignoring: draggingPost == null,
-          child: AnimatedPositioned(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutBack,
-            bottom: draggingPost != null ? 36 : -120,
-            left: 0,
-            right: 0,
+        return AnimatedPositioned(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutBack,
+          bottom: draggingPost != null ? 36 : -120,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            ignoring: draggingPost == null,
             child: Center(
               child: DragTarget<Post>(
                 onWillAcceptWithDetails: (details) {
