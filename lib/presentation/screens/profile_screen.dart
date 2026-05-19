@@ -51,6 +51,9 @@ class _ProfileBody extends StatelessWidget {
   final AsyncValue postsAsync;
   final bool isOwnProfile;
 
+  final ValueNotifier<Post?> _draggingPost = ValueNotifier<Post?>(null);
+  final ValueNotifier<bool> _isOverTrash = ValueNotifier<bool>(false);
+
   String _formatCount(int count) {
   if (count >= 1000000) return '${(count / 1000000).toStringAsFixed(1)}M';
   if (count >= 1000) return '${(count / 1000).toStringAsFixed(1)}k';
@@ -114,7 +117,9 @@ class _ProfileBody extends StatelessWidget {
     const avatarRadius = 52.0;
     const avatarTop = bannerHeight - avatarRadius;
 
-    return SingleChildScrollView(
+    return Stack(
+      children: [
+        SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -315,36 +320,99 @@ class _ProfileBody extends StatelessWidget {
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
                     final post = posts[index];
-                    return GestureDetector(
-                      onTap: () {
-                        ImagePreviewWrapper.showPreviewDialog(
-                          context,
-                          imageUrl: post.imageUrl,
-                          username: user?.username ?? '',
-                          userPhotoUrl: user?.photoUrl ?? '',
-                          profileGradientIndex: user?.profileGradientIndex ?? 0,
-                          aspectRatio: 5 / 4,
-                          likesCount: post.likesCount,
-                          caption: post.caption,
-                          isLiked: post.likedBy.contains(ref.read(authStateProvider).value),
-                          onLike: () {
-                            final userId = ref.read(authStateProvider).value;
-                            if (userId != null) {
-                              ref.read(likePostControllerProvider).likePost(post.id, userId);
-                            }
+                    return ValueListenableBuilder<Post?>(
+                      valueListenable: _draggingPost,
+                      builder: (context, draggingPost, _) {
+                        final isThisDragging = draggingPost?.id == post.id;
+                        return LongPressDraggable<Post>(
+                          data: post,
+                          maxSimultaneousDrags: 1,
+                          feedback: Material(
+                            color: Colors.transparent,
+                            child: Container(
+                              width: 110,
+                              height: 88,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.redAccent, width: 3),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.redAccent.withOpacity(0.4),
+                                    blurRadius: 12,
+                                    spreadRadius: 2,
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(7),
+                                child: CachedNetworkImage(
+                                  imageUrl: ImageUtils.wrapProxy(post.imageUrl),
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            ),
+                          ),
+                          childWhenDragging: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.redAccent.withOpacity(0.5), width: 2),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Stack(
+                                children: [
+                                  CachedNetworkImage(
+                                    imageUrl: ImageUtils.wrapProxy(post.imageUrl),
+                                    fit: BoxFit.cover,
+                                    color: Colors.black54,
+                                    colorBlendMode: BlendMode.darken,
+                                  ),
+                                  const Center(
+                                    child: Icon(Icons.delete_outline, color: Colors.redAccent, size: 28),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          onDragStarted: () {
+                            _draggingPost.value = post;
                           },
+                          onDragEnd: (details) {
+                            _draggingPost.value = null;
+                            _isOverTrash.value = false;
+                          },
+                          child: GestureDetector(
+                            onTap: () {
+                              ImagePreviewWrapper.showPreviewDialog(
+                                context,
+                                imageUrl: post.imageUrl,
+                                username: user?.username ?? '',
+                                userPhotoUrl: user?.photoUrl ?? '',
+                                profileGradientIndex: user?.profileGradientIndex ?? 0,
+                                aspectRatio: 5 / 4,
+                                likesCount: post.likesCount,
+                                caption: post.caption,
+                                isLiked: post.likedBy.contains(ref.read(authStateProvider).value),
+                                onLike: () {
+                                  final userId = ref.read(authStateProvider).value;
+                                  if (userId != null) {
+                                    ref.read(likePostControllerProvider).likePost(post.id, userId);
+                                  }
+                                },
+                              );
+                            },
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: CachedNetworkImage(
+                                imageUrl: ImageUtils.wrapProxy(post.imageUrl),
+                                fit: BoxFit.cover,
+                                placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
+                                errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
+                              ),
+                            ),
+                          ),
                         );
                       },
-                      onLongPress: () => _showPostDetailModal(context, post, ref),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: CachedNetworkImage(
-                          imageUrl: ImageUtils.wrapProxy(post.imageUrl),
-                          fit: BoxFit.cover,
-                          placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
-                          errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
-                        ),
-                      ),
                     );
                   },
                 ),
@@ -355,6 +423,80 @@ class _ProfileBody extends StatelessWidget {
           const SizedBox(height: 100),
         ],
       ),
+    ),
+    // Floating trash target overlay
+    ValueListenableBuilder<Post?>(
+      valueListenable: _draggingPost,
+      builder: (context, draggingPost, _) {
+        if (draggingPost == null) return const SizedBox.shrink();
+        return Positioned(
+          bottom: 110,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: DragTarget<Post>(
+              onWillAcceptWithDetails: (details) {
+                _isOverTrash.value = true;
+                Feedback.forLongPress(context);
+                return true;
+              },
+              onLeave: (data) {
+                _isOverTrash.value = false;
+              },
+              onAcceptWithDetails: (details) {
+                _draggingPost.value = null;
+                _isOverTrash.value = false;
+                _confirmDeletePost(context, details.data, ref);
+              },
+              builder: (context, candidateData, rejectedData) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _isOverTrash,
+                  builder: (context, isHovered, _) {
+                    return AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      width: isHovered ? 90 : 76,
+                      height: isHovered ? 90 : 76,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: LinearGradient(
+                          colors: isHovered
+                              ? [Colors.red, Colors.redAccent]
+                              : [const Color(0xFF2E1515), const Color(0xFF1C0A0A)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        border: Border.all(
+                          color: isHovered ? Colors.white : Colors.redAccent.withOpacity(0.5),
+                          width: isHovered ? 2.5 : 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isHovered
+                                ? Colors.redAccent.withOpacity(0.6)
+                                : Colors.redAccent.withOpacity(0.15),
+                            blurRadius: isHovered ? 24 : 12,
+                            spreadRadius: isHovered ? 6 : 2,
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Icon(
+                          isHovered ? Icons.delete_forever_rounded : Icons.delete_outline_rounded,
+                          color: isHovered ? Colors.white : Colors.redAccent,
+                          size: isHovered ? 38 : 30,
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        );
+      },
+    ),
+    ],
     );
   }
 
@@ -441,7 +583,7 @@ class _ProfileBody extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: TextButton.icon(
-                    onPressed: () => _confirmDeletePost(context, post, ref),
+                    onPressed: () => _confirmDeletePost(context, post, ref, fromBottomSheet: true),
                     icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
                     label: const Text(
                       'Eliminar publicación',
@@ -469,7 +611,7 @@ class _ProfileBody extends StatelessWidget {
     );
   }
 
-  void _confirmDeletePost(BuildContext parentContext, Post post, WidgetRef ref) {
+  void _confirmDeletePost(BuildContext parentContext, Post post, WidgetRef ref, {bool fromBottomSheet = false}) {
     showDialog(
       context: parentContext,
       builder: (context) => AlertDialog(
@@ -492,8 +634,10 @@ class _ProfileBody extends StatelessWidget {
             onPressed: () async {
               // Close dialog
               Navigator.pop(context);
-              // Close bottom sheet
-              Navigator.pop(parentContext);
+              // Close bottom sheet if needed
+              if (fromBottomSheet) {
+                Navigator.pop(parentContext);
+              }
               
               // Show loading status
               ScaffoldMessenger.of(parentContext).showSnackBar(
