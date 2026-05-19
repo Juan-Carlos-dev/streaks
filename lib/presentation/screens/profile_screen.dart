@@ -2281,8 +2281,9 @@ class _ProfileBody extends StatelessWidget {
     final user = ref.read(currentUserProvider).value;
     if (user == null) return;
 
-    final emojiController = TextEditingController(text: user.bannerEmojiPattern);
+    final selectedEmojis = user.bannerEmojiPattern.characters.map((c) => c).toList();
     String selectedStyle = user.bannerEmojiStyle;
+    String activeCategory = '😀';
 
     showModalBottomSheet(
       context: context,
@@ -2372,7 +2373,7 @@ class _ProfileBody extends StatelessWidget {
                             ClipRRect(
                               borderRadius: BorderRadius.circular(16),
                               child: _BannerEmojiDecoration(
-                                emojiString: emojiController.text,
+                                emojiString: selectedEmojis.join(''),
                                 style: selectedStyle,
                                 seed: user.uid,
                               ),
@@ -2406,9 +2407,123 @@ class _ProfileBody extends StatelessWidget {
                       ),
                       const SizedBox(height: 24),
 
-                      // Emoji Input
+                      // Selected Emojis Row
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text(
+                            'EMOJIS SELECCIONADOS',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          Text(
+                            '${selectedEmojis.length} / 15',
+                            style: const TextStyle(
+                              color: Colors.black45,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        width: double.infinity,
+                        height: 54,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.grey[200]!),
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: selectedEmojis.isEmpty
+                                  ? const Text(
+                                      'Pulsa los emojis de abajo...',
+                                      style: TextStyle(color: Colors.black38, fontSize: 13),
+                                    )
+                                  : ListView.builder(
+                                      scrollDirection: Axis.horizontal,
+                                      itemCount: selectedEmojis.length,
+                                      itemBuilder: (context, index) {
+                                        return GestureDetector(
+                                          onTap: () {
+                                            setState(() {
+                                              selectedEmojis.removeAt(index);
+                                            });
+                                          },
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: Colors.white,
+                                              borderRadius: BorderRadius.circular(8),
+                                              border: Border.all(color: Colors.black12),
+                                              boxShadow: const [
+                                                BoxShadow(
+                                                  color: Colors.black05,
+                                                  blurRadius: 2,
+                                                  offset: Offset(0, 1),
+                                                ),
+                                              ],
+                                            ),
+                                            child: Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Text(
+                                                  selectedEmojis[index],
+                                                  style: const TextStyle(fontSize: 15),
+                                                ),
+                                                const SizedBox(width: 4),
+                                                const Icon(
+                                                  Icons.close_rounded,
+                                                  size: 10,
+                                                  color: Colors.black38,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                            ),
+                            if (selectedEmojis.isNotEmpty) ...[
+                              IconButton(
+                                icon: const Icon(Icons.backspace_outlined, size: 18, color: Colors.black54),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () {
+                                  setState(() {
+                                    selectedEmojis.removeLast();
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              IconButton(
+                                icon: const Icon(Icons.delete_sweep_outlined, size: 20, color: Colors.redAccent),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () {
+                                  setState(() {
+                                    selectedEmojis.clear();
+                                  });
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Emoji Picker Categories
                       const Text(
-                        'EMOJIS DECORATIVOS',
+                        'SELECCIONA EMOJIS',
                         style: TextStyle(
                           color: Colors.black54,
                           fontWeight: FontWeight.bold,
@@ -2416,25 +2531,86 @@ class _ProfileBody extends StatelessWidget {
                           letterSpacing: 0.8,
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      TextField(
-                        controller: emojiController,
-                        maxLength: 15,
-                        textCapitalization: TextCapitalization.none,
-                        decoration: InputDecoration(
-                          hintText: 'Introduce emojis (ej: ⚡️🔥👾)',
-                          hintStyle: const TextStyle(color: Colors.black38),
-                          filled: true,
-                          fillColor: Colors.grey[100],
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            borderSide: BorderSide.none,
-                          ),
-                          counterText: '',
+                      const SizedBox(height: 10),
+                      // Tab row
+                      Container(
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        onChanged: (val) {
-                          setState(() {});
-                        },
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: _emojiCategories.keys.map((category) {
+                            final isCatSelected = activeCategory == category;
+                            return GestureDetector(
+                              onTap: () {
+                                setState(() {
+                                  activeCategory = category;
+                                });
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: isCatSelected ? Colors.blueAccent : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  category,
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isCatSelected ? Colors.white : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      // Emojis Grid
+                      Container(
+                        height: 150,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey[200]!),
+                          borderRadius: BorderRadius.circular(12),
+                          color: Colors.grey[50],
+                        ),
+                        child: GridView.builder(
+                          padding: const EdgeInsets.all(8),
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 7,
+                            mainAxisSpacing: 8,
+                            crossAxisSpacing: 8,
+                          ),
+                          itemCount: _emojiCategories[activeCategory]!.length,
+                          itemBuilder: (context, index) {
+                            final emoji = _emojiCategories[activeCategory]![index];
+                            return GestureDetector(
+                              onTap: () {
+                                if (selectedEmojis.length < 15) {
+                                  setState(() {
+                                    selectedEmojis.add(emoji);
+                                  });
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Máximo 15 emojis permitidos'),
+                                      duration: Duration(seconds: 1),
+                                    ),
+                                  );
+                                }
+                              },
+                              child: Center(
+                                child: Text(
+                                  emoji,
+                                  style: const TextStyle(fontSize: 22),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
                       ),
                       const SizedBox(height: 24),
 
@@ -2512,7 +2688,7 @@ class _ProfileBody extends StatelessWidget {
                           child: ElevatedButton(
                             onPressed: () async {
                               final updatedUser = user.copyWith(
-                                bannerEmojiPattern: emojiController.text,
+                                bannerEmojiPattern: selectedEmojis.join(''),
                                 bannerEmojiStyle: selectedStyle,
                               );
                               await ref.read(userRepositoryProvider).updateUser(updatedUser);
@@ -3869,3 +4045,68 @@ class _BannerEmojiDecoration extends StatelessWidget {
     );
   }
 }
+
+const Map<String, List<String>> _emojiCategories = {
+  '😀': [
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇', '🙂', '🙃', '😉', '😌',
+    '😍', '🥰', '😘', '😗', '😙', '😚', '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓',
+    '😎', '🥸', '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️', '😣', '😖',
+    '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡', '🤬', '🤯', '😳', '🥵', '🥶', '😱',
+    '😨', '😰', '😥', '😓', '🤗', '🤔', '🫣', '🤭', '🤫', '🤥', '😶', '😐', '😑', '😬', 
+    '🫠', '🙄', '😯', '😦', '😧', '😮', '😲', '🥱', '😴', '🤤', '😪', '😵', '😵‍💫', '🤐', 
+    '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '💵', '🤠', '😈', '👿', '👹', '👺', '💀', 
+    '☠️', '💩', '🤡', '👻', '👽', '👾', '🤖', '👋', '🤚', '🖐️', '✋', '🖖', '👌', 
+    '🤌', '🤏', '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️', 
+    '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '👐', '🫶', '🤝', '✍️', '💅', '🤳', 
+    '💪', '🦾', '🧠'
+  ],
+  '🐶': [
+    '🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐽', 
+    '🐸', '🐵', '🙈', '🙉', '🙊', '🐒', '🐔', '🐧', '🐦', '🐤', '🐣', '🐥', '🦆', '🦅', 
+    '🦉', '🦇', '🐺', '🐗', '🐴', '🦄', '🐝', '🐛', '🦋', '🐌', '🐞', '🐜', '🪰', '🪲', 
+    '🪳', '🦂', '🕷️', '🕸️', '🐢', '🐍', '🦎', '🦖', '🦕', '🐙', '🦑', '🦞', '🦀', '🐡', 
+    '🐠', '🐟', '🐬', '🐳', '🐋', '🦈', '🐊', '🐅', '🐆', '🦓', '🦍', '🦧', '🐘', '🦛', 
+    '🦏', '🐪', '🐫', '🦒', '🦘', '🦬', '🐃', '🐂', '🐄', '🐎', '🐖', '🐏', '🐑', '🐐', 
+    '🦌', '🐕', '🐩', '🐈', '🐈‍⬛', '🐓', '🦃', '🦤', '🦚', '🦜', '🦢', '🦩', '🕊️', '🐇', 
+    '🦝', '🦨', '🦡', '🦦', '🦥', '🐁', '🐀', '🐿️', '🦔', '🐾', '🐉', '🐲', '🌵', '🎄', 
+    '🌲', '🌳', '🌴', '🌱', '🌿', '☘️', '🍀', '🍁', '🍂', '🍃', '🍄', '🐚', '🌾', '💐', 
+    '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '💮'
+  ],
+  '🍕': [
+    '🍕', '🍔', '🍟', '🌭', '🥪', '🌮', '🌯', '🍳', '🥘', '🍲', '🥣', '🥗', '🍿', 
+    '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', 
+    '🍥', '🦪', '🍡', '🥟', '🥠', '🥡', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', 
+    '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', 
+    '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧋', '🧃', '🧉', '🧊', '🍇', '🍉', '🍊', 
+    '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', 
+    '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🧅', '🧄', '🍄'
+  ],
+  '⚽': [
+    '⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', 
+    '🏑', '🥍', '🏏', '🪃', '⛳', '🏹', '🎣', '🥊', '🥋', '🎽', '🛹', '🛷', 
+    '🛼', '🎿', '🏂', '🪂', '🏋️', '🤸', '🚴', '🚵', '🧗', '🧘', '🏆', '🥇', '🥈', 
+    '🥉', '🏅', '🎖️', '🎫', '🎗️', '🎟️', '🎭', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', 
+    '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🎲', '♟️', '🎯', '🎳', '🎮'
+  ],
+  '🚗': [
+    '🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', 
+    '🛵', '🏍️', '🚲', '🛴', '🦽', '🦼', '🛹', '🛞', '🚂', '🚆', '🚇', '🚈', '🚄', '🚅', 
+    '🛸', '🚀', '🚁', '✈️', '⛵', '🛥️', '🚢', '⚓', '🚨', '⛽', '🚧', '🗺️', '🗽', '🗼', 
+    '🏰', '🏟️', '🎡', '🎢', '🌋', '🗻', '🏜️', '🏕️', '⛺', '🏠', '🏢', '🏫', '🏪', 
+    '🏥'
+  ],
+  '💡': [
+    '💡', '⚡️', '🔥', '💧', '❄️', '✨', '🌟', '⭐', '🌈', '🌪️', '🌀', '🌊', '💨', '☄️', 
+    '🪐', '🔭', '🔬', '🛡️', '⚔️', '🏹', '🔑', '🗝️', '🧬', '🧪', '🌡️', '🧭', '🔮', '🧿', 
+    '🕯️', '🪔', '🏮', '🎀', '🎁', '🎈', '🎉', '🎊', '🧸', '📧', '✉️', '📦', '✏️', '✒️', 
+    '🖌️', '🖍️', '📝', '📁', '💼', '📌', '📎', '🔒', '🔓', '🔏', '🔐', '🔑', '🔨', '⚒️', 
+    '🔧', '🔩', '⚙️', '🧱', '⛓️', '🪓', '⛏️', '🧹', '🧺', '🧻', '🛁', '🚿', '🛀', '🧼'
+  ],
+  '❤️': [
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💖', '💗', '💓', '💞', '💕', 
+    '💟', '❣️', '💔', '❤️‍🔥', '❤️‍🩹', '💋', '💯', '💮', '💥', '💫', '💬', '💭', '🗯️', '💤', 
+    '🌐', '🌀', '💤', '🔱', '🛟', '〽️', '⚠️', '🚸', '⛔', '🚫', '🚳', '🚭', '🚯', '🚱', 
+    '🏳️', '🏴', '🏴‍☠️', '🏁', '🚩', '🏳️‍🌈', '🏳️‍⚧️', '🇪🇸', '🇺🇸', '🇲🇽', '🇦🇷', '🇨🇴', '🇻🇪', 
+    '🇧🇷'
+  ]
+};
