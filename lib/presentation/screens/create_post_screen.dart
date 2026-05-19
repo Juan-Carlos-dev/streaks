@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
@@ -33,7 +35,18 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   Future<void> _pickImage() async {
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
-      setState(() => _imageFile = File(pickedFile.path));
+      final File rawFile = File(pickedFile.path);
+      
+      if (!mounted) return;
+      final File? croppedFile = await Navigator.of(context).push<File?>(
+        MaterialPageRoute(
+          builder: (context) => ImageCropperDialog(imageFile: rawFile),
+        ),
+      );
+
+      if (croppedFile != null) {
+        setState(() => _imageFile = croppedFile);
+      }
     }
   }
 
@@ -214,6 +227,133 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class ImageCropperDialog extends StatefulWidget {
+  final File imageFile;
+
+  const ImageCropperDialog({super.key, required this.imageFile});
+
+  @override
+  State<ImageCropperDialog> createState() => _ImageCropperDialogState();
+}
+
+class _ImageCropperDialogState extends State<ImageCropperDialog> {
+  final GlobalKey _repaintKey = GlobalKey();
+  bool _isProcessing = false;
+
+  Future<void> _cropAndSave() async {
+    setState(() => _isProcessing = true);
+    try {
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      final RenderRepaintBoundary? boundary =
+          _repaintKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw Exception("No se pudo iniciar el proceso de recorte");
+      }
+
+      final ui.Image image = await boundary.toImage(pixelRatio: 2.5);
+      final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        throw Exception("Error al procesar los píxeles de la imagen");
+      }
+      
+      final Uint8List pngBytes = byteData.buffer.asUint8List();
+
+      final tempDir = Directory.systemTemp;
+      final File croppedFile = File(
+        '${tempDir.path}/cropped_${DateTime.now().millisecondsSinceEpoch}.png',
+      );
+      await croppedFile.writeAsBytes(pngBytes);
+
+      if (mounted) {
+        Navigator.of(context).pop(croppedFile);
+      }
+    } catch (e) {
+      setState(() => _isProcessing = false);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al encuadrar la imagen: $e')),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      appBar: AppBar(
+        title: const Text('Encuadrar foto', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actions: [
+          if (!_isProcessing)
+            TextButton(
+              onPressed: _cropAndSave,
+              child: const Text(
+                'Confirmar',
+                style: TextStyle(
+                  color: Colors.amber,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
+            )
+          else
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.amber),
+                ),
+              ),
+            ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Text(
+            'Pellizca para zoom y arrastra para encuadrar',
+            style: TextStyle(color: Colors.white54, fontSize: 14),
+          ),
+          const SizedBox(height: 20),
+          // Viewfinder Container
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: AspectRatio(
+                aspectRatio: 5 / 4,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: RepaintBoundary(
+                    key: _repaintKey,
+                    child: Container(
+                      color: const Color(0xFF1E1E1E),
+                      child: InteractiveViewer(
+                        minScale: 1.0,
+                        maxScale: 5.0,
+                        boundaryMargin: const EdgeInsets.all(double.infinity),
+                        child: Image.file(
+                          widget.imageFile,
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
