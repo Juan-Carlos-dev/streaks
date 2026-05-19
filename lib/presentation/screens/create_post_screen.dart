@@ -453,17 +453,23 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                               width: viewportWidth,
                               height: viewportHeight,
                               child: ClipRect(
-                                child: Transform(
-                                  transform: Matrix4.identity()
-                                    ..translate(_offset.dx, _offset.dy)
-                                    ..scale(_scale),
-                                  alignment: Alignment.center,
-                                  child: SizedBox(
-                                    width: childWidth,
-                                    height: childHeight,
-                                    child: Image.file(
-                                      widget.imageFile,
-                                      fit: BoxFit.cover,
+                                child: OverflowBox(
+                                  minWidth: 0.0,
+                                  minHeight: 0.0,
+                                  maxWidth: double.infinity,
+                                  maxHeight: double.infinity,
+                                  child: Transform(
+                                    transform: Matrix4.identity()
+                                      ..translate(_offset.dx, _offset.dy)
+                                      ..scale(_scale),
+                                    alignment: Alignment.center,
+                                    child: SizedBox(
+                                      width: childWidth,
+                                      height: childHeight,
+                                      child: Image.file(
+                                        widget.imageFile,
+                                        fit: BoxFit.cover,
+                                      ),
                                     ),
                                   ),
                                 ),
