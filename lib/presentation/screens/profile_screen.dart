@@ -314,31 +314,35 @@ class _ProfileBody extends StatelessWidget {
                   ),
                   itemCount: posts.length,
                   itemBuilder: (context, index) {
-                    return ImagePreviewWrapper(
-                      imageUrl: posts[index].imageUrl,
-                      username: user?.username ?? '',
-                      userPhotoUrl: user?.photoUrl ?? '',
-                      profileGradientIndex: user?.profileGradientIndex ?? 0,
-                      aspectRatio: 5 / 4,
-                      likesCount: posts[index].likesCount,
-                      caption: posts[index].caption,
-                      isLiked: posts[index].likedBy.contains(ref.read(authStateProvider).value),
-                      onLike: () {
-                        final userId = ref.read(authStateProvider).value;
-                        if (userId != null) {
-                          ref.read(likePostControllerProvider).likePost(posts[index].id, userId);
-                        }
+                    final post = posts[index];
+                    return GestureDetector(
+                      onTap: () {
+                        ImagePreviewWrapper.showPreviewDialog(
+                          context,
+                          imageUrl: post.imageUrl,
+                          username: user?.username ?? '',
+                          userPhotoUrl: user?.photoUrl ?? '',
+                          profileGradientIndex: user?.profileGradientIndex ?? 0,
+                          aspectRatio: 5 / 4,
+                          likesCount: post.likesCount,
+                          caption: post.caption,
+                          isLiked: post.likedBy.contains(ref.read(authStateProvider).value),
+                          onLike: () {
+                            final userId = ref.read(authStateProvider).value;
+                            if (userId != null) {
+                              ref.read(likePostControllerProvider).likePost(post.id, userId);
+                            }
+                          },
+                        );
                       },
-                      child: GestureDetector(
-                        onTap: () => _showPostDetailModal(context, posts[index], ref),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(10),
-                          child: CachedNetworkImage(
-                            imageUrl: ImageUtils.wrapProxy(posts[index].imageUrl),
-                            fit: BoxFit.cover,
-                            placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
-                            errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
-                          ),
+                      onLongPress: () => _showPostDetailModal(context, post, ref),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: CachedNetworkImage(
+                          imageUrl: ImageUtils.wrapProxy(post.imageUrl),
+                          fit: BoxFit.cover,
+                          placeholder: (_, __) => Container(color: const Color(0xFF1A1A1A)),
+                          errorWidget: (_, __, ___) => Container(color: const Color(0xFF1A1A1A)),
                         ),
                       ),
                     );

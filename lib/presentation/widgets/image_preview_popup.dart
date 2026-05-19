@@ -30,6 +30,41 @@ class ImagePreviewWrapper extends StatefulWidget {
     required this.child,
   });
 
+  static void showPreviewDialog(
+    BuildContext context, {
+    required String imageUrl,
+    required String username,
+    required String userPhotoUrl,
+    required int profileGradientIndex,
+    required double aspectRatio,
+    int? likesCount,
+    String? caption,
+    required bool isLiked,
+    VoidCallback? onLike,
+  }) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Cerrar',
+      barrierColor: Colors.transparent,
+      transitionDuration: const Duration(milliseconds: 150),
+      pageBuilder: (context, anim1, anim2) {
+        return PreviewOverlayWidget(
+          imageUrl: imageUrl,
+          username: username,
+          userPhotoUrl: userPhotoUrl,
+          profileGradientIndex: profileGradientIndex,
+          aspectRatio: aspectRatio,
+          likesCount: likesCount,
+          caption: caption,
+          isLiked: isLiked,
+          onDismiss: () => Navigator.of(context).pop(),
+          onLike: onLike,
+        );
+      },
+    );
+  }
+
   @override
   State<ImagePreviewWrapper> createState() => _ImagePreviewWrapperState();
 }
@@ -122,6 +157,7 @@ class PreviewOverlayWidget extends StatefulWidget {
   final String? caption;
   final bool isLiked;
   final VoidCallback onDismiss;
+  final VoidCallback? onLike;
 
   const PreviewOverlayWidget({
     super.key,
@@ -134,6 +170,7 @@ class PreviewOverlayWidget extends StatefulWidget {
     this.caption,
     required this.isLiked,
     required this.onDismiss,
+    this.onLike,
   });
 
   @override
@@ -221,12 +258,15 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
         children: [
           // Blurred background
           Positioned.fill(
-            child: FadeTransition(
-              opacity: _opacityAnimation,
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: Container(
-                  color: Colors.black.withOpacity(0.55),
+            child: GestureDetector(
+              onTap: dismiss,
+              child: FadeTransition(
+                opacity: _opacityAnimation,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: Container(
+                    color: Colors.black.withOpacity(0.55),
+                  ),
                 ),
               ),
             ),
@@ -406,52 +446,67 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
       hoverText = '¡Soltar para Destacar!';
     }
 
-    return AnimatedContainer(
-      key: _likeButtonKey,
-      duration: const Duration(milliseconds: 150),
-      curve: Curves.easeOut,
-      transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.05 : 1.0),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E1E).withOpacity(0.9),
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(
-          color: isLikeButtonHovered ? activeColor.withOpacity(0.6) : Colors.white.withOpacity(0.12),
-          width: 1.5,
+    return GestureDetector(
+      onTap: () {
+        if (widget.onLike != null) {
+          if (!widget.isLiked) {
+            triggerStarAnimation().then((_) {
+              widget.onLike!();
+              dismiss();
+            });
+          } else {
+            widget.onLike!();
+            dismiss();
+          }
+        }
+      },
+      child: AnimatedContainer(
+        key: _likeButtonKey,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.05 : 1.0),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E1E).withOpacity(0.9),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isLikeButtonHovered ? activeColor.withOpacity(0.6) : Colors.white.withOpacity(0.12),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: isLikeButtonHovered 
+                  ? activeColor.withOpacity(0.2) 
+                  : Colors.black.withOpacity(0.4),
+              blurRadius: 16,
+              spreadRadius: isLikeButtonHovered ? 3 : 0,
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: isLikeButtonHovered 
-                ? activeColor.withOpacity(0.2) 
-                : Colors.black.withOpacity(0.4),
-            blurRadius: 16,
-            spreadRadius: isLikeButtonHovered ? 3 : 0,
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 150),
-            curve: Curves.easeOutBack,
-            transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.3 : 1.0),
-            child: Icon(
-              widget.isLiked ? Icons.star_rounded : Icons.star_outline_rounded,
-              color: iconColor,
-              size: 26,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 150),
+              curve: Curves.easeOutBack,
+              transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.3 : 1.0),
+              child: Icon(
+                widget.isLiked ? Icons.star_rounded : Icons.star_outline_rounded,
+                color: iconColor,
+                size: 26,
+              ),
             ),
-          ),
-          const SizedBox(width: 10),
-          Text(
-            isLikeButtonHovered ? hoverText : normalText,
-            style: TextStyle(
-              color: isLikeButtonHovered ? activeColor : Colors.white70,
-              fontWeight: FontWeight.bold,
-              fontSize: 13.5,
+            const SizedBox(width: 10),
+            Text(
+              isLikeButtonHovered ? hoverText : normalText,
+              style: TextStyle(
+                color: isLikeButtonHovered ? activeColor : Colors.white70,
+                fontWeight: FontWeight.bold,
+                fontSize: 13.5,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
