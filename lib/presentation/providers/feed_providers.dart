@@ -37,8 +37,16 @@ final followingFeedProvider = StreamProvider<List<Post>>((ref) {
   final followedUids = ref.watch(followingUidsProvider).value;
   if (followedUids == null || followedUids.isEmpty) return Stream.value([]);
 
+  final currentUser = ref.watch(import_user_providers.currentUserProvider).value;
+  final hiddenUsers = currentUser?.hiddenUsers ?? const [];
+  final reportedPosts = currentUser?.reportedPosts ?? const [];
+
   final allPostsStream = ref.watch(postRepositoryProvider).getFeedPosts();
-  return allPostsStream.map((posts) => posts.where((p) => followedUids.contains(p.userId)).toList());
+  return allPostsStream.map((posts) => posts
+      .where((p) => followedUids.contains(p.userId) &&
+          !hiddenUsers.contains(p.userId) &&
+          !reportedPosts.contains(p.id))
+      .toList());
 });
 
 // Suggested users (any user except self, not already followed)
@@ -86,12 +94,18 @@ final groupsFeedProvider = FutureProvider.family<List<Post>, String?>((ref, sele
   final currentUserAsync = ref.watch(import_user_providers.currentUserProvider);
   final currentUser = currentUserAsync.value;
   if (currentUser == null) return [];
+
+  final hiddenUsers = currentUser.hiddenUsers;
+  final reportedPosts = currentUser.reportedPosts;
   
   final followedGroups = currentUser.followedGroups.map((g) => g.trim().toLowerCase()).toSet();
   if (followedGroups.isEmpty) return [];
 
   List<Post> filtered = [];
   for (final post in allPosts) {
+    if (hiddenUsers.contains(post.userId) || reportedPosts.contains(post.id)) {
+      continue;
+    }
     try {
       final habitDoc = await FirebaseFirestore.instance.collection('habits').doc(post.habitId).get();
       if (habitDoc.exists) {

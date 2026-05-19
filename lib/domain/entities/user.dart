@@ -14,6 +14,8 @@ class User {
   final List<String> recentSearches;
   final List<String> customGradient;
   final Map<String, dynamic> notificationConfig;
+  final List<String> hiddenUsers;
+  final List<String> reportedPosts;
 
   const User({
     required this.uid,
@@ -35,6 +37,8 @@ class User {
       'notifyComments': true,
       'notifyFollowers': true,
     },
+    this.hiddenUsers = const [],
+    this.reportedPosts = const [],
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -65,6 +69,8 @@ class User {
               'notifyComments': true,
               'notifyFollowers': true,
             },
+      hiddenUsers: List<String>.from(data['hiddenUsers'] ?? []),
+      reportedPosts: List<String>.from(data['reportedPosts'] ?? []),
     );
   }
 
@@ -83,6 +89,8 @@ class User {
       'recentSearches': recentSearches,
       'customGradient': customGradient,
       'notificationConfig': notificationConfig,
+      'hiddenUsers': hiddenUsers,
+      'reportedPosts': reportedPosts,
     };
   }
 
@@ -100,6 +108,8 @@ class User {
     List<String>? recentSearches,
     List<String>? customGradient,
     Map<String, dynamic>? notificationConfig,
+    List<String>? hiddenUsers,
+    List<String>? reportedPosts,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -115,6 +125,8 @@ class User {
       recentSearches: recentSearches ?? this.recentSearches,
       customGradient: customGradient ?? this.customGradient,
       notificationConfig: notificationConfig ?? this.notificationConfig,
+      hiddenUsers: hiddenUsers ?? this.hiddenUsers,
+      reportedPosts: reportedPosts ?? this.reportedPosts,
     );
   }
 }

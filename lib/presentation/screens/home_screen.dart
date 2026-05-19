@@ -383,6 +383,276 @@ class _PostCardState extends ConsumerState<_PostCard> {
     }
   }
 
+  void _showPostOptions(BuildContext context, User? postUser) {
+    final currentUid = ref.read(authStateProvider).value;
+    if (currentUid == null) return;
+
+    final isOwnPost = widget.post.userId == currentUid;
+    final isFollowing = ref.read(isFollowingProvider(widget.post.userId)).value ?? false;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: const Color(0xFF1E1E1E), // Dark background matching home theme
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 8),
+              // Drag Indicator
+              Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              
+              if (isOwnPost) ...[
+                ListTile(
+                  leading: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  title: const Text(
+                    'Eliminar publicación',
+                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () {
+                    Navigator.pop(sheetContext);
+                    _confirmDeletePost(context);
+                  },
+                ),
+              ] else ...[
+                ListTile(
+                  leading: const Icon(Icons.report_problem_outlined, color: Colors.redAccent),
+                  title: const Text(
+                    'Denunciar publicación',
+                    style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _handleReportPost(context);
+                  },
+                ),
+                const Divider(color: Colors.white12, height: 1),
+                ListTile(
+                  leading: const Icon(Icons.visibility_off_outlined, color: Colors.white),
+                  title: Text(
+                    'Ocultar contenido de ${postUser?.username ?? "este usuario"}',
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(sheetContext);
+                    await _handleHideUser(context, postUser?.username ?? "este usuario");
+                  },
+                ),
+                if (isFollowing) ...[
+                  const Divider(color: Colors.white12, height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.person_remove_outlined, color: Colors.white),
+                    title: Text(
+                      'Dejar de seguir a ${postUser?.username ?? "este usuario"}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                    onTap: () async {
+                      Navigator.pop(sheetContext);
+                      await _handleUnfollowUser(context, postUser?.username ?? "este usuario");
+                    },
+                  ),
+                ],
+              ],
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _handleReportPost(BuildContext context) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    // Confirm report dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text('¿Denunciar publicación?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          '¿Estás seguro de que quieres denunciar esta publicación? Revisaremos el contenido para asegurar que cumple con nuestras normas de comunidad.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Denunciar', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final user = ref.read(currentUserProvider).value;
+      if (user != null) {
+        final updatedReported = List<String>.from(user.reportedPosts);
+        if (!updatedReported.contains(widget.post.id)) {
+          updatedReported.add(widget.post.id);
+          final updatedUser = user.copyWith(reportedPosts: updatedReported);
+          await ref.read(userRepositoryProvider).updateUser(updatedUser);
+          
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.blueAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              content: const Text('Publicación denunciada correctamente. La hemos ocultado de tu feed.'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleHideUser(BuildContext context, String username) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text('¿Ocultar a $username?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text(
+          'No volverás a ver las publicaciones de $username en tu feed. Puedes cambiar esto más adelante en tus ajustes.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Ocultar', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final user = ref.read(currentUserProvider).value;
+      if (user != null) {
+        final updatedHidden = List<String>.from(user.hiddenUsers);
+        if (!updatedHidden.contains(widget.post.userId)) {
+          updatedHidden.add(widget.post.userId);
+          final updatedUser = user.copyWith(hiddenUsers: updatedHidden);
+          await ref.read(userRepositoryProvider).updateUser(updatedUser);
+
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.blueAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              content: Text('Se ha ocultado todo el contenido de $username.'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleUnfollowUser(BuildContext context, String username) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text('¿Dejar de seguir a $username?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text(
+          '¿Estás seguro de que quieres dejar de seguir a $username? Ya no verás sus publicaciones en tu feed de Siguiendo.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Dejar de seguir', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref.read(followControllerProvider(widget.post.userId).notifier).toggle();
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.blueAccent,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          content: Text('Has dejado de seguir a $username.'),
+        ),
+      );
+    }
+  }
+
+  void _confirmDeletePost(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: const Text('¿Eliminar publicación?', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Text(
+          'Esta acción es irreversible y se perderá la publicación de tu hábito.',
+          style: TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(dialogContext);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              try {
+                await ref.read(deletePostControllerProvider).deletePost(widget.post.id, widget.post.imageUrl);
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    content: const Text('Publicación eliminada correctamente.'),
+                  ),
+                );
+              } catch (e) {
+                scaffoldMessenger.showSnackBar(
+                  SnackBar(
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    content: Text('Error al eliminar: $e'),
+                  ),
+                );
+              }
+            },
+            child: const Text('Eliminar', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userByIdProvider(widget.post.userId));
@@ -479,8 +749,16 @@ class _PostCardState extends ConsumerState<_PostCard> {
                     color: AppColors.textSecondary, fontSize: 13),
               ),
               const Spacer(),
-              const Icon(Icons.more_vert,
-                  color: AppColors.textSecondary, size: 20),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                icon: const Icon(Icons.more_vert,
+                    color: AppColors.textSecondary, size: 20),
+                onPressed: () {
+                  final postUser = userAsync.value;
+                  _showPostOptions(context, postUser);
+                },
+              ),
             ],
           ),
         ),
