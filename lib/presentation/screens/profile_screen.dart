@@ -456,6 +456,7 @@ class _ProfileBody extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(height: 80),
               ],
             ),
           ),
