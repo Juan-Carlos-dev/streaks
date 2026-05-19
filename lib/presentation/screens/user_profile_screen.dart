@@ -54,6 +54,89 @@ class _UserProfileBody extends StatelessWidget {
     required this.isOwnProfile,
   });
 
+  void _showLargeAvatar(BuildContext context) {
+    final photoUrl = user?.photoUrl ?? '';
+    if (photoUrl.isEmpty) return;
+
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: 'Cerrar',
+      barrierColor: Colors.black.withOpacity(0.85),
+      transitionDuration: const Duration(milliseconds: 250),
+      pageBuilder: (context, anim1, anim2) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: double.infinity,
+                height: double.infinity,
+                color: Colors.transparent,
+                alignment: Alignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ScaleTransition(
+                      scale: anim1.drive(CurveTween(curve: Curves.easeOutBack)),
+                      child: Container(
+                        width: MediaQuery.of(context).size.width * 0.8,
+                        height: MediaQuery.of(context).size.width * 0.8,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white24, width: 2),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.5),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: ClipOval(
+                          child: CachedNetworkImage(
+                            imageUrl: ImageUtils.wrapProxy(photoUrl),
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => const Center(
+                              child: CircularProgressIndicator(color: Colors.amber),
+                            ),
+                            errorWidget: (context, url, error) => const Icon(
+                              Icons.error_outline,
+                              color: Colors.white,
+                              size: 40,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      '@${user?.username ?? ""}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Toca para cerrar',
+                      style: TextStyle(
+                        color: Colors.white54,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const bannerHeight = 160.0;
@@ -102,7 +185,10 @@ class _UserProfileBody extends StatelessWidget {
                 Positioned(
                   top: avatarTop - 10,
                   left: 24,
-                  child: _UPAvatar(user: user, radius: avatarRadius),
+                  child: GestureDetector(
+                    onTap: () => _showLargeAvatar(context),
+                    child: _UPAvatar(user: user, radius: avatarRadius),
+                  ),
                 ),
               ],
             ),
