@@ -2467,7 +2467,7 @@ class _ProfileBody extends StatelessWidget {
                                               border: Border.all(color: Colors.black12),
                                               boxShadow: const [
                                                 BoxShadow(
-                                                  color: Colors.black05,
+                                                  color: Colors.black12,
                                                   blurRadius: 2,
                                                   offset: Offset(0, 1),
                                                 ),
