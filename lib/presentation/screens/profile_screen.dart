@@ -138,7 +138,25 @@ class _ProfileBody extends StatelessWidget {
                   height: bannerHeight,
                   child: Container(
                     decoration: BoxDecoration(
-                      gradient: AppColors.blueGradient,
+                      gradient: (user != null && user!.customGradient.length == 2)
+                          ? LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color(int.parse(user!.customGradient[0].replaceAll('#', '0xFF'))),
+                                Color(int.parse(user!.customGradient[1].replaceAll('#', '0xFF'))),
+                              ],
+                            )
+                          : AppColors.blueGradient,
+                    ),
+                    child: Stack(
+                      children: [
+                        _BannerEmojiDecoration(
+                          emojiString: user?.bannerEmojiPattern ?? '',
+                          style: user?.bannerEmojiStyle ?? 'none',
+                          seed: user?.uid ?? 'default_seed',
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -773,6 +791,19 @@ class _ProfileBody extends StatelessWidget {
                   Future.delayed(Duration.zero, () {
                     if (context.mounted) {
                       _showGradientPicker(context, ref);
+                    }
+                  });
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
+                icon: Icons.auto_awesome_outlined,
+                title: 'Personalizar banner (Emojis)',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showBannerEmojiModal(context, ref);
                     }
                   });
                 },
@@ -2246,6 +2277,322 @@ class _ProfileBody extends StatelessWidget {
     }
   }
 
+  void _showBannerEmojiModal(BuildContext context, WidgetRef ref) {
+    final user = ref.read(currentUserProvider).value;
+    if (user == null) return;
+
+    final emojiController = TextEditingController(text: user.bannerEmojiPattern);
+    String selectedStyle = user.bannerEmojiStyle;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return StatefulBuilder(
+          builder: (stateContext, setState) {
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(stateContext).viewInsets.bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                            onPressed: () {
+                              Navigator.of(sheetContext).pop();
+                              Future.delayed(Duration.zero, () {
+                                if (context.mounted) {
+                                  _showSettingsModal(context, ref);
+                                }
+                              });
+                            },
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Patrón de Emojis del Banner',
+                            style: TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Live Preview Area
+                      const Text(
+                        'VISTA PREVIA',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Container(
+                        height: 90,
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          gradient: user.customGradient.length == 2
+                              ? LinearGradient(
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight,
+                                  colors: [
+                                    Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
+                                    Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
+                                  ],
+                                )
+                              : AppColors.blueGradient,
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Colors.black12,
+                              blurRadius: 8,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: _BannerEmojiDecoration(
+                                emojiString: emojiController.text,
+                                style: selectedStyle,
+                                seed: user.uid,
+                              ),
+                            ),
+                            Center(
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.black26,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  '@${user.username}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                    shadows: [
+                                      Shadow(
+                                        color: Colors.black38,
+                                        blurRadius: 4,
+                                        offset: Offset(0, 1),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Emoji Input
+                      const Text(
+                        'EMOJIS DECORATIVOS',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      TextField(
+                        controller: emojiController,
+                        maxLength: 15,
+                        textCapitalization: TextCapitalization.none,
+                        decoration: InputDecoration(
+                          hintText: 'Introduce emojis (ej: ⚡️🔥👾)',
+                          hintStyle: const TextStyle(color: Colors.black38),
+                          filled: true,
+                          fillColor: Colors.grey[100],
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none,
+                          ),
+                          counterText: '',
+                        ),
+                        onChanged: (val) {
+                          setState(() {});
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Style Selector
+                      const Text(
+                        'ESTILO DEL PATRÓN',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        childAspectRatio: 2.2,
+                        crossAxisSpacing: 12,
+                        mainAxisSpacing: 12,
+                        children: [
+                          _buildStyleOption(
+                            stateContext,
+                            id: 'none',
+                            title: 'Ninguno',
+                            icon: Icons.close_rounded,
+                            isSelected: selectedStyle == 'none',
+                            onTap: () => setState(() => selectedStyle = 'none'),
+                          ),
+                          _buildStyleOption(
+                            stateContext,
+                            id: 'grid',
+                            title: 'Rejilla',
+                            icon: Icons.grid_on_rounded,
+                            isSelected: selectedStyle == 'grid',
+                            onTap: () => setState(() => selectedStyle = 'grid'),
+                          ),
+                          _buildStyleOption(
+                            stateContext,
+                            id: 'diagonal',
+                            title: 'Diagonal',
+                            icon: Icons.texture_rounded,
+                            isSelected: selectedStyle == 'diagonal',
+                            onTap: () => setState(() => selectedStyle = 'diagonal'),
+                          ),
+                          _buildStyleOption(
+                            stateContext,
+                            id: 'scattered',
+                            title: 'Disperso',
+                            icon: Icons.bubble_chart_rounded,
+                            isSelected: selectedStyle == 'scattered',
+                            onTap: () => setState(() => selectedStyle = 'scattered'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+
+                      // Save Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: AppColors.blueGradient,
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.blueAccent.withOpacity(0.3),
+                                blurRadius: 10,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final updatedUser = user.copyWith(
+                                bannerEmojiPattern: emojiController.text,
+                                bannerEmojiStyle: selectedStyle,
+                              );
+                              await ref.read(userRepositoryProvider).updateUser(updatedUser);
+                              
+                              if (sheetContext.mounted) {
+                                Navigator.of(sheetContext).pop();
+                              }
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              shadowColor: Colors.transparent,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                            ),
+                            child: const Text(
+                              'Guardar Cambios',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildStyleOption(
+    BuildContext context, {
+    required String id,
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blueAccent.withOpacity(0.08) : Colors.grey[50],
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? Colors.blueAccent : Colors.grey[200]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? Colors.blueAccent : Colors.black54,
+              size: 20,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              title,
+              style: TextStyle(
+                color: isSelected ? Colors.blueAccent : Colors.black87,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _showGradientPicker(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(currentUserProvider);
     userAsync.whenData((user) {
@@ -3388,6 +3735,137 @@ class _NotificationSwitchTile extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _BannerEmojiDecoration extends StatelessWidget {
+  final String emojiString;
+  final String style;
+  final String seed;
+
+  const _BannerEmojiDecoration({
+    required this.emojiString,
+    required this.style,
+    required this.seed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (style == 'none' || emojiString.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Split string into individual emoji glyphs safely
+    final List<String> emojis = [];
+    final charRunes = emojiString.runes.toList();
+    for (int i = 0; i < charRunes.length; i++) {
+      emojis.add(String.fromCharCode(charRunes[i]));
+    }
+    if (emojis.isEmpty) return const SizedBox.shrink();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final width = constraints.maxWidth;
+        final height = constraints.maxHeight;
+
+        if (style == 'grid') {
+          const double stepX = 50.0;
+          const double stepY = 40.0;
+          final List<Widget> children = [];
+          int emojiIndex = 0;
+
+          for (double y = 10; y < height; y += stepY) {
+            for (double x = 15; x < width; x += stepX) {
+              final emoji = emojis[emojiIndex % emojis.length];
+              emojiIndex++;
+              children.add(
+                Positioned(
+                  left: x,
+                  top: y,
+                  child: Opacity(
+                    opacity: 0.18,
+                    child: Text(
+                      emoji,
+                      style: const TextStyle(fontSize: 16),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+          return Stack(children: children);
+        }
+
+        if (style == 'diagonal') {
+          const double step = 35.0;
+          final List<Widget> children = [];
+          int emojiIndex = 0;
+
+          for (double offset = -height; offset < width + height; offset += step) {
+            for (double t = 0; t < height; t += 20) {
+              final x = offset + t;
+              final y = t;
+              if (x >= 0 && x < width && y >= 0 && y < height) {
+                final emoji = emojis[emojiIndex % emojis.length];
+                emojiIndex++;
+                children.add(
+                  Positioned(
+                    left: x,
+                    top: y,
+                    child: Opacity(
+                      opacity: 0.18,
+                      child: Text(
+                        emoji,
+                        style: const TextStyle(fontSize: 14),
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }
+          }
+          return Stack(children: children);
+        }
+
+        if (style == 'scattered') {
+          final List<Widget> children = [];
+          int hash = seed.hashCode;
+          double nextRandom() {
+            hash = (1103515245 * hash + 12345) & 0x7fffffff;
+            return hash / 2147483647.0;
+          }
+
+          final count = (width * height / 1800).clamp(10, 40).toInt();
+          for (int i = 0; i < count; i++) {
+            final x = nextRandom() * (width - 24);
+            final y = nextRandom() * (height - 24);
+            final scale = 0.8 + nextRandom() * 0.6;
+            final rotation = nextRandom() * 0.6 - 0.3;
+            final emoji = emojis[i % emojis.length];
+
+            children.add(
+              Positioned(
+                left: x,
+                top: y,
+                child: Transform.rotate(
+                  angle: rotation,
+                  child: Opacity(
+                    opacity: 0.20,
+                    child: Text(
+                      emoji,
+                      style: TextStyle(fontSize: 16 * scale),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }
+          return Stack(children: children);
+        }
+
+        return const SizedBox.shrink();
+      },
     );
   }
 }

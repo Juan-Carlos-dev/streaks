@@ -16,6 +16,8 @@ class User {
   final Map<String, dynamic> notificationConfig;
   final List<String> hiddenUsers;
   final List<String> reportedPosts;
+  final String bannerEmojiPattern;
+  final String bannerEmojiStyle;
 
   const User({
     required this.uid,
@@ -39,6 +41,8 @@ class User {
     },
     this.hiddenUsers = const [],
     this.reportedPosts = const [],
+    this.bannerEmojiPattern = '',
+    this.bannerEmojiStyle = 'none',
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -71,6 +75,8 @@ class User {
             },
       hiddenUsers: List<String>.from(data['hiddenUsers'] ?? []),
       reportedPosts: List<String>.from(data['reportedPosts'] ?? []),
+      bannerEmojiPattern: data['bannerEmojiPattern'] ?? '',
+      bannerEmojiStyle: data['bannerEmojiStyle'] ?? 'none',
     );
   }
 
@@ -91,6 +97,8 @@ class User {
       'notificationConfig': notificationConfig,
       'hiddenUsers': hiddenUsers,
       'reportedPosts': reportedPosts,
+      'bannerEmojiPattern': bannerEmojiPattern,
+      'bannerEmojiStyle': bannerEmojiStyle,
     };
   }
 
@@ -110,6 +118,8 @@ class User {
     Map<String, dynamic>? notificationConfig,
     List<String>? hiddenUsers,
     List<String>? reportedPosts,
+    String? bannerEmojiPattern,
+    String? bannerEmojiStyle,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -127,6 +137,8 @@ class User {
       notificationConfig: notificationConfig ?? this.notificationConfig,
       hiddenUsers: hiddenUsers ?? this.hiddenUsers,
       reportedPosts: reportedPosts ?? this.reportedPosts,
+      bannerEmojiPattern: bannerEmojiPattern ?? this.bannerEmojiPattern,
+      bannerEmojiStyle: bannerEmojiStyle ?? this.bannerEmojiStyle,
     );
   }
 }
