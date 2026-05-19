@@ -20,6 +20,7 @@ Los requisitos funcionales describen los servicios, comportamientos y operacione
 | **RF-06** | Interacción Drag-to-Like | El usuario debe poder previsualizar un post mediante pulsación prolongada y arrastrar el dedo hacia una píldora flotante para añadir/quitar su estrella (like). | Media |
 | **RF-07** | Control de Relaciones (Seguidores)| El usuario debe poder buscar otros perfiles, seguirlos y dejar de seguirlos, actualizando las listas correspondientes. | Alta |
 | **RF-08** | Buscador de Perfiles | El sistema debe permitir filtrar la lista de seguidores y seguidos mediante texto en tiempo real. | Media |
+| **RF-09** | Eliminación de Publicaciones | El usuario debe poder eliminar permanentemente sus publicaciones de progreso desde la vista detallada de su perfil. | Alta |
 
 ---
 
