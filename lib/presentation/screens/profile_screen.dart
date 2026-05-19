@@ -103,7 +103,7 @@ class _ProfileBody extends StatelessWidget {
   }
 }
 
-  const _ProfileBody({
+  _ProfileBody({
     required this.user,
     required this.habitsAsync,
     required this.ref,
