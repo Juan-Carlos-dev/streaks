@@ -34,7 +34,11 @@ class _CreatePostScreenState extends ConsumerState<CreatePostScreen> {
   }
 
   Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    final pickedFile = await _picker.pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 1920,
+      maxHeight: 1920,
+    );
     if (pickedFile != null) {
       final File rawFile = File(pickedFile.path);
       
@@ -246,11 +250,35 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
   final GlobalKey _repaintKey = GlobalKey();
   bool _isProcessing = false;
   double? _imageAspectRatio;
+  late final TransformationController _transformationController;
+  double _currentScale = 1.0;
 
   @override
   void initState() {
     super.initState();
+    _transformationController = TransformationController();
+    _transformationController.addListener(() {
+      final Matrix4 matrix = _transformationController.value;
+      final double scale = matrix.storage[0]; // Uniform scale is the first element
+      setState(() {
+        _currentScale = scale.clamp(1.0, 3.0);
+      });
+    });
     _loadImageAspectRatio();
+  }
+
+  @override
+  void dispose() {
+    _transformationController.dispose();
+    super.dispose();
+  }
+
+  void _onScaleChanged(double scale) {
+    setState(() {
+      _currentScale = scale;
+      // Reset translation to center while scaling to make the user experience very smooth
+      _transformationController.value = Matrix4.identity()..scale(scale);
+    });
   }
 
   void _loadImageAspectRatio() {
@@ -361,7 +389,7 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Text(
-            'Pellizca para zoom y arrastra para encuadrar',
+            'Arrastra para encuadrar y usa la barra para zoom',
             style: TextStyle(color: Colors.white54, fontSize: 14),
           ),
           const SizedBox(height: 20),
@@ -397,8 +425,9 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                           }
 
                           return InteractiveViewer(
+                            transformationController: _transformationController,
                             minScale: 1.0,
-                            maxScale: 5.0,
+                            maxScale: 3.0,
                             boundaryMargin: EdgeInsets.zero,
                             clipBehavior: Clip.none,
                             child: SizedBox(
@@ -406,7 +435,7 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                               height: childHeight,
                               child: Image.file(
                                 widget.imageFile,
-                                fit: BoxFit.fill,
+                                fit: BoxFit.cover,
                               ),
                             ),
                           );
@@ -418,7 +447,35 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
               ),
             ),
           ),
-          const SizedBox(height: 40),
+          const SizedBox(height: 24),
+          // Zoom Slider Bar
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Row(
+              children: [
+                const Icon(Icons.zoom_out_rounded, color: Colors.white54, size: 20),
+                Expanded(
+                  child: SliderTheme(
+                    data: SliderTheme.of(context).copyWith(
+                      activeTrackColor: Colors.amber,
+                      inactiveTrackColor: Colors.white24,
+                      thumbColor: Colors.amber,
+                      overlayColor: Colors.amber.withOpacity(0.2),
+                      trackHeight: 4,
+                    ),
+                    child: Slider(
+                      value: _currentScale,
+                      min: 1.0,
+                      max: 3.0,
+                      onChanged: _onScaleChanged,
+                    ),
+                  ),
+                ),
+                const Icon(Icons.zoom_in_rounded, color: Colors.white54, size: 20),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
       ),
     );
