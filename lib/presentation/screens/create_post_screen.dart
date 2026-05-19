@@ -258,6 +258,7 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
   // Starting values for scale/drag gestures
   double _startScale = 1.0;
   Offset _startOffset = Offset.zero;
+  Offset _startFocalPoint = Offset.zero;
 
   @override
   void initState() {
@@ -439,13 +440,14 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                             onScaleStart: (details) {
                               _startScale = _scale;
                               _startOffset = _offset;
+                              _startFocalPoint = details.localFocalPoint;
                             },
                             onScaleUpdate: (details) {
                               setState(() {
                                 if (details.scale != 1.0) {
                                   _scale = (_startScale * details.scale).clamp(1.0, 3.0);
                                 }
-                                _offset = _startOffset + details.focalPointDelta;
+                                _offset = _startOffset + (details.localFocalPoint - _startFocalPoint);
                               });
                             },
                             child: Container(
