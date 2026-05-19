@@ -155,6 +155,8 @@ class _ProfileBody extends StatelessWidget {
                           emojiString: user?.bannerEmojiPattern ?? '',
                           style: user?.bannerEmojiStyle ?? 'none',
                           seed: user?.uid ?? 'default_seed',
+                          size: user?.bannerEmojiSize ?? 16.0,
+                          rotation: user?.bannerEmojiRotation ?? 0.0,
                         ),
                       ],
                     ),
@@ -2283,6 +2285,8 @@ class _ProfileBody extends StatelessWidget {
 
     final selectedEmojis = user.bannerEmojiPattern.characters.map((c) => c).toList();
     String selectedStyle = user.bannerEmojiStyle;
+    double selectedSize = user.bannerEmojiSize;
+    double selectedRotation = user.bannerEmojiRotation;
     String activeCategory = '😀';
 
     showModalBottomSheet(
@@ -2376,6 +2380,8 @@ class _ProfileBody extends StatelessWidget {
                                 emojiString: selectedEmojis.join(''),
                                 style: selectedStyle,
                                 seed: user.uid,
+                                size: selectedSize,
+                                rotation: selectedRotation,
                               ),
                             ),
                             Center(
@@ -2667,6 +2673,94 @@ class _ProfileBody extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: 24),
+
+                      // Emoji Size Slider
+                      const Text(
+                        'TAMAÑO DE EMOJIS',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.format_size_rounded, color: Colors.black54, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Slider(
+                              value: selectedSize,
+                              min: 10.0,
+                              max: 32.0,
+                              divisions: 22,
+                              label: '${selectedSize.toInt()}px',
+                              activeColor: Colors.blueAccent,
+                              inactiveColor: Colors.grey[200],
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedSize = val;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${selectedSize.toInt()}px',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
+
+                      // Emoji Rotation Slider
+                      const Text(
+                        'ROTACIÓN DE EMOJIS',
+                        style: TextStyle(
+                          color: Colors.black54,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.rotate_right_rounded, color: Colors.black54, size: 20),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Slider(
+                              value: selectedRotation,
+                              min: -180.0,
+                              max: 180.0,
+                              divisions: 72,
+                              label: '${selectedRotation.toInt()}°',
+                              activeColor: Colors.blueAccent,
+                              inactiveColor: Colors.grey[200],
+                              onChanged: (val) {
+                                setState(() {
+                                  selectedRotation = val;
+                                });
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${selectedRotation.toInt()}°',
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 32),
 
                       // Save Button
@@ -2690,6 +2784,8 @@ class _ProfileBody extends StatelessWidget {
                               final updatedUser = user.copyWith(
                                 bannerEmojiPattern: selectedEmojis.join(''),
                                 bannerEmojiStyle: selectedStyle,
+                                bannerEmojiSize: selectedSize,
+                                bannerEmojiRotation: selectedRotation,
                               );
                               await ref.read(userRepositoryProvider).updateUser(updatedUser);
                               
@@ -3919,11 +4015,15 @@ class _BannerEmojiDecoration extends StatelessWidget {
   final String emojiString;
   final String style;
   final String seed;
+  final double size;
+  final double rotation;
 
   const _BannerEmojiDecoration({
     required this.emojiString,
     required this.style,
     required this.seed,
+    required this.size,
+    required this.rotation,
   });
 
   @override
@@ -3932,13 +4032,10 @@ class _BannerEmojiDecoration extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    // Split string into individual emoji glyphs safely
-    final List<String> emojis = [];
-    final charRunes = emojiString.runes.toList();
-    for (int i = 0; i < charRunes.length; i++) {
-      emojis.add(String.fromCharCode(charRunes[i]));
-    }
+    final List<String> emojis = emojiString.characters.map((c) => c).toList();
     if (emojis.isEmpty) return const SizedBox.shrink();
+
+    final double rad = rotation * 3.14159265358979323846 / 180.0;
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -3946,8 +4043,8 @@ class _BannerEmojiDecoration extends StatelessWidget {
         final height = constraints.maxHeight;
 
         if (style == 'grid') {
-          const double stepX = 50.0;
-          const double stepY = 40.0;
+          final double stepX = (size * 3.0).clamp(35.0, 100.0);
+          final double stepY = (size * 2.5).clamp(30.0, 80.0);
           final List<Widget> children = [];
           int emojiIndex = 0;
 
@@ -3961,9 +4058,12 @@ class _BannerEmojiDecoration extends StatelessWidget {
                   top: y,
                   child: Opacity(
                     opacity: 0.18,
-                    child: Text(
-                      emoji,
-                      style: const TextStyle(fontSize: 16),
+                    child: Transform.rotate(
+                      angle: rad,
+                      child: Text(
+                        emoji,
+                        style: TextStyle(fontSize: size),
+                      ),
                     ),
                   ),
                 ),
@@ -3974,12 +4074,13 @@ class _BannerEmojiDecoration extends StatelessWidget {
         }
 
         if (style == 'diagonal') {
-          const double step = 35.0;
+          final double step = (size * 2.2).clamp(25.0, 70.0);
+          final double stepY = (size * 1.25).clamp(15.0, 45.0);
           final List<Widget> children = [];
           int emojiIndex = 0;
 
           for (double offset = -height; offset < width + height; offset += step) {
-            for (double t = 0; t < height; t += 20) {
+            for (double t = 0; t < height; t += stepY) {
               final x = offset + t;
               final y = t;
               if (x >= 0 && x < width && y >= 0 && y < height) {
@@ -3991,9 +4092,12 @@ class _BannerEmojiDecoration extends StatelessWidget {
                     top: y,
                     child: Opacity(
                       opacity: 0.18,
-                      child: Text(
-                        emoji,
-                        style: const TextStyle(fontSize: 14),
+                      child: Transform.rotate(
+                        angle: rad,
+                        child: Text(
+                          emoji,
+                          style: TextStyle(fontSize: size * 0.88),
+                        ),
                       ),
                     ),
                   ),
@@ -4012,12 +4116,14 @@ class _BannerEmojiDecoration extends StatelessWidget {
             return hash / 2147483647.0;
           }
 
-          final count = (width * height / 1800).clamp(10, 40).toInt();
+          final densityFactor = (size * size).clamp(100.0, 1000.0);
+          final count = (width * height / (densityFactor * 1.5)).clamp(8, 35).toInt();
+          
           for (int i = 0; i < count; i++) {
-            final x = nextRandom() * (width - 24);
-            final y = nextRandom() * (height - 24);
+            final x = nextRandom() * (width - size - 8);
+            final y = nextRandom() * (height - size - 8);
             final scale = 0.8 + nextRandom() * 0.6;
-            final rotation = nextRandom() * 0.6 - 0.3;
+            final randomRot = nextRandom() * 0.6 - 0.3;
             final emoji = emojis[i % emojis.length];
 
             children.add(
@@ -4025,12 +4131,12 @@ class _BannerEmojiDecoration extends StatelessWidget {
                 left: x,
                 top: y,
                 child: Transform.rotate(
-                  angle: rotation,
+                  angle: rad + randomRot,
                   child: Opacity(
                     opacity: 0.20,
                     child: Text(
                       emoji,
-                      style: TextStyle(fontSize: 16 * scale),
+                      style: TextStyle(fontSize: size * scale),
                     ),
                   ),
                 ),

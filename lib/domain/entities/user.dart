@@ -18,6 +18,8 @@ class User {
   final List<String> reportedPosts;
   final String bannerEmojiPattern;
   final String bannerEmojiStyle;
+  final double bannerEmojiSize;
+  final double bannerEmojiRotation;
 
   const User({
     required this.uid,
@@ -43,6 +45,8 @@ class User {
     this.reportedPosts = const [],
     this.bannerEmojiPattern = '',
     this.bannerEmojiStyle = 'none',
+    this.bannerEmojiSize = 16.0,
+    this.bannerEmojiRotation = 0.0,
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -77,6 +81,12 @@ class User {
       reportedPosts: List<String>.from(data['reportedPosts'] ?? []),
       bannerEmojiPattern: data['bannerEmojiPattern'] ?? '',
       bannerEmojiStyle: data['bannerEmojiStyle'] ?? 'none',
+      bannerEmojiSize: (data['bannerEmojiSize'] ?? 16.0) is int 
+          ? (data['bannerEmojiSize'] as int).toDouble() 
+          : (data['bannerEmojiSize'] ?? 16.0) as double,
+      bannerEmojiRotation: (data['bannerEmojiRotation'] ?? 0.0) is int 
+          ? (data['bannerEmojiRotation'] as int).toDouble() 
+          : (data['bannerEmojiRotation'] ?? 0.0) as double,
     );
   }
 
@@ -99,6 +109,8 @@ class User {
       'reportedPosts': reportedPosts,
       'bannerEmojiPattern': bannerEmojiPattern,
       'bannerEmojiStyle': bannerEmojiStyle,
+      'bannerEmojiSize': bannerEmojiSize,
+      'bannerEmojiRotation': bannerEmojiRotation,
     };
   }
 
@@ -120,6 +132,8 @@ class User {
     List<String>? reportedPosts,
     String? bannerEmojiPattern,
     String? bannerEmojiStyle,
+    double? bannerEmojiSize,
+    double? bannerEmojiRotation,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -139,6 +153,8 @@ class User {
       reportedPosts: reportedPosts ?? this.reportedPosts,
       bannerEmojiPattern: bannerEmojiPattern ?? this.bannerEmojiPattern,
       bannerEmojiStyle: bannerEmojiStyle ?? this.bannerEmojiStyle,
+      bannerEmojiSize: bannerEmojiSize ?? this.bannerEmojiSize,
+      bannerEmojiRotation: bannerEmojiRotation ?? this.bannerEmojiRotation,
     );
   }
 }
