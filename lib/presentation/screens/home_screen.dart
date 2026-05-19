@@ -722,7 +722,7 @@ class _PostCardState extends ConsumerState<_PostCard> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Icon(
                 widget.post.likedBy.contains(ref.watch(authStateProvider).value)
@@ -749,15 +749,20 @@ class _PostCardState extends ConsumerState<_PostCard> {
                     color: AppColors.textSecondary, fontSize: 13),
               ),
               const Spacer(),
-              IconButton(
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
-                icon: const Icon(Icons.more_vert,
-                    color: AppColors.textSecondary, size: 20),
-                onPressed: () {
+              GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () {
                   final postUser = userAsync.value;
                   _showPostOptions(context, postUser);
                 },
+                child: const Padding(
+                  padding: EdgeInsets.only(left: 12, top: 4, bottom: 4),
+                  child: Icon(
+                    Icons.more_vert,
+                    color: AppColors.textSecondary,
+                    size: 20,
+                  ),
+                ),
               ),
             ],
           ),
