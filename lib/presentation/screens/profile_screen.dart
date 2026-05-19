@@ -2300,125 +2300,253 @@ class _ProfileBody extends StatelessWidget {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (stateContext, setState) {
-            return Padding(
+            return Container(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(stateContext).size.height * 0.85,
+              ),
               padding: EdgeInsets.only(
                 bottom: MediaQuery.of(stateContext).viewInsets.bottom,
               ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Header
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
-                            onPressed: () {
-                              Navigator.of(sheetContext).pop();
-                              Future.delayed(Duration.zero, () {
-                                if (context.mounted) {
-                                  _showSettingsModal(context, ref);
-                                }
-                              });
-                            },
-                          ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            'Patrón de Emojis del Banner',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // FIXED TOP SECTION: Header + Vista Previa
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header
+                        Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                              onPressed: () {
+                                Navigator.of(sheetContext).pop();
+                                Future.delayed(Duration.zero, () {
+                                  if (context.mounted) {
+                                    _showSettingsModal(context, ref);
+                                  }
+                                });
+                              },
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Live Preview Area
-                      const Text(
-                        'VISTA PREVIA',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        height: 90,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: user.customGradient.length == 2
-                              ? LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
-                                    Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
-                                  ],
-                                )
-                              : AppColors.blueGradient,
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black12,
-                              blurRadius: 8,
-                              offset: Offset(0, 4),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Patrón de Emojis del Banner',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
                             ),
                           ],
                         ),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(16),
-                              child: _BannerEmojiDecoration(
-                                emojiString: selectedEmojis.join(''),
-                                style: selectedStyle,
-                                seed: user.uid,
-                                size: selectedSize,
-                                rotation: selectedRotation,
-                              ),
-                            ),
-                            Center(
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Text(
-                                  '@${user.username}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 14,
-                                    shadows: [
-                                      Shadow(
-                                        color: Colors.black38,
-                                        blurRadius: 4,
-                                        offset: Offset(0, 1),
-                                      ),
+                        const SizedBox(height: 12),
+
+                        // Live Preview Area
+                        const Text(
+                          'VISTA PREVIA',
+                          style: TextStyle(
+                            color: Colors.black54,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          height: 90,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: user.customGradient.length == 2
+                                ? LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      Color(int.parse(user.customGradient[0].replaceAll('#', '0xFF'))),
+                                      Color(int.parse(user.customGradient[1].replaceAll('#', '0xFF'))),
                                     ],
+                                  )
+                                : AppColors.blueGradient,
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black12,
+                                blurRadius: 8,
+                                offset: Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(16),
+                                child: _BannerEmojiDecoration(
+                                  emojiString: selectedEmojis.join(''),
+                                  style: selectedStyle,
+                                  seed: user.uid,
+                                  size: selectedSize,
+                                  rotation: selectedRotation,
+                                ),
+                              ),
+                              Center(
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black26,
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Text(
+                                    '@${user.username}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black38,
+                                          blurRadius: 4,
+                                          offset: Offset(0, 1),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
 
-                      // Selected Emojis Row
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+                  // SCROLLABLE CENTER SECTION: Customization controls
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Selected Emojis Row
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                'EMOJIS SELECCIONADOS',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 11,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                              Text(
+                                '${selectedEmojis.length} / 15',
+                                style: const TextStyle(
+                                  color: Colors.black45,
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            height: 54,
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey[200]!),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: selectedEmojis.isEmpty
+                                      ? const Text(
+                                          'Pulsa los emojis de abajo...',
+                                          style: TextStyle(color: Colors.black38, fontSize: 13),
+                                        )
+                                      : ListView.builder(
+                                          scrollDirection: Axis.horizontal,
+                                          itemCount: selectedEmojis.length,
+                                          itemBuilder: (context, index) {
+                                            return GestureDetector(
+                                              onTap: () {
+                                                setState(() {
+                                                  selectedEmojis.removeAt(index);
+                                                });
+                                              },
+                                              child: Container(
+                                                margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(8),
+                                                  border: Border.all(color: Colors.black12),
+                                                  boxShadow: const [
+                                                    BoxShadow(
+                                                      color: Colors.black12,
+                                                      blurRadius: 2,
+                                                      offset: Offset(0, 1),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      selectedEmojis[index],
+                                                      style: const TextStyle(fontSize: 15),
+                                                    ),
+                                                    const SizedBox(width: 4),
+                                                    const Icon(
+                                                      Icons.close_rounded,
+                                                      size: 10,
+                                                      color: Colors.black38,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                ),
+                                if (selectedEmojis.isNotEmpty) ...[
+                                  IconButton(
+                                    icon: const Icon(Icons.backspace_outlined, size: 18, color: Colors.black54),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedEmojis.removeLast();
+                                      });
+                                    },
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton(
+                                    icon: const Icon(Icons.delete_sweep_outlined, size: 20, color: Colors.redAccent),
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                    onPressed: () {
+                                      setState(() {
+                                        selectedEmojis.clear();
+                                      });
+                                    },
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Emoji Picker Categories
                           const Text(
-                            'EMOJIS SELECCIONADOS',
+                            'SELECCIONA EMOJIS',
                             style: TextStyle(
                               color: Colors.black54,
                               fontWeight: FontWeight.bold,
@@ -2426,395 +2554,289 @@ class _ProfileBody extends StatelessWidget {
                               letterSpacing: 0.8,
                             ),
                           ),
-                          Text(
-                            '${selectedEmojis.length} / 15',
-                            style: const TextStyle(
-                              color: Colors.black45,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 10),
+                          // Tab row
+                          Container(
+                            height: 42,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              children: _emojiCategories.keys.map((category) {
+                                final isCatSelected = activeCategory == category;
+                                return GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      activeCategory = category;
+                                    });
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                                    decoration: BoxDecoration(
+                                      color: isCatSelected ? Colors.blueAccent : Colors.transparent,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      category,
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        color: isCatSelected ? Colors.white : Colors.black87,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }).toList(),
                             ),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Container(
-                        width: double.infinity,
-                        height: 54,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey[200]!),
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: selectedEmojis.isEmpty
-                                  ? const Text(
-                                      'Pulsa los emojis de abajo...',
-                                      style: TextStyle(color: Colors.black38, fontSize: 13),
-                                    )
-                                  : ListView.builder(
-                                      scrollDirection: Axis.horizontal,
-                                      itemCount: selectedEmojis.length,
-                                      itemBuilder: (context, index) {
-                                        return GestureDetector(
-                                          onTap: () {
-                                            setState(() {
-                                              selectedEmojis.removeAt(index);
-                                            });
-                                          },
-                                          child: Container(
-                                            margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                            decoration: BoxDecoration(
-                                              color: Colors.white,
-                                              borderRadius: BorderRadius.circular(8),
-                                              border: Border.all(color: Colors.black12),
-                                              boxShadow: const [
-                                                BoxShadow(
-                                                  color: Colors.black12,
-                                                  blurRadius: 2,
-                                                  offset: Offset(0, 1),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Text(
-                                                  selectedEmojis[index],
-                                                  style: const TextStyle(fontSize: 15),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                const Icon(
-                                                  Icons.close_rounded,
-                                                  size: 10,
-                                                  color: Colors.black38,
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
+                          const SizedBox(height: 8),
+                          // Emojis Grid
+                          Container(
+                            height: 150,
+                            decoration: BoxDecoration(
+                              border: Border.all(color: Colors.grey[200]!),
+                              borderRadius: BorderRadius.circular(12),
+                              color: Colors.grey[50],
                             ),
-                            if (selectedEmojis.isNotEmpty) ...[
-                              IconButton(
-                                icon: const Icon(Icons.backspace_outlined, size: 18, color: Colors.black54),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () {
-                                  setState(() {
-                                    selectedEmojis.removeLast();
-                                  });
-                                },
+                            child: GridView.builder(
+                              padding: const EdgeInsets.all(8),
+                              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 7,
+                                mainAxisSpacing: 8,
+                                crossAxisSpacing: 8,
+                              ),
+                              itemCount: _emojiCategories[activeCategory]!.length,
+                              itemBuilder: (context, index) {
+                                final emoji = _emojiCategories[activeCategory]![index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    if (selectedEmojis.length < 15) {
+                                      setState(() {
+                                        selectedEmojis.add(emoji);
+                                      });
+                                    } else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('Máximo 15 emojis permitidos'),
+                                          duration: Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  },
+                                  child: Center(
+                                    child: Text(
+                                      emoji,
+                                      style: const TextStyle(fontSize: 22),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Style Selector
+                          const Text(
+                            'ESTILO DEL PATRÓN',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          GridView.count(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisCount: 2,
+                            childAspectRatio: 2.2,
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            children: [
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'none',
+                                title: 'Ninguno',
+                                icon: Icons.close_rounded,
+                                isSelected: selectedStyle == 'none',
+                                onTap: () => setState(() => selectedStyle = 'none'),
+                              ),
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'grid',
+                                title: 'Rejilla',
+                                icon: Icons.grid_on_rounded,
+                                isSelected: selectedStyle == 'grid',
+                                onTap: () => setState(() => selectedStyle = 'grid'),
+                              ),
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'diagonal',
+                                title: 'Diagonal',
+                                icon: Icons.texture_rounded,
+                                isSelected: selectedStyle == 'diagonal',
+                                onTap: () => setState(() => selectedStyle = 'diagonal'),
+                              ),
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'scattered',
+                                title: 'Disperso',
+                                icon: Icons.bubble_chart_rounded,
+                                isSelected: selectedStyle == 'scattered',
+                                onTap: () => setState(() => selectedStyle = 'scattered'),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Emoji Size Slider
+                          const Text(
+                            'TAMAÑO DE EMOJIS',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.format_size_rounded, color: Colors.black54, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Slider(
+                                  value: selectedSize,
+                                  min: 10.0,
+                                  max: 32.0,
+                                  divisions: 22,
+                                  label: '${selectedSize.toInt()}px',
+                                  activeColor: Colors.blueAccent,
+                                  inactiveColor: Colors.grey[200],
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedSize = val;
+                                    });
+                                  },
+                                ),
                               ),
                               const SizedBox(width: 8),
-                              IconButton(
-                                icon: const Icon(Icons.delete_sweep_outlined, size: 20, color: Colors.redAccent),
-                                padding: EdgeInsets.zero,
-                                constraints: const BoxConstraints(),
-                                onPressed: () {
-                                  setState(() {
-                                    selectedEmojis.clear();
-                                  });
-                                },
+                              Text(
+                                '${selectedSize.toInt()}px',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
                               ),
                             ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Emoji Rotation Slider
+                          const Text(
+                            'ROTACIÓN DE EMOJIS',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.rotate_right_rounded, color: Colors.black54, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Slider(
+                                  value: selectedRotation,
+                                  min: -180.0,
+                                  max: 180.0,
+                                  divisions: 72,
+                                  label: '${selectedRotation.toInt()}°',
+                                  activeColor: Colors.blueAccent,
+                                  inactiveColor: Colors.grey[200],
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedRotation = val;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${selectedRotation.toInt()}°',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  const Divider(height: 1, color: Color(0xFFEEEEEE)),
+
+                  // FIXED BOTTOM SECTION: Save button
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: AppColors.blueGradient,
+                          borderRadius: BorderRadius.circular(14),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.blueAccent.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Emoji Picker Categories
-                      const Text(
-                        'SELECCIONA EMOJIS',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      // Tab row
-                      Container(
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[100],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          children: _emojiCategories.keys.map((category) {
-                            final isCatSelected = activeCategory == category;
-                            return GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  activeCategory = category;
-                                });
-                              },
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 16),
-                                decoration: BoxDecoration(
-                                  color: isCatSelected ? Colors.blueAccent : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                alignment: Alignment.center,
-                                child: Text(
-                                  category,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: isCatSelected ? Colors.white : Colors.black87,
-                                  ),
-                                ),
-                              ),
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final updatedUser = user.copyWith(
+                              bannerEmojiPattern: selectedEmojis.join(''),
+                              bannerEmojiStyle: selectedStyle,
+                              bannerEmojiSize: selectedSize,
+                              bannerEmojiRotation: selectedRotation,
                             );
-                          }).toList(),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Emojis Grid
-                      Container(
-                        height: 150,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey[200]!),
-                          borderRadius: BorderRadius.circular(12),
-                          color: Colors.grey[50],
-                        ),
-                        child: GridView.builder(
-                          padding: const EdgeInsets.all(8),
-                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 7,
-                            mainAxisSpacing: 8,
-                            crossAxisSpacing: 8,
-                          ),
-                          itemCount: _emojiCategories[activeCategory]!.length,
-                          itemBuilder: (context, index) {
-                            final emoji = _emojiCategories[activeCategory]![index];
-                            return GestureDetector(
-                              onTap: () {
-                                if (selectedEmojis.length < 15) {
-                                  setState(() {
-                                    selectedEmojis.add(emoji);
-                                  });
-                                } else {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('Máximo 15 emojis permitidos'),
-                                      duration: Duration(seconds: 1),
-                                    ),
-                                  );
-                                }
-                              },
-                              child: Center(
-                                child: Text(
-                                  emoji,
-                                  style: const TextStyle(fontSize: 22),
-                                ),
-                              ),
-                            );
+                            await ref.read(userRepositoryProvider).updateUser(updatedUser);
+                            
+                            if (sheetContext.mounted) {
+                              Navigator.of(sheetContext).pop();
+                            }
                           },
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Style Selector
-                      const Text(
-                        'ESTILO DEL PATRÓN',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      GridView.count(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        crossAxisCount: 2,
-                        childAspectRatio: 2.2,
-                        crossAxisSpacing: 12,
-                        mainAxisSpacing: 12,
-                        children: [
-                          _buildStyleOption(
-                            stateContext,
-                            id: 'none',
-                            title: 'Ninguno',
-                            icon: Icons.close_rounded,
-                            isSelected: selectedStyle == 'none',
-                            onTap: () => setState(() => selectedStyle = 'none'),
-                          ),
-                          _buildStyleOption(
-                            stateContext,
-                            id: 'grid',
-                            title: 'Rejilla',
-                            icon: Icons.grid_on_rounded,
-                            isSelected: selectedStyle == 'grid',
-                            onTap: () => setState(() => selectedStyle = 'grid'),
-                          ),
-                          _buildStyleOption(
-                            stateContext,
-                            id: 'diagonal',
-                            title: 'Diagonal',
-                            icon: Icons.texture_rounded,
-                            isSelected: selectedStyle == 'diagonal',
-                            onTap: () => setState(() => selectedStyle = 'diagonal'),
-                          ),
-                          _buildStyleOption(
-                            stateContext,
-                            id: 'scattered',
-                            title: 'Disperso',
-                            icon: Icons.bubble_chart_rounded,
-                            isSelected: selectedStyle == 'scattered',
-                            onTap: () => setState(() => selectedStyle = 'scattered'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Emoji Size Slider
-                      const Text(
-                        'TAMAÑO DE EMOJIS',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.format_size_rounded, color: Colors.black54, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Slider(
-                              value: selectedSize,
-                              min: 10.0,
-                              max: 32.0,
-                              divisions: 22,
-                              label: '${selectedSize.toInt()}px',
-                              activeColor: Colors.blueAccent,
-                              inactiveColor: Colors.grey[200],
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedSize = val;
-                                });
-                              },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${selectedSize.toInt()}px',
-                            style: const TextStyle(
-                              color: Colors.black87,
+                          child: const Text(
+                            'Guardar Cambios',
+                            style: TextStyle(
+                              color: Colors.white,
                               fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Emoji Rotation Slider
-                      const Text(
-                        'ROTACIÓN DE EMOJIS',
-                        style: TextStyle(
-                          color: Colors.black54,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          const Icon(Icons.rotate_right_rounded, color: Colors.black54, size: 20),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Slider(
-                              value: selectedRotation,
-                              min: -180.0,
-                              max: 180.0,
-                              divisions: 72,
-                              label: '${selectedRotation.toInt()}°',
-                              activeColor: Colors.blueAccent,
-                              inactiveColor: Colors.grey[200],
-                              onChanged: (val) {
-                                setState(() {
-                                  selectedRotation = val;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${selectedRotation.toInt()}°',
-                            style: const TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 32),
-
-                      // Save Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            gradient: AppColors.blueGradient,
-                            borderRadius: BorderRadius.circular(14),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.blueAccent.withOpacity(0.3),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final updatedUser = user.copyWith(
-                                bannerEmojiPattern: selectedEmojis.join(''),
-                                bannerEmojiStyle: selectedStyle,
-                                bannerEmojiSize: selectedSize,
-                                bannerEmojiRotation: selectedRotation,
-                              );
-                              await ref.read(userRepositoryProvider).updateUser(updatedUser);
-                              
-                              if (sheetContext.mounted) {
-                                Navigator.of(sheetContext).pop();
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                            ),
-                            child: const Text(
-                              'Guardar Cambios',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
+                              fontSize: 16,
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 12),
-                    ],
+                    ),
                   ),
-                ),
+                ],
               ),
             );
           },
