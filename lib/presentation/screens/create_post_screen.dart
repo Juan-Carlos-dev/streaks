@@ -250,34 +250,26 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
   final GlobalKey _repaintKey = GlobalKey();
   bool _isProcessing = false;
   double? _imageAspectRatio;
-  late final TransformationController _transformationController;
-  double _currentScale = 1.0;
+
+  // Custom gesture states
+  double _scale = 1.0;
+  Offset _offset = Offset.zero;
+
+  // Starting values for scale/drag gestures
+  double _startScale = 1.0;
+  Offset _startOffset = Offset.zero;
 
   @override
   void initState() {
     super.initState();
-    _transformationController = TransformationController();
-    _transformationController.addListener(() {
-      final Matrix4 matrix = _transformationController.value;
-      final double scale = matrix.storage[0]; // Uniform scale is the first element
-      setState(() {
-        _currentScale = scale.clamp(1.0, 3.0);
-      });
-    });
     _loadImageAspectRatio();
-  }
-
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    super.dispose();
   }
 
   void _onScaleChanged(double scale) {
     setState(() {
-      _currentScale = scale;
-      // Reset translation to center while scaling to make the user experience very smooth
-      _transformationController.value = Matrix4.identity()..scale(scale);
+      _scale = scale;
+      // When changing zoom slider, reset translation to center
+      _offset = Offset.zero;
     });
   }
 
@@ -424,18 +416,57 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                             childHeight = viewportWidth / _imageAspectRatio!;
                           }
 
-                          return InteractiveViewer(
-                            transformationController: _transformationController,
-                            minScale: 1.0,
-                            maxScale: 3.0,
-                            boundaryMargin: EdgeInsets.zero,
-                            clipBehavior: Clip.none,
-                            child: SizedBox(
-                              width: childWidth,
-                              height: childHeight,
-                              child: Image.file(
-                                widget.imageFile,
-                                fit: BoxFit.cover,
+                          // Calculate maximum panning bounds dynamically based on scale
+                          final double maxOffsetX = (childWidth * _scale - viewportWidth) / 2;
+                          final double maxOffsetY = (childHeight * _scale - viewportHeight) / 2;
+
+                          // Clamp the offset to keep image edges aligned with viewport edges
+                          final double clampedX = maxOffsetX > 0 ? _offset.dx.clamp(-maxOffsetX, maxOffsetX) : 0.0;
+                          final double clampedY = maxOffsetY > 0 ? _offset.dy.clamp(-maxOffsetY, maxOffsetY) : 0.0;
+                          
+                          final clampedOffset = Offset(clampedX, clampedY);
+                          if (clampedOffset != _offset) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              if (mounted) {
+                                setState(() {
+                                  _offset = clampedOffset;
+                                });
+                              }
+                            });
+                          }
+
+                          return GestureDetector(
+                            onScaleStart: (details) {
+                              _startScale = _scale;
+                              _startOffset = _offset;
+                            },
+                            onScaleUpdate: (details) {
+                              setState(() {
+                                if (details.scale != 1.0) {
+                                  _scale = (_startScale * details.scale).clamp(1.0, 3.0);
+                                }
+                                _offset = _startOffset + details.focalPointDelta;
+                              });
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              width: viewportWidth,
+                              height: viewportHeight,
+                              child: ClipRect(
+                                child: Transform(
+                                  transform: Matrix4.identity()
+                                    ..translate(_offset.dx, _offset.dy)
+                                    ..scale(_scale),
+                                  alignment: Alignment.center,
+                                  child: SizedBox(
+                                    width: childWidth,
+                                    height: childHeight,
+                                    child: Image.file(
+                                      widget.imageFile,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ),
                           );
@@ -464,7 +495,7 @@ class _ImageCropperDialogState extends State<ImageCropperDialog> {
                       trackHeight: 4,
                     ),
                     child: Slider(
-                      value: _currentScale,
+                      value: _scale,
                       min: 1.0,
                       max: 3.0,
                       onChanged: _onScaleChanged,
