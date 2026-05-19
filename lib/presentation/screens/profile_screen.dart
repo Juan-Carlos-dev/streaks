@@ -275,7 +275,7 @@ class _ProfileBody extends StatelessWidget {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
 
           // ── Photo grid ────────────────────────────────────────────────
           postsAsync.when(
@@ -313,6 +313,7 @@ class _ProfileBody extends StatelessWidget {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3,
                     mainAxisSpacing: 6,
