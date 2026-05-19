@@ -804,6 +804,19 @@ class _ProfileBody extends StatelessWidget {
               ),
               const _Divider(),
               _SettingsTile(
+                icon: Icons.block_flipped,
+                title: 'Cuentas ocultas/bloqueadas',
+                onTap: () {
+                  Navigator.of(bottomSheetContext).pop();
+                  Future.delayed(Duration.zero, () {
+                    if (context.mounted) {
+                      _showHiddenUsersModal(context, ref);
+                    }
+                  });
+                },
+              ),
+              const _Divider(),
+              _SettingsTile(
                 icon: Icons.cancel_outlined,
                 title: 'Cerrar sesión',
                 onTap: () async {
@@ -2010,6 +2023,225 @@ class _ProfileBody extends StatelessWidget {
     if (user != null) {
       final updatedUser = user.copyWith(notificationConfig: config);
       await ref.read(userRepositoryProvider).updateUser(updatedUser);
+    }
+  }
+
+  void _showHiddenUsersModal(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Consumer(
+              builder: (context, ref, child) {
+                final userAsync = ref.watch(currentUserProvider);
+                return userAsync.when(
+                  data: (user) {
+                    if (user == null) return const SizedBox.shrink();
+                    final hiddenUsers = user.hiddenUsers;
+
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 16),
+                          // Header
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.black87, size: 20),
+                                onPressed: () {
+                                  Navigator.of(sheetContext).pop();
+                                  Future.delayed(Duration.zero, () {
+                                    if (context.mounted) {
+                                      _showSettingsModal(context, ref);
+                                    }
+                                  });
+                                },
+                              ),
+                              const SizedBox(width: 8),
+                              const Text(
+                                'Cuentas ocultas/bloqueadas',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          
+                          if (hiddenUsers.isEmpty)
+                            Expanded(
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.block_flipped,
+                                      size: 72,
+                                      color: Colors.grey[300],
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      'No tienes ninguna cuenta oculta',
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Las cuentas que ocultes aparecerán aquí.',
+                                      style: TextStyle(
+                                        color: Colors.grey[400],
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 48),
+                                  ],
+                                ),
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: ListView.builder(
+                                controller: scrollController,
+                                itemCount: hiddenUsers.length,
+                                itemBuilder: (context, index) {
+                                  final targetUid = hiddenUsers[index];
+                                  return Consumer(
+                                    builder: (context, ref, child) {
+                                      final targetUserAsync = ref.watch(userByIdProvider(targetUid));
+                                      return targetUserAsync.when(
+                                        data: (targetUser) {
+                                          if (targetUser == null) return const SizedBox.shrink();
+                                          return Container(
+                                            margin: const EdgeInsets.only(bottom: 8),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey[50],
+                                              borderRadius: BorderRadius.circular(12),
+                                            ),
+                                            child: ListTile(
+                                              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                                              leading: CircleAvatar(
+                                                radius: 20,
+                                                backgroundImage: targetUser.photoUrl.isNotEmpty
+                                                    ? NetworkImage(ImageUtils.wrapProxy(targetUser.photoUrl))
+                                                    : null,
+                                                child: targetUser.photoUrl.isEmpty
+                                                    ? const Icon(Icons.person, color: Colors.grey)
+                                                    : null,
+                                              ),
+                                              title: Text(
+                                                targetUser.username,
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color: Colors.black87,
+                                                  fontSize: 15,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                targetUser.email,
+                                                style: const TextStyle(
+                                                  color: Colors.black54,
+                                                  fontSize: 12,
+                                                ),
+                                              ),
+                                              trailing: TextButton(
+                                                onPressed: () => _unblockUser(context, ref, targetUid, targetUser.username),
+                                                child: const Text(
+                                                  'Desbloquear',
+                                                  style: TextStyle(
+                                                    color: Colors.blueAccent,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 13,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        loading: () => const ListTile(
+                                          leading: CircularProgressIndicator(),
+                                          title: Text('Cargando usuario...'),
+                                        ),
+                                        error: (_, __) => const SizedBox.shrink(),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  },
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const Center(child: Text('Error al cargar datos')),
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _unblockUser(BuildContext context, WidgetRef ref, String targetUid, String username) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E1E),
+        title: Text('¿Desbloquear a $username?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text(
+          'Volverás a ver las publicaciones de $username en tu feed.',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Desbloquear', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final user = ref.read(currentUserProvider).value;
+      if (user != null) {
+        final updatedHidden = List<String>.from(user.hiddenUsers)..remove(targetUid);
+        final updatedUser = user.copyWith(hiddenUsers: updatedHidden);
+        await ref.read(userRepositoryProvider).updateUser(updatedUser);
+        
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.blueAccent,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              content: Text('Se ha desbloqueado a $username.'),
+            ),
+          );
+        }
+      }
     }
   }
 
