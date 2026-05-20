@@ -443,25 +443,12 @@ class _ProfileBody extends StatelessWidget {
                 
                 return GestureDetector(
                   onTap: () => _showBadgeDetails(context, badge),
-                  child: Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: badge.backgroundColors.first.withOpacity(0.4),
-                          blurRadius: 8,
-                          spreadRadius: 1,
-                        ),
-                      ],
-                    ),
-                    child: Image.asset(
-                      badge.imagePath,
-                      width: 56,
-                      height: 56,
-                      fit: BoxFit.contain,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 12),
+                    child: ProfileBadgeWidget(
+                      badge: badge,
+                      size: 56,
+                      isUnlocked: true,
                     ),
                   ),
                 );
@@ -513,25 +500,10 @@ class _ProfileBody extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Container(
-                  width: 72,
-                  height: 72,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: badge.backgroundColors.first.withOpacity(0.4),
-                        blurRadius: 12,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: Image.asset(
-                    badge.imagePath,
-                    width: 72,
-                    height: 72,
-                    fit: BoxFit.contain,
-                  ),
+                ProfileBadgeWidget(
+                  badge: badge,
+                  size: 72,
+                  isUnlocked: true,
                 ),
                 const SizedBox(height: 16),
                 Text(
@@ -655,24 +627,12 @@ class _ProfileBody extends StatelessWidget {
                             return Stack(
                               clipBehavior: Clip.none,
                               children: [
-                                Container(
-                                  margin: const EdgeInsets.symmetric(horizontal: 8),
-                                  width: 50,
-                                  height: 50,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: badge.backgroundColors.first.withOpacity(0.3),
-                                        blurRadius: 8,
-                                      ),
-                                    ],
-                                  ),
-                                  child: Image.asset(
-                                    badge.imagePath,
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.contain,
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  child: ProfileBadgeWidget(
+                                    badge: badge,
+                                    size: 50,
+                                    isUnlocked: true,
                                   ),
                                 ),
                                 Positioned(
@@ -768,42 +728,10 @@ class _ProfileBody extends StatelessWidget {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Opacity(
-                                    opacity: isUnlocked ? 1.0 : 0.4,
-                                    child: Container(
-                                      width: 44,
-                                      height: 44,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        boxShadow: isUnlocked ? [
-                                          BoxShadow(
-                                            color: badge.backgroundColors.first.withOpacity(0.3),
-                                            blurRadius: 6,
-                                          ),
-                                        ] : null,
-                                      ),
-                                      child: Stack(
-                                        alignment: Alignment.center,
-                                        children: [
-                                          Image.asset(
-                                            badge.imagePath,
-                                            width: 44,
-                                            height: 44,
-                                            fit: BoxFit.contain,
-                                          ),
-                                          if (!isUnlocked)
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                color: Colors.black.withOpacity(0.45),
-                                                shape: BoxShape.circle,
-                                              ),
-                                              child: const Center(
-                                                child: Icon(Icons.lock_outline, color: Colors.white70, size: 16),
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    ),
+                                  ProfileBadgeWidget(
+                                    badge: badge,
+                                    size: 44,
+                                    isUnlocked: isUnlocked,
                                   ),
                                   const SizedBox(height: 8),
                                   Text(

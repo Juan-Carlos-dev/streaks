@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 import '../../domain/entities/user.dart';
 import '../../domain/entities/habit.dart';
 
@@ -113,12 +114,17 @@ class AvatarFrame {
   }
 }
 
+enum BadgeShape { circle, hexagon, shield, diamond, star }
+enum BadgeTier { bronze, silver, gold, platinum, diamond, cosmic }
+
 class ProfileBadge {
   final String id;
   final String name;
   final String description;
   final String emoji;
-  final String imagePath;
+  final IconData iconData;
+  final BadgeShape shape;
+  final BadgeTier tier;
   final List<Color> backgroundColors;
   final String unlockCriteria;
 
@@ -127,7 +133,9 @@ class ProfileBadge {
     required this.name,
     required this.description,
     required this.emoji,
-    required this.imagePath,
+    required this.iconData,
+    required this.shape,
+    required this.tier,
     required this.backgroundColors,
     required this.unlockCriteria,
   });
@@ -228,7 +236,9 @@ class ProfileBadge {
       name: 'Primer Paso',
       description: 'Has creado tu primer hábito en la aplicación.',
       emoji: '🌱',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.spa_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFF81C784), Color(0xFF009688)],
       unlockCriteria: '1 hábito activo.',
     ),
@@ -237,7 +247,9 @@ class ProfileBadge {
       name: 'Trilogía',
       description: 'Gestionas 3 hábitos activos al mismo tiempo.',
       emoji: '☘️',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.auto_awesome_mosaic_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFF4DB6AC), Color(0xFF00796B)],
       unlockCriteria: '3 hábitos activos.',
     ),
@@ -246,7 +258,9 @@ class ProfileBadge {
       name: 'Malabarista',
       description: 'Mantienes 5 hábitos activos de forma simultánea.',
       emoji: '⚡',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.bolt,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFF64B5F6), Color(0xFF3F51B5)],
       unlockCriteria: '5 hábitos activos.',
     ),
@@ -255,7 +269,9 @@ class ProfileBadge {
       name: 'Alta Productividad',
       description: 'Estás gestionando 8 hábitos activos a la vez.',
       emoji: '📈',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.trending_up,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.platinum,
       backgroundColors: [Color(0xFF5C6BC0), Color(0xFF1A237E)],
       unlockCriteria: '8 hábitos activos.',
     ),
@@ -264,7 +280,9 @@ class ProfileBadge {
       name: 'Máxima Eficiencia',
       description: '12 hábitos activos simultáneamente. ¡Disciplina inquebrantable!',
       emoji: '🚀',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.rocket_launch,
+      shape: BadgeShape.diamond,
+      tier: BadgeTier.diamond,
       backgroundColors: [Color(0xFFFF8A65), Color(0xFFD84315)],
       unlockCriteria: '12 hábitos activos.',
     ),
@@ -273,7 +291,9 @@ class ProfileBadge {
       name: 'Señor de la Rutina',
       description: '20 hábitos activos. Has alcanzado la maestría de la constancia.',
       emoji: '🌌',
-      imagePath: 'assets/images/badge_habits.png',
+      iconData: Icons.electric_bolt,
+      shape: BadgeShape.shield,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFF424242), Color(0xFF212121)],
       unlockCriteria: '20 hábitos activos.',
     ),
@@ -284,7 +304,9 @@ class ProfileBadge {
       name: 'Primeras Chispas',
       description: 'Has conseguido mantener una racha global de 3 días.',
       emoji: '✨',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.flash_on,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFFFFF176), Color(0xFFF57F17)],
       unlockCriteria: 'Racha global de 3 días.',
     ),
@@ -293,7 +315,9 @@ class ProfileBadge {
       name: 'Constancia Semanal',
       description: '7 días consecutivos manteniendo tus hábitos activos.',
       emoji: '🔥',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.local_fire_department,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFFFFB74D), Color(0xFFE65100)],
       unlockCriteria: 'Racha global de 7 días.',
     ),
@@ -302,7 +326,9 @@ class ProfileBadge {
       name: 'Quincena Perfecta',
       description: '15 días de racha consecutiva sin fallar.',
       emoji: '🎯',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.gps_fixed,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFFFF8A80), Color(0xFFC62828)],
       unlockCriteria: 'Racha global de 15 días.',
     ),
@@ -311,7 +337,9 @@ class ProfileBadge {
       name: 'Leyenda Mensual',
       description: '¡Un mes completo! 30 días de racha global.',
       emoji: '👑',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.workspace_premium,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.platinum,
       backgroundColors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
       unlockCriteria: 'Racha global de 30 días.',
     ),
@@ -320,7 +348,9 @@ class ProfileBadge {
       name: 'Inquebrantable',
       description: '60 días seguidos de pura constancia y disciplina.',
       emoji: '💎',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.diamond_outlined,
+      shape: BadgeShape.diamond,
+      tier: BadgeTier.diamond,
       backgroundColors: [Color(0xFF4DD0E1), Color(0xFF00838F)],
       unlockCriteria: 'Racha global de 60 días.',
     ),
@@ -329,7 +359,9 @@ class ProfileBadge {
       name: 'El Club del 100',
       description: '¡100 días de racha global! Un logro al alcance de muy pocos.',
       emoji: '💯',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.star,
+      shape: BadgeShape.star,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFFBA68C8), Color(0xFF4A148C)],
       unlockCriteria: 'Racha global de 100 días.',
     ),
@@ -338,7 +370,9 @@ class ProfileBadge {
       name: 'Año Solar',
       description: '365 días de racha global ininterrumpida. Has cambiado tu vida.',
       emoji: '☀️',
-      imagePath: 'assets/images/badge_streaks.png',
+      iconData: Icons.wb_sunny,
+      shape: BadgeShape.shield,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFFFFB74D), Color(0xFFD84315)],
       unlockCriteria: 'Racha global de 365 días.',
     ),
@@ -349,7 +383,9 @@ class ProfileBadge {
       name: 'Acción Inicial',
       description: 'Has completado tu primer registro de hábito.',
       emoji: '✅',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.done,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFFD4E157), Color(0xFF558B2F)],
       unlockCriteria: '1 hábito completado en total.',
     ),
@@ -358,7 +394,9 @@ class ProfileBadge {
       name: 'Hábito en Marcha',
       description: 'Has completado hábitos 10 veces en total.',
       emoji: '🏃',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.directions_run,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFF80CBC4), Color(0xFF00695C)],
       unlockCriteria: '10 completados en total.',
     ),
@@ -367,7 +405,9 @@ class ProfileBadge {
       name: 'Ruta Trazada',
       description: 'Has completado hábitos 50 veces en total.',
       emoji: '🗺️',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.map_outlined,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFF80DEEA), Color(0xFF00838F)],
       unlockCriteria: '50 completados en total.',
     ),
@@ -376,7 +416,9 @@ class ProfileBadge {
       name: 'Centenario Activo',
       description: 'Has completado hábitos 100 veces en total.',
       emoji: '🏅',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.emoji_events,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.platinum,
       backgroundColors: [Color(0xFFF48FB1), Color(0xFFAD1457)],
       unlockCriteria: '100 completados en total.',
     ),
@@ -385,7 +427,9 @@ class ProfileBadge {
       name: 'Maestro Rutinario',
       description: 'Has completado hábitos 500 veces en total.',
       emoji: '🏆',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.star_border_purple500,
+      shape: BadgeShape.diamond,
+      tier: BadgeTier.diamond,
       backgroundColors: [Color(0xFFFFD54F), Color(0xFFF57C00)],
       unlockCriteria: '500 completados en total.',
     ),
@@ -394,7 +438,9 @@ class ProfileBadge {
       name: 'Dios del Hábito',
       description: '¡1000 registros completados! Eres el modelo a seguir.',
       emoji: '☯️',
-      imagePath: 'assets/images/badge_completions.png',
+      iconData: Icons.military_tech_outlined,
+      shape: BadgeShape.shield,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFF37474F), Color(0xFF212121)],
       unlockCriteria: '1000 completados en total.',
     ),
@@ -405,7 +451,9 @@ class ProfileBadge {
       name: 'Primer Post',
       description: 'Has compartido tu primera publicación con tu comunidad.',
       emoji: '📷',
-      imagePath: 'assets/images/badge_posts.png',
+      iconData: Icons.add_photo_alternate_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFF90CAF9), Color(0xFF1565C0)],
       unlockCriteria: '1 publicación.',
     ),
@@ -414,7 +462,9 @@ class ProfileBadge {
       name: 'Creador Activo',
       description: 'Has subido 5 publicaciones compartiendo tu día a día.',
       emoji: '🎨',
-      imagePath: 'assets/images/badge_posts.png',
+      iconData: Icons.palette_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFFB39DDB), Color(0xFF4527A0)],
       unlockCriteria: '5 publicaciones.',
     ),
@@ -423,7 +473,9 @@ class ProfileBadge {
       name: 'Diario de Progreso',
       description: 'Has subido 15 publicaciones para registrar tu camino.',
       emoji: '🎙️',
-      imagePath: 'assets/images/badge_posts.png',
+      iconData: Icons.record_voice_over,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFF80DEEA), Color(0xFF00796B)],
       unlockCriteria: '15 publicaciones.',
     ),
@@ -432,7 +484,9 @@ class ProfileBadge {
       name: 'Foco Inspirador',
       description: 'Has subido 30 publicaciones. Tu disciplina inspira a otros.',
       emoji: '🌟',
-      imagePath: 'assets/images/badge_posts.png',
+      iconData: Icons.star_purple500_sharp,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.platinum,
       backgroundColors: [Color(0xFFCE93D8), Color(0xFFD81B60)],
       unlockCriteria: '30 publicaciones.',
     ),
@@ -441,7 +495,9 @@ class ProfileBadge {
       name: 'Voz de Streaks',
       description: '50 publicaciones compartidas. Eres un pilar de la comunidad.',
       emoji: '📢',
-      imagePath: 'assets/images/badge_posts.png',
+      iconData: Icons.campaign_outlined,
+      shape: BadgeShape.shield,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFFEF9A9A), Color(0xFFB71C1C)],
       unlockCriteria: '50 publicaciones.',
     ),
@@ -452,7 +508,9 @@ class ProfileBadge {
       name: 'Primer Seguidor',
       description: 'Alguien ha comenzado a seguir tu progreso.',
       emoji: '👋',
-      imagePath: 'assets/images/badge_followers.png',
+      iconData: Icons.person_add_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFFF48FB1), Color(0xFFC2185B)],
       unlockCriteria: '1 seguidor.',
     ),
@@ -461,7 +519,9 @@ class ProfileBadge {
       name: 'Pequeño Círculo',
       description: 'Tienes a 5 personas siguiendo tus hábitos diarios.',
       emoji: '👥',
-      imagePath: 'assets/images/badge_followers.png',
+      iconData: Icons.people_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFF9FA8DA), Color(0xFF283593)],
       unlockCriteria: '5 seguidores.',
     ),
@@ -470,7 +530,9 @@ class ProfileBadge {
       name: 'Líder de Rachas',
       description: 'Tienes una comunidad de 15 seguidores.',
       emoji: '📣',
-      imagePath: 'assets/images/badge_followers.png',
+      iconData: Icons.groups_outlined,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFF80DEEA), Color(0xFF00695C)],
       unlockCriteria: '15 seguidores.',
     ),
@@ -479,7 +541,9 @@ class ProfileBadge {
       name: 'Guía de Hábitos',
       description: '30 seguidores atentos a tu constancia diaria.',
       emoji: '🔮',
-      imagePath: 'assets/images/badge_followers.png',
+      iconData: Icons.diversity_3_outlined,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.platinum,
       backgroundColors: [Color(0xFFB39DDB), Color(0xFF5E35B1)],
       unlockCriteria: '30 seguidores.',
     ),
@@ -488,7 +552,9 @@ class ProfileBadge {
       name: 'Referente Social',
       description: '¡50 seguidores! Tu constancia mueve montañas.',
       emoji: '👑',
-      imagePath: 'assets/images/badge_followers.png',
+      iconData: Icons.auto_awesome,
+      shape: BadgeShape.shield,
+      tier: BadgeTier.cosmic,
       backgroundColors: [Color(0xFFFFD54F), Color(0xFFC2185B)],
       unlockCriteria: '50 seguidores.',
     ),
@@ -499,7 +565,9 @@ class ProfileBadge {
       name: 'Explorador',
       description: 'Has comenzado a seguir a otro usuario en Streaks.',
       emoji: '🧭',
-      imagePath: 'assets/images/badge_following.png',
+      iconData: Icons.explore_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFFB0BEC5), Color(0xFF37474F)],
       unlockCriteria: 'Sigue a 1 usuario.',
     ),
@@ -508,7 +576,9 @@ class ProfileBadge {
       name: 'Compañero de Ruta',
       description: 'Sigues a 5 personas para apoyarlas en su constancia.',
       emoji: '🤝',
-      imagePath: 'assets/images/badge_following.png',
+      iconData: Icons.handshake_outlined,
+      shape: BadgeShape.circle,
+      tier: BadgeTier.silver,
       backgroundColors: [Color(0xFFA5D6A7), Color(0xFF2E7D32)],
       unlockCriteria: 'Sigue a 5 usuarios.',
     ),
@@ -517,7 +587,9 @@ class ProfileBadge {
       name: 'Red de Inspiración',
       description: 'Sigues a 15 compañeros. ¡Gran sentido de comunidad!',
       emoji: '🕸️',
-      imagePath: 'assets/images/badge_following.png',
+      iconData: Icons.hub_outlined,
+      shape: BadgeShape.hexagon,
+      tier: BadgeTier.gold,
       backgroundColors: [Color(0xFFFFCC80), Color(0xFF6A1B9A)],
       unlockCriteria: 'Sigue a 15 usuarios.',
     ),
@@ -525,5 +597,229 @@ class ProfileBadge {
 
   static ProfileBadge getById(String id) {
     return allBadges.firstWhere((b) => b.id == id, orElse: () => allBadges.first);
+  }
+}
+
+class BadgePainter extends CustomPainter {
+  final BadgeShape shape;
+  final BadgeTier tier;
+  final List<Color> gradientColors;
+  final bool isUnlocked;
+
+  BadgePainter({
+    required this.shape,
+    required this.tier,
+    required this.gradientColors,
+    required this.isUnlocked,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final path = Path();
+
+    // Define the custom shape path based on the shape property
+    switch (shape) {
+      case BadgeShape.circle:
+        path.addOval(Rect.fromLTWH(0, 0, w, h));
+        break;
+      case BadgeShape.hexagon:
+        path.moveTo(w * 0.5, 0);
+        path.lineTo(w, h * 0.25);
+        path.lineTo(w, h * 0.75);
+        path.lineTo(w * 0.5, h);
+        path.lineTo(0, h * 0.75);
+        path.lineTo(0, h * 0.25);
+        path.close();
+        break;
+      case BadgeShape.shield:
+        path.moveTo(w * 0.5, 0);
+        path.quadraticBezierTo(w * 0.78, h * 0.04, w, h * 0.1);
+        path.quadraticBezierTo(w * 0.96, h * 0.62, w * 0.5, h);
+        path.quadraticBezierTo(w * 0.04, h * 0.62, 0, h * 0.1);
+        path.quadraticBezierTo(w * 0.22, h * 0.04, w * 0.5, 0);
+        path.close();
+        break;
+      case BadgeShape.diamond:
+        path.moveTo(w * 0.5, 0);
+        path.lineTo(w, h * 0.5);
+        path.lineTo(w * 0.5, h);
+        path.lineTo(0, h * 0.5);
+        path.close();
+        break;
+      case BadgeShape.star:
+        final cx = w / 2;
+        final cy = h / 2;
+        final rOuter = w / 2;
+        final rInner = w / 3.4;
+        for (int i = 0; i < 16; i++) {
+          final angle = i * (math.pi / 8);
+          final r = i % 2 == 0 ? rOuter : rInner;
+          final x = cx + r * math.cos(angle);
+          final y = cy + r * math.sin(angle);
+          if (i == 0) {
+            path.moveTo(x, y);
+          } else {
+            path.lineTo(x, y);
+          }
+        }
+        path.close();
+        break;
+    }
+
+    // Glow effect (Outer Aura)
+    if (isUnlocked) {
+      final paintGlow = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 6.0
+        ..color = gradientColors.first.withOpacity(0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4.0);
+      canvas.drawPath(path, paintGlow);
+    }
+
+    // Inner Glassmorphic Fill
+    final paintFill = Paint()
+      ..style = PaintingStyle.fill
+      ..color = isUnlocked 
+          ? Colors.black.withOpacity(0.4) 
+          : Colors.white.withOpacity(0.04);
+    canvas.drawPath(path, paintFill);
+
+    // Gradient Stroke Border
+    final paintBorder = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.0
+      ..shader = LinearGradient(
+        colors: isUnlocked 
+            ? gradientColors 
+            : [Colors.white24, Colors.white10],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(Rect.fromLTWH(0, 0, w, h));
+    canvas.drawPath(path, paintBorder);
+
+    // Cosmic shine highlights
+    if (isUnlocked && tier == BadgeTier.cosmic) {
+      final paintShine = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.0
+        ..color = Colors.white.withOpacity(0.5);
+      
+      canvas.drawCircle(Offset(w * 0.25, h * 0.25), 2, paintShine);
+      canvas.drawCircle(Offset(w * 0.75, h * 0.3), 1, paintShine);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class ProfileBadgeWidget extends StatelessWidget {
+  final ProfileBadge badge;
+  final double size;
+  final bool isUnlocked;
+
+  const ProfileBadgeWidget({
+    Key? key,
+    required this.badge,
+    required this.size,
+    this.isUnlocked = true,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: size,
+      height: size,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Background CustomPaint
+          CustomPaint(
+            size: Size(size, size),
+            painter: BadgePainter(
+              shape: badge.shape,
+              tier: badge.tier,
+              gradientColors: badge.backgroundColors,
+              isUnlocked: isUnlocked,
+            ),
+          ),
+          
+          // Center Icon
+          Positioned(
+            child: isUnlocked
+                ? ShaderMask(
+                    shaderCallback: (bounds) => LinearGradient(
+                      colors: badge.backgroundColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ).createShader(bounds),
+                    child: Icon(
+                      badge.iconData,
+                      size: size * 0.42,
+                      color: Colors.white,
+                    ),
+                  )
+                : Icon(
+                    badge.iconData,
+                    size: size * 0.42,
+                    color: Colors.white12,
+                  ),
+          ),
+          
+          // Bottom Stars representing tier
+          Positioned(
+            bottom: size * 0.08,
+            child: _buildStars(context),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStars(BuildContext context) {
+    int starCount = 0;
+    Color starColor = Colors.grey;
+    
+    switch (badge.tier) {
+      case BadgeTier.bronze:
+        starCount = 1;
+        starColor = const Color(0xFFCD7F32);
+        break;
+      case BadgeTier.silver:
+        starCount = 2;
+        starColor = const Color(0xFFC0C0C0);
+        break;
+      case BadgeTier.gold:
+        starCount = 3;
+        starColor = const Color(0xFFFFD700);
+        break;
+      case BadgeTier.platinum:
+        starCount = 4;
+        starColor = const Color(0xFFE5E4E2);
+        break;
+      case BadgeTier.diamond:
+        starCount = 5;
+        starColor = const Color(0xFFB9F2FF);
+        break;
+      case BadgeTier.cosmic:
+        starCount = 5;
+        starColor = const Color(0xFFE040FB);
+        break;
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(
+        starCount,
+        (i) => Icon(
+          Icons.star,
+          size: size * 0.12,
+          color: isUnlocked ? starColor : Colors.white12,
+        ),
+      ),
+    );
   }
 }
