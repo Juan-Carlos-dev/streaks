@@ -180,9 +180,9 @@ class _ProfileBody extends StatelessWidget {
         String selectedFrameId = user?.activeFrame ?? 'none';
         
         return DraggableScrollableSheet(
-          initialChildSize: 0.75,
+          initialChildSize: 0.7,
           minChildSize: 0.5,
-          maxChildSize: 0.9,
+          maxChildSize: 0.85,
           expand: false,
           builder: (context, scrollController) {
             return StatefulBuilder(
@@ -607,9 +607,9 @@ class _ProfileBody extends StatelessWidget {
         List<String> tempShowcase = List<String>.from(user?.showcaseBadges ?? []);
         
         return DraggableScrollableSheet(
-          initialChildSize: 0.8,
+          initialChildSize: 0.7,
           minChildSize: 0.5,
-          maxChildSize: 0.95,
+          maxChildSize: 0.85,
           expand: false,
           builder: (context, scrollController) {
             return StatefulBuilder(
