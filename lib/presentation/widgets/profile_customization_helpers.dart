@@ -255,6 +255,7 @@ class ProfileBadge {
       tier: BadgeTier.silver,
       backgroundColors: [Color(0xFF4DB6AC), Color(0xFF00796B)],
       unlockCriteria: '3 hábitos activos.',
+      imagePath: 'assets/images/badge_trilogia.png',
     ),
     ProfileBadge(
       id: 'habits_5',
