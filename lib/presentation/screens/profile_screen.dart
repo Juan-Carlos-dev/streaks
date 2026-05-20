@@ -5,6 +5,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/image_preview_popup.dart';
 import '../widgets/follow_list_modal.dart';
 import '../widgets/banner_emoji_decoration.dart';
+import '../widgets/profile_customization_helpers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
@@ -104,6 +105,775 @@ class _ProfileBody extends StatelessWidget {
   }
 }
 
+  void _showAvatarOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[950],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800],
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Personalizar Avatar',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const Icon(Icons.photo_camera_outlined, color: Colors.white),
+                title: const Text(
+                  'Cambiar foto de perfil',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _changeProfilePhoto(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.blur_circular_outlined, color: Colors.white),
+                title: const Text(
+                  'Elegir marco de avatar',
+                  style: TextStyle(color: Colors.white),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showFrameSelector(context);
+                },
+              ),
+              const SizedBox(height: 16),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showFrameSelector(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[950],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        String selectedFrameId = user?.activeFrame ?? 'none';
+        
+        return DraggableScrollableSheet(
+          initialChildSize: 0.75,
+          minChildSize: 0.5,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                final habits = habitsAsync.value ?? [];
+                
+                return Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Marcos de Avatar',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    // Interactive preview section
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Column(
+                        children: [
+                          _Avatar(
+                            user: user?.copyWith(activeFrame: selectedFrameId),
+                            radius: 48,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            AvatarFrame.getById(selectedFrameId).name,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            AvatarFrame.getById(selectedFrameId).id == 'none'
+                                ? 'Sin marco seleccionado.'
+                                : AvatarFrame.getById(selectedFrameId).description,
+                            style: const TextStyle(
+                              color: Colors.white60,
+                              fontSize: 12,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: ListView.builder(
+                        controller: scrollController,
+                        itemCount: AvatarFrame.allFrames.length,
+                        itemBuilder: (context, index) {
+                          final frame = AvatarFrame.allFrames[index];
+                          final isSelected = selectedFrameId == frame.id;
+                          final isUnlocked = frame.isUnlocked(user!, habits);
+                          
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: isSelected ? Colors.white.withOpacity(0.08) : Colors.transparent,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: isSelected ? AppColors.primary : Colors.white10,
+                                width: isSelected ? 1.5 : 1.0,
+                              ),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                              leading: Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    if (isUnlocked && frame.glowColor != Colors.transparent)
+                                      BoxShadow(
+                                        color: frame.glowColor,
+                                        blurRadius: 6,
+                                        spreadRadius: 1,
+                                      ),
+                                  ],
+                                  gradient: LinearGradient(
+                                    colors: isUnlocked 
+                                        ? frame.gradientColors 
+                                        : [Colors.grey[800]!, Colors.grey[700]!],
+                                  ),
+                                ),
+                                padding: EdgeInsets.all(frame.borderWidth * 0.7),
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.black,
+                                  ),
+                                  child: Center(
+                                    child: isUnlocked 
+                                        ? (isSelected ? const Icon(Icons.check, color: Colors.white, size: 16) : null)
+                                        : const Icon(Icons.lock_outline, color: Colors.white60, size: 16),
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                frame.name,
+                                style: TextStyle(
+                                  color: isUnlocked ? Colors.white : Colors.white38,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    isUnlocked ? frame.description : 'Requisito: ${frame.unlockCriteria}',
+                                    style: TextStyle(
+                                      color: isUnlocked ? Colors.grey[400] : Colors.amber[700],
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onTap: isUnlocked
+                                  ? () => setState(() => selectedFrameId = frame.id)
+                                  : null,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Action button at bottom
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: selectedFrameId == user?.activeFrame
+                              ? null
+                              : () {
+                                  Navigator.pop(context);
+                                  _updateActiveFrame(context, selectedFrameId);
+                                },
+                          child: const Text(
+                            'Equipar Marco',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _updateActiveFrame(BuildContext context, String frameId) async {
+    final authUid = ref.read(authStateProvider).value;
+    if (authUid == null) return;
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(authUid)
+          .update({'activeFrame': frameId});
+      
+      ref.invalidate(currentUserProvider);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Marco equipado con éxito!')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al equipar el marco: $e')),
+        );
+      }
+    }
+  }
+
+  Widget _buildBadgesShowcase(BuildContext context) {
+    final showcase = user?.showcaseBadges ?? [];
+    
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'Vitrina de Insignias',
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontSize: 13,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 0.8,
+                ),
+              ),
+              if (isOwnProfile)
+                GestureDetector(
+                  onTap: () => _showBadgeShowcaseEditor(context),
+                  child: const Text(
+                    'Editar',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: List.generate(3, (index) {
+              final hasBadge = index < showcase.length;
+              if (hasBadge) {
+                final badgeId = showcase[index];
+                final badge = ProfileBadge.getById(badgeId);
+                
+                return GestureDetector(
+                  onTap: () => _showBadgeDetails(context, badge),
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: badge.backgroundColors,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: badge.backgroundColors.first.withOpacity(0.4),
+                          blurRadius: 8,
+                          spreadRadius: 1,
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Text(
+                        badge.emoji,
+                        style: const TextStyle(fontSize: 26),
+                      ),
+                    ),
+                  ),
+                );
+              } else {
+                return GestureDetector(
+                  onTap: isOwnProfile ? () => _showBadgeShowcaseEditor(context) : null,
+                  child: Container(
+                    margin: const EdgeInsets.only(right: 12),
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: isOwnProfile ? Colors.white24 : Colors.white10,
+                        width: 1.5,
+                        style: BorderStyle.solid,
+                      ),
+                      color: Colors.white.withOpacity(0.02),
+                    ),
+                    child: Center(
+                      child: Icon(
+                        isOwnProfile ? Icons.add : Icons.remove,
+                        color: isOwnProfile ? Colors.white30 : Colors.white10,
+                        size: 20,
+                      ),
+                    ),
+                  ),
+                );
+              }
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBadgeDetails(BuildContext context, ProfileBadge badge) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[950],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: badge.backgroundColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: badge.backgroundColors.first.withOpacity(0.4),
+                        blurRadius: 12,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Text(
+                      badge.emoji,
+                      style: const TextStyle(fontSize: 36),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  badge.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  badge.description,
+                  style: const TextStyle(
+                    color: Colors.white70,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 20),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.green.withOpacity(0.2)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        '¡Logro conseguido!',
+                        style: TextStyle(
+                          color: Colors.green[400],
+                          fontWeight: FontWeight.bold,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showBadgeShowcaseEditor(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey[950],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        List<String> tempShowcase = List<String>.from(user?.showcaseBadges ?? []);
+        
+        return DraggableScrollableSheet(
+          initialChildSize: 0.8,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return StatefulBuilder(
+              builder: (context, setState) {
+                final habits = habitsAsync.value ?? [];
+                
+                return Column(
+                  children: [
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Editar Vitrina de Insignias',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Elige hasta 3 insignias para lucir en tu perfil (${tempShowcase.length}/3)',
+                      style: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 13,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Selected badges preview row
+                    Container(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      margin: const EdgeInsets.symmetric(horizontal: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.03),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.white10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: List.generate(3, (index) {
+                          final hasBadge = index < tempShowcase.length;
+                          if (hasBadge) {
+                            final badge = ProfileBadge.getById(tempShowcase[index]);
+                            return Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 8),
+                                  width: 50,
+                                  height: 50,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    gradient: LinearGradient(colors: badge.backgroundColors),
+                                  ),
+                                  child: Center(
+                                    child: Text(badge.emoji, style: const TextStyle(fontSize: 22)),
+                                  ),
+                                ),
+                                Positioned(
+                                  top: -4,
+                                  right: 4,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      setState(() {
+                                        tempShowcase.removeAt(index);
+                                      });
+                                    },
+                                    child: Container(
+                                      decoration: const BoxDecoration(
+                                        color: Colors.red,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      padding: const EdgeInsets.all(2),
+                                      child: const Icon(Icons.close, color: Colors.white, size: 12),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            );
+                          } else {
+                            return Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 8),
+                              width: 50,
+                              height: 50,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.white12, width: 1.5),
+                              ),
+                              child: const Center(
+                                child: Icon(Icons.add, color: Colors.white12, size: 18),
+                              ),
+                            );
+                          }
+                        }),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Expanded(
+                      child: GridView.builder(
+                        controller: scrollController,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 0.95,
+                        ),
+                        itemCount: ProfileBadge.allBadges.length,
+                        itemBuilder: (context, index) {
+                          final badge = ProfileBadge.allBadges[index];
+                          final isUnlocked = badge.isUnlocked(user!, habits);
+                          final isSelected = tempShowcase.contains(badge.id);
+                          
+                          return GestureDetector(
+                            onTap: isUnlocked
+                                ? () {
+                                    setState(() {
+                                      if (isSelected) {
+                                        tempShowcase.remove(badge.id);
+                                      } else {
+                                        if (tempShowcase.length < 3) {
+                                          tempShowcase.add(badge.id);
+                                        } else {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            const SnackBar(
+                                              content: Text('Solo puedes destacar hasta 3 insignias'),
+                                              duration: Duration(seconds: 2),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    });
+                                  }
+                                : null,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected 
+                                    ? badge.backgroundColors.first.withOpacity(0.12)
+                                    : Colors.white.withOpacity(0.02),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: isSelected 
+                                      ? badge.backgroundColors.first 
+                                      : Colors.white10,
+                                  width: isSelected ? 2.0 : 1.0,
+                                ),
+                              ),
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Opacity(
+                                    opacity: isUnlocked ? 1.0 : 0.35,
+                                    child: Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: isUnlocked 
+                                            ? LinearGradient(colors: badge.backgroundColors)
+                                            : null,
+                                        color: isUnlocked ? null : Colors.grey[900],
+                                      ),
+                                      child: Center(
+                                        child: isUnlocked 
+                                            ? Text(badge.emoji, style: const TextStyle(fontSize: 22))
+                                            : const Icon(Icons.lock_outline, color: Colors.white24),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    badge.name,
+                                    style: TextStyle(
+                                      color: isUnlocked ? Colors.white : Colors.white38,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Expanded(
+                                    child: Text(
+                                      isUnlocked ? badge.description : 'Requisito: ${badge.unlockCriteria}',
+                                      style: TextStyle(
+                                        color: isUnlocked ? Colors.grey[400] : Colors.amber[700],
+                                        fontSize: 10,
+                                      ),
+                                      textAlign: TextAlign.center,
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    // Action button at bottom
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 48,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            _updateShowcaseBadges(context, tempShowcase);
+                          },
+                          child: const Text(
+                            'Guardar Vitrina',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Future<void> _updateShowcaseBadges(BuildContext context, List<String> showcase) async {
+    final authUid = ref.read(authStateProvider).value;
+    if (authUid == null) return;
+    try {
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(authUid)
+          .update({'showcaseBadges': showcase});
+      
+      ref.invalidate(currentUserProvider);
+      
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Vitrina de insignias actualizada!')),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al actualizar vitrina: $e')),
+        );
+      }
+    }
+  }
+
   _ProfileBody({
     required this.user,
     required this.habitsAsync,
@@ -187,7 +957,7 @@ class _ProfileBody extends StatelessWidget {
                   top: avatarTop - 10,
                   left: 24,
                   child: GestureDetector(
-                    onTap: () => _changeProfilePhoto(context),
+                    onTap: () => isOwnProfile ? _showAvatarOptions(context) : null,
                     child: Stack(
                       children: [
                         _Avatar(user: user, radius: avatarRadius),
@@ -256,6 +1026,9 @@ class _ProfileBody extends StatelessWidget {
                 style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4),
               ),
             ),
+
+          // ── Vitrina de Insignias ───────────────────────────────────────
+          _buildBadgesShowcase(context),
 
           // ── Action buttons: Seguir + Enviar mensaje ───────────────────
           if (!isOwnProfile)
@@ -4029,35 +4802,72 @@ class _Avatar extends StatelessWidget {
         ? user!.username[0].toUpperCase()
         : 'U';
 
+    final frame = AvatarFrame.getById(user?.activeFrame ?? 'none');
+    final hasFrame = frame.id != 'none';
+
+    Widget avatarWidget = photoUrl.isNotEmpty
+        ? CachedNetworkImage(
+            imageUrl: ImageUtils.wrapProxy(photoUrl),
+            fit: BoxFit.cover,
+            width: radius * 2,
+            height: radius * 2,
+          )
+        : Container(
+            color: AppColors.primary,
+            child: Center(
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: radius * 0.7,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+
+    if (!hasFrame) {
+      return Container(
+        width: radius * 2,
+        height: radius * 2,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey[300],
+          border: Border.all(color: Colors.black, width: 3),
+        ),
+        child: ClipOval(child: avatarWidget),
+      );
+    }
+
     return Container(
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.grey[300],
-        border: Border.all(color: Colors.black, width: 3),
+        boxShadow: [
+          if (frame.glowColor != Colors.transparent)
+            BoxShadow(
+              color: frame.glowColor,
+              blurRadius: 10,
+              spreadRadius: 1.5,
+            ),
+        ],
+        gradient: LinearGradient(
+          colors: frame.gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      child: ClipOval(
-        child: photoUrl.isNotEmpty
-            ? CachedNetworkImage(
-                imageUrl: ImageUtils.wrapProxy(photoUrl),
-                fit: BoxFit.cover,
-                width: radius * 2,
-                height: radius * 2,
-              )
-            : Container(
-                color: AppColors.primary,
-                child: Center(
-                  child: Text(
-                    initial,
-                    style: TextStyle(
-                      fontSize: radius * 0.7,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+      padding: EdgeInsets.all(frame.borderWidth),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black,
+        ),
+        padding: const EdgeInsets.all(1.5),
+        child: ClipOval(
+          child: avatarWidget,
+        ),
       ),
     );
   }

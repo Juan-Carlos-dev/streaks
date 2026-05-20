@@ -23,6 +23,8 @@ class User {
   final double bannerEmojiOpacity;
   final String bannerEmojiSeed;
   final double bannerEmojiSpacing;
+  final String activeFrame;
+  final List<String> showcaseBadges;
 
   const User({
     required this.uid,
@@ -53,6 +55,8 @@ class User {
     this.bannerEmojiOpacity = 0.20,
     this.bannerEmojiSeed = '',
     this.bannerEmojiSpacing = 1.0,
+    this.activeFrame = 'none',
+    this.showcaseBadges = const [],
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -100,6 +104,8 @@ class User {
       bannerEmojiSpacing: (data['bannerEmojiSpacing'] ?? 1.0) is int
           ? (data['bannerEmojiSpacing'] as int).toDouble()
           : (data['bannerEmojiSpacing'] ?? 1.0) as double,
+      activeFrame: data['activeFrame'] ?? 'none',
+      showcaseBadges: List<String>.from(data['showcaseBadges'] ?? []),
     );
   }
 
@@ -127,6 +133,8 @@ class User {
       'bannerEmojiOpacity': bannerEmojiOpacity,
       'bannerEmojiSeed': bannerEmojiSeed,
       'bannerEmojiSpacing': bannerEmojiSpacing,
+      'activeFrame': activeFrame,
+      'showcaseBadges': showcaseBadges,
     };
   }
 
@@ -153,6 +161,8 @@ class User {
     double? bannerEmojiOpacity,
     String? bannerEmojiSeed,
     double? bannerEmojiSpacing,
+    String? activeFrame,
+    List<String>? showcaseBadges,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -177,6 +187,8 @@ class User {
       bannerEmojiOpacity: bannerEmojiOpacity ?? this.bannerEmojiOpacity,
       bannerEmojiSeed: bannerEmojiSeed ?? this.bannerEmojiSeed,
       bannerEmojiSpacing: bannerEmojiSpacing ?? this.bannerEmojiSpacing,
+      activeFrame: activeFrame ?? this.activeFrame,
+      showcaseBadges: showcaseBadges ?? this.showcaseBadges,
     );
   }
 }
