@@ -189,7 +189,9 @@ class _ProfileBody extends StatelessWidget {
               builder: (context, setState) {
                 final habits = habitsAsync.value ?? [];
                 
-                return Column(
+                return SafeArea(
+                  bottom: false,
+                  child: Column(
                   children: [
                     const SizedBox(height: 12),
                     Container(
@@ -362,7 +364,7 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ),
                   ],
-                );
+                ));
               },
             );
           },
@@ -614,7 +616,9 @@ class _ProfileBody extends StatelessWidget {
               builder: (context, setState) {
                 final habits = habitsAsync.value ?? [];
                 
-                return Column(
+                return SafeArea(
+                  bottom: false,
+                  child: Column(
                   children: [
                     const SizedBox(height: 12),
                     Container(
@@ -844,7 +848,7 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ),
                   ],
-                );
+                ));
               },
             );
           },
