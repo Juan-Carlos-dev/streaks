@@ -12,6 +12,7 @@ import '../providers/auth_providers.dart';
 import '../providers/feed_providers.dart';
 import '../../core/utils/image_utils.dart';
 import '../providers/follow_providers.dart';
+import '../widgets/profile_customization_helpers.dart';
 
 class UserProfileScreen extends ConsumerWidget {
   final String userId;
@@ -250,6 +251,9 @@ class _UserProfileBody extends StatelessWidget {
                   style: const TextStyle(color: Colors.white70, fontSize: 14, height: 1.4)),
             ),
 
+          // ── Vitrina de Insignias ──────────────────────────────────────
+          _buildBadgesShowcase(context),
+
           if (!isOwnProfile)
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -319,6 +323,97 @@ class _UserProfileBody extends StatelessWidget {
           const SizedBox(height: 100),
         ],
       ),
+    );
+  }
+
+
+  Widget _buildBadgesShowcase(BuildContext context) {
+    final showcase = user?.showcaseBadges ?? [];
+    if (showcase.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Vitrina de Insignias',
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 13,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 0.8,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: showcase.map((badgeId) {
+              final badge = ProfileBadge.getById(badgeId);
+              return GestureDetector(
+                onTap: () => _showBadgeDetails(context, badge),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 12),
+                  child: ProfileBadgeWidget(
+                    badge: badge,
+                    size: 56,
+                    isUnlocked: true,
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showBadgeDetails(BuildContext context, ProfileBadge badge) {
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: Colors.grey[950],
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ProfileBadgeWidget(
+                  badge: badge,
+                  size: 72,
+                  isUnlocked: true,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  badge.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  badge.description,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  badge.unlockCriteria,
+                  style: TextStyle(color: Colors.white.withOpacity(0.45), fontSize: 12),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }
