@@ -27,6 +27,8 @@ final totalUnreadProvider = Provider<int>((ref) {
 
 final messagesProvider =
     StreamProvider.family<List<Message>, String>((ref, convId) {
+  final uid = ref.watch(authStateProvider).value;
+  if (uid == null) return Stream.value([]);
   return ref.watch(messageRepositoryProvider).getMessages(convId);
 });
 
