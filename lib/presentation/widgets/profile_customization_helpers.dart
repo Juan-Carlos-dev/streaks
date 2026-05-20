@@ -132,95 +132,360 @@ class ProfileBadge {
 
   bool isUnlocked(User user, List<Habit> habits) {
     switch (id) {
+      // Habits count:
+      case 'habits_1':
+        return habits.length >= 1;
+      case 'habits_3':
+        return habits.length >= 3;
+      case 'habits_5':
+        return habits.length >= 5;
+      case 'habits_8':
+        return habits.length >= 8;
+      case 'habits_12':
+        return habits.length >= 12;
+      case 'habits_20':
+        return habits.length >= 20;
+
+      // Streaks:
+      case 'streak_3':
+        return user.stats.currentGlobalStreak >= 3;
       case 'streak_7':
         return user.stats.currentGlobalStreak >= 7;
+      case 'streak_15':
+        return user.stats.currentGlobalStreak >= 15;
       case 'streak_30':
         return user.stats.currentGlobalStreak >= 30;
-      case 'post_master':
-        return user.stats.postsCount >= 10;
-      case 'social_star':
+      case 'streak_60':
+        return user.stats.currentGlobalStreak >= 60;
+      case 'streak_100':
+        return user.stats.currentGlobalStreak >= 100;
+      case 'streak_365':
+        return user.stats.currentGlobalStreak >= 365;
+
+      // Completions:
+      case 'comp_1':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 1;
+      case 'comp_10':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 10;
+      case 'comp_50':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 50;
+      case 'comp_100':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 100;
+      case 'comp_500':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 500;
+      case 'comp_1000':
+        final total = habits.fold<int>(0, (sum, h) => sum + h.completedDates.length);
+        return total >= 1000;
+
+      // Posts:
+      case 'posts_1':
+        return user.stats.postsCount >= 1;
+      case 'posts_5':
+        return user.stats.postsCount >= 5;
+      case 'posts_15':
+        return user.stats.postsCount >= 15;
+      case 'posts_30':
+        return user.stats.postsCount >= 30;
+      case 'posts_50':
+        return user.stats.postsCount >= 50;
+
+      // Followers:
+      case 'followers_1':
+        return user.stats.followersCount >= 1;
+      case 'followers_5':
         return user.stats.followersCount >= 5;
-      case 'gym_rat':
-        final keywords = ['gym', 'gimnasio', 'entrenar', 'ejercicio', 'pesas', 'pesa', 'workout', 'correr', 'running', 'deporte', 'fitness', 'swimming', 'bici', 'ciclismo'];
-        return habits.any((h) => keywords.any((kw) => h.title.toLowerCase().contains(kw)));
-      case 'mindfulness':
-        final keywords = ['yoga', 'meditar', 'meditacion', 'mindfulness', 'respirar', 'relax', 'estiramientos', 'estirar', 'dormir', 'sleep'];
-        return habits.any((h) => keywords.any((kw) => h.title.toLowerCase().contains(kw)));
-      case 'nerd':
-        final keywords = ['estudiar', 'leer', 'libro', 'programar', 'code', 'coding', 'python', 'javascript', 'developer', 'aprender', 'tfg', 'ingles', 'idiomas', 'math'];
-        return habits.any((h) => keywords.any((kw) => h.title.toLowerCase().contains(kw)));
-      case 'water_champion':
-        final keywords = ['agua', 'water', 'nutricion', 'dieta', 'healthy', 'comer', 'comida', 'saludable', 'fruta', 'verdura'];
-        return habits.any((h) => keywords.any((kw) => h.title.toLowerCase().contains(kw)));
+      case 'followers_15':
+        return user.stats.followersCount >= 15;
+      case 'followers_30':
+        return user.stats.followersCount >= 30;
+      case 'followers_50':
+        return user.stats.followersCount >= 50;
+
+      // Following:
+      case 'following_1':
+        return user.stats.followingCount >= 1;
+      case 'following_5':
+        return user.stats.followingCount >= 5;
+      case 'following_15':
+        return user.stats.followingCount >= 15;
+
       default:
         return false;
     }
   }
 
   static const List<ProfileBadge> allBadges = [
+    // Habits active:
+    ProfileBadge(
+      id: 'habits_1',
+      name: 'Primer Paso',
+      description: 'Has creado tu primer hábito en la aplicación.',
+      emoji: '🌱',
+      backgroundColors: [Color(0xFF81C784), Color(0xFF009688)],
+      unlockCriteria: '1 hábito activo.',
+    ),
+    ProfileBadge(
+      id: 'habits_3',
+      name: 'Trilogía',
+      description: 'Gestionas 3 hábitos activos al mismo tiempo.',
+      emoji: '☘️',
+      backgroundColors: [Color(0xFF4DB6AC), Color(0xFF00796B)],
+      unlockCriteria: '3 hábitos activos.',
+    ),
+    ProfileBadge(
+      id: 'habits_5',
+      name: 'Malabarista',
+      description: 'Mantienes 5 hábitos activos de forma simultánea.',
+      emoji: '⚡',
+      backgroundColors: [Color(0xFF64B5F6), Color(0xFF3F51B5)],
+      unlockCriteria: '5 hábitos activos.',
+    ),
+    ProfileBadge(
+      id: 'habits_8',
+      name: 'Alta Productividad',
+      description: 'Estás gestionando 8 hábitos activos a la vez.',
+      emoji: '📈',
+      backgroundColors: [Color(0xFF5C6BC0), Color(0xFF1A237E)],
+      unlockCriteria: '8 hábitos activos.',
+    ),
+    ProfileBadge(
+      id: 'habits_12',
+      name: 'Máxima Eficiencia',
+      description: '12 hábitos activos simultáneamente. ¡Disciplina inquebrantable!',
+      emoji: '🚀',
+      backgroundColors: [Color(0xFFFF8A65), Color(0xFFD84315)],
+      unlockCriteria: '12 hábitos activos.',
+    ),
+    ProfileBadge(
+      id: 'habits_20',
+      name: 'Señor de la Rutina',
+      description: '20 hábitos activos. Has alcanzado la maestría de la constancia.',
+      emoji: '🌌',
+      backgroundColors: [Color(0xFF424242), Color(0xFF212121)],
+      unlockCriteria: '20 hábitos activos.',
+    ),
+
+    // Streaks:
+    ProfileBadge(
+      id: 'streak_3',
+      name: 'Primeras Chispas',
+      description: 'Has conseguido mantener una racha global de 3 días.',
+      emoji: '✨',
+      backgroundColors: [Color(0xFFFFF176), Color(0xFFF57F17)],
+      unlockCriteria: 'Racha global de 3 días.',
+    ),
     ProfileBadge(
       id: 'streak_7',
-      name: 'Racha Semanal',
-      description: 'Has conseguido mantener una racha global de 7 días seguidos.',
-      emoji: '⚡',
-      backgroundColors: [Color(0xFFFF9800), Color(0xFFFF5722)],
-      unlockCriteria: 'Alcanza una racha global de 7 días.',
+      name: 'Constancia Semanal',
+      description: '7 días consecutivos manteniendo tus hábitos activos.',
+      emoji: '🔥',
+      backgroundColors: [Color(0xFFFFB74D), Color(0xFFE65100)],
+      unlockCriteria: 'Racha global de 7 días.',
+    ),
+    ProfileBadge(
+      id: 'streak_15',
+      name: 'Quincena Perfecta',
+      description: '15 días de racha consecutiva sin fallar.',
+      emoji: '🎯',
+      backgroundColors: [Color(0xFFFF8A80), Color(0xFFC62828)],
+      unlockCriteria: 'Racha global de 15 días.',
     ),
     ProfileBadge(
       id: 'streak_30',
       name: 'Leyenda Mensual',
-      description: '¡30 días sin fallar! Has demostrado una constancia titánica.',
+      description: '¡Un mes completo! 30 días de racha global.',
       emoji: '👑',
-      backgroundColors: [Color(0xFFFFD700), Color(0xFFFFA000)],
-      unlockCriteria: 'Alcanza una racha global de 30 días.',
+      backgroundColors: [Color(0xFFFFD54F), Color(0xFFFF8F00)],
+      unlockCriteria: 'Racha global de 30 días.',
     ),
     ProfileBadge(
-      id: 'gym_rat',
-      name: 'Gym Rat',
-      description: 'Llevas el deporte en las venas. Has creado un hábito de entrenamiento.',
-      emoji: '🏋️‍♂️',
-      backgroundColors: [Color(0xFF2196F3), Color(0xFF0D47A1)],
-      unlockCriteria: 'Crea un hábito relacionado con deporte o gimnasio.',
+      id: 'streak_60',
+      name: 'Inquebrantable',
+      description: '60 días seguidos de pura constancia y disciplina.',
+      emoji: '💎',
+      backgroundColors: [Color(0xFF4DD0E1), Color(0xFF00838F)],
+      unlockCriteria: 'Racha global de 60 días.',
     ),
     ProfileBadge(
-      id: 'mindfulness',
-      name: 'Mente Zen',
-      description: 'Cuidas tu salud mental mediante meditación, yoga o estiramientos.',
-      emoji: '🧘',
-      backgroundColors: [Color(0xFF4CAF50), Color(0xFF1B5E20)],
-      unlockCriteria: 'Crea un hábito relacionado con meditación o yoga.',
+      id: 'streak_100',
+      name: 'El Club del 100',
+      description: '¡100 días de racha global! Un logro al alcance de muy pocos.',
+      emoji: '💯',
+      backgroundColors: [Color(0xFFBA68C8), Color(0xFF4A148C)],
+      unlockCriteria: 'Racha global de 100 días.',
     ),
     ProfileBadge(
-      id: 'nerd',
-      name: 'Enfoque Intelectual',
-      description: 'Dedicación absoluta al estudio, la lectura o la programación.',
-      emoji: '🤓',
-      backgroundColors: [Color(0xFF9C27B0), Color(0xFF4A148C)],
-      unlockCriteria: 'Crea un hábito relacionado con estudiar, leer o programar.',
+      id: 'streak_365',
+      name: 'Año Solar',
+      description: '365 días de racha global ininterrumpida. Has cambiado tu vida.',
+      emoji: '☀️',
+      backgroundColors: [Color(0xFFFFB74D), Color(0xFFD84315)],
+      unlockCriteria: 'Racha global de 365 días.',
+    ),
+
+    // Completions count:
+    ProfileBadge(
+      id: 'comp_1',
+      name: 'Acción Inicial',
+      description: 'Has completado tu primer registro de hábito.',
+      emoji: '✅',
+      backgroundColors: [Color(0xFFD4E157), Color(0xFF558B2F)],
+      unlockCriteria: '1 hábito completado en total.',
     ),
     ProfileBadge(
-      id: 'water_champion',
-      name: 'Súper Hidratado',
-      description: 'Priorizas una buena hidratación y nutrición en tu día a día.',
-      emoji: '💧',
-      backgroundColors: [Color(0xFF00BCD4), Color(0xFF006064)],
-      unlockCriteria: 'Crea un hábito relacionado con tomar agua o nutrición.',
+      id: 'comp_10',
+      name: 'Hábito en Marcha',
+      description: 'Has completado hábitos 10 veces en total.',
+      emoji: '🏃',
+      backgroundColors: [Color(0xFF80CBC4), Color(0xFF00695C)],
+      unlockCriteria: '10 completados en total.',
     ),
     ProfileBadge(
-      id: 'post_master',
-      name: 'Post Master',
-      description: 'Has publicado al menos 10 veces en Streaks para motivar al resto.',
-      emoji: '📸',
-      backgroundColors: [Color(0xFFE91E63), Color(0xFF880E4F)],
-      unlockCriteria: 'Sube 10 publicaciones en tu cuenta.',
+      id: 'comp_50',
+      name: 'Ruta Trazada',
+      description: 'Has completado hábitos 50 veces en total.',
+      emoji: '🗺️',
+      backgroundColors: [Color(0xFF80DEEA), Color(0xFF00838F)],
+      unlockCriteria: '50 completados en total.',
     ),
     ProfileBadge(
-      id: 'social_star',
-      name: 'Estrella Social',
-      description: 'Tienes una comunidad de al menos 5 seguidores que te apoyan.',
+      id: 'comp_100',
+      name: 'Centenario Activo',
+      description: 'Has completado hábitos 100 veces en total.',
+      emoji: '🏅',
+      backgroundColors: [Color(0xFFF48FB1), Color(0xFFAD1457)],
+      unlockCriteria: '100 completados en total.',
+    ),
+    ProfileBadge(
+      id: 'comp_500',
+      name: 'Maestro Rutinario',
+      description: 'Has completado hábitos 500 veces en total.',
+      emoji: '🏆',
+      backgroundColors: [Color(0xFFFFD54F), Color(0xFFF57C00)],
+      unlockCriteria: '500 completados en total.',
+    ),
+    ProfileBadge(
+      id: 'comp_1000',
+      name: 'Dios del Hábito',
+      description: '¡1000 registros completados! Eres el modelo a seguir.',
+      emoji: '☯️',
+      backgroundColors: [Color(0xFF37474F), Color(0xFF212121)],
+      unlockCriteria: '1000 completados en total.',
+    ),
+
+    // Posts:
+    ProfileBadge(
+      id: 'posts_1',
+      name: 'Primer Post',
+      description: 'Has compartido tu primera publicación con tu comunidad.',
+      emoji: '📷',
+      backgroundColors: [Color(0xFF90CAF9), Color(0xFF1565C0)],
+      unlockCriteria: '1 publicación.',
+    ),
+    ProfileBadge(
+      id: 'posts_5',
+      name: 'Creador Activo',
+      description: 'Has subido 5 publicaciones compartiendo tu día a día.',
+      emoji: '🎨',
+      backgroundColors: [Color(0xFFB39DDB), Color(0xFF4527A0)],
+      unlockCriteria: '5 publicaciones.',
+    ),
+    ProfileBadge(
+      id: 'posts_15',
+      name: 'Diario de Progreso',
+      description: 'Has subido 15 publicaciones para registrar tu camino.',
+      emoji: '🎙️',
+      backgroundColors: [Color(0xFF80DEEA), Color(0xFF00796B)],
+      unlockCriteria: '15 publicaciones.',
+    ),
+    ProfileBadge(
+      id: 'posts_30',
+      name: 'Foco Inspirador',
+      description: 'Has subido 30 publicaciones. Tu disciplina inspira a otros.',
       emoji: '🌟',
-      backgroundColors: [Color(0xFF009688), Color(0xFF004D40)],
-      unlockCriteria: 'Consigue 5 seguidores.',
+      backgroundColors: [Color(0xFFCE93D8), Color(0xFFD81B60)],
+      unlockCriteria: '30 publicaciones.',
+    ),
+    ProfileBadge(
+      id: 'posts_50',
+      name: 'Voz de Streaks',
+      description: '50 publicaciones compartidas. Eres un pilar de la comunidad.',
+      emoji: '📢',
+      backgroundColors: [Color(0xFFEF9A9A), Color(0xFFB71C1C)],
+      unlockCriteria: '50 publicaciones.',
+    ),
+
+    // Followers:
+    ProfileBadge(
+      id: 'followers_1',
+      name: 'Primer Seguidor',
+      description: 'Alguien ha comenzado a seguir tu progreso.',
+      emoji: '👋',
+      backgroundColors: [Color(0xFFF48FB1), Color(0xFFC2185B)],
+      unlockCriteria: '1 seguidor.',
+    ),
+    ProfileBadge(
+      id: 'followers_5',
+      name: 'Pequeño Círculo',
+      description: 'Tienes a 5 personas siguiendo tus hábitos diarios.',
+      emoji: '👥',
+      backgroundColors: [Color(0xFF9FA8DA), Color(0xFF283593)],
+      unlockCriteria: '5 seguidores.',
+    ),
+    ProfileBadge(
+      id: 'followers_15',
+      name: 'Líder de Rachas',
+      description: 'Tienes una comunidad de 15 seguidores.',
+      emoji: '📣',
+      backgroundColors: [Color(0xFF80DEEA), Color(0xFF00695C)],
+      unlockCriteria: '15 seguidores.',
+    ),
+    ProfileBadge(
+      id: 'followers_30',
+      name: 'Guía de Hábitos',
+      description: '30 seguidores atentos a tu constancia diaria.',
+      emoji: '🔮',
+      backgroundColors: [Color(0xFFB39DDB), Color(0xFF5E35B1)],
+      unlockCriteria: '30 seguidores.',
+    ),
+    ProfileBadge(
+      id: 'followers_50',
+      name: 'Referente Social',
+      description: '¡50 seguidores! Tu constancia mueve montañas.',
+      emoji: '👑',
+      backgroundColors: [Color(0xFFFFD54F), Color(0xFFC2185B)],
+      unlockCriteria: '50 seguidores.',
+    ),
+
+    // Following:
+    ProfileBadge(
+      id: 'following_1',
+      name: 'Explorador',
+      description: 'Has comenzado a seguir a otro usuario en Streaks.',
+      emoji: '🧭',
+      backgroundColors: [Color(0xFFB0BEC5), Color(0xFF37474F)],
+      unlockCriteria: 'Sigue a 1 usuario.',
+    ),
+    ProfileBadge(
+      id: 'following_5',
+      name: 'Compañero de Ruta',
+      description: 'Sigues a 5 personas para apoyarlas en su constancia.',
+      emoji: '🤝',
+      backgroundColors: [Color(0xFFA5D6A7), Color(0xFF2E7D32)],
+      unlockCriteria: 'Sigue a 5 usuarios.',
+    ),
+    ProfileBadge(
+      id: 'following_15',
+      name: 'Red de Inspiración',
+      description: 'Sigues a 15 compañeros. ¡Gran sentido de comunidad!',
+      emoji: '🕸️',
+      backgroundColors: [Color(0xFFFFCC80), Color(0xFF6A1B9A)],
+      unlockCriteria: 'Sigue a 15 usuarios.',
     ),
   ];
 
