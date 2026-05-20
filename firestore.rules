@@ -2,42 +2,51 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Helper function to check if user is signed in
     function isSignedIn() {
       return request.auth != null;
     }
 
-    // Helper function to check if the user accesses their own data
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
 
-    // Rules for Users collection
     match /users/{userId} {
-      allow read: if isSignedIn();
-      allow write: if isSignedIn() && isOwner(userId);
+      allow read, create, update: if true;
+
+      // Rules for Following subcollection
+      match /following/{followingId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
+
+      // Rules for Followers subcollection
+      match /followers/{followerId} {
+        allow read: if true;
+        allow write: if isSignedIn();
+      }
     }
 
-    // Rules for Habits collection
     match /habits/{habitId} {
-      // Allow read/write only if the habit belongs to the user
-      allow read, update, delete: if isSignedIn() && isOwner(resource.data.userId);
-      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
-    // Rules for Posts collection
     match /posts/{postId} {
-      // Allow read to all signed-in users (feed)
-      allow read: if isSignedIn();
-      // Allow create if user is signed in (and optionally checks userId)
-      allow create: if isSignedIn() && isOwner(request.resource.data.userId);
-      // Allow update/delete only if owner
-      allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
+      allow read: if true;
+      allow create, update, delete: if isSignedIn();
     }
 
-    // Default deny
+    // ── Mensajes directos ──────────────────────────────────
+    match /conversations/{convId} {
+      allow read, write, create: if isSignedIn();
+      
+      match /messages/{messageId} {
+        allow read, write, create: if isSignedIn();
+      }
+    }
+
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if isSignedIn();
     }
   }
 }

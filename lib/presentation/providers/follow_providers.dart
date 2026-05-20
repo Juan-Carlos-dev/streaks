@@ -84,6 +84,7 @@ class FollowController extends StateNotifier<AsyncValue<void>> {
 }
 
 final followersListProvider = StreamProvider.family<List<User>, String>((ref, targetUid) {
+  final currentUid = ref.watch(authStateProvider).value;
   return FirebaseFirestore.instance
       .collection('users')
       .doc(targetUid)
@@ -97,14 +98,42 @@ final followersListProvider = StreamProvider.family<List<User>, String>((ref, ta
           uids.map((uid) => FirebaseFirestore.instance.collection('users').doc(uid).get())
         );
 
-        return userDocs
-            .where((doc) => doc.exists)
-            .map((doc) => User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>))
-            .toList();
+        final List<User> validUsers = [];
+        final List<String> deadUids = [];
+
+        for (final doc in userDocs) {
+          if (doc.exists) {
+            validUsers.add(User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>));
+          } else {
+            deadUids.add(doc.id);
+          }
+        }
+
+        if (deadUids.isNotEmpty && targetUid == currentUid) {
+          final batch = FirebaseFirestore.instance.batch();
+          for (final deadUid in deadUids) {
+            batch.delete(
+              FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(targetUid)
+                  .collection('followers')
+                  .doc(deadUid)
+            );
+          }
+          batch.set(
+            FirebaseFirestore.instance.collection('users').doc(targetUid),
+            {'stats': {'followersCount': FieldValue.increment(-deadUids.length)}},
+            SetOptions(merge: true),
+          );
+          batch.commit().catchError((e) => print("Error cleaning up dead followers: $e"));
+        }
+
+        return validUsers;
       });
 });
 
 final followingListProvider = StreamProvider.family<List<User>, String>((ref, targetUid) {
+  final currentUid = ref.watch(authStateProvider).value;
   return FirebaseFirestore.instance
       .collection('users')
       .doc(targetUid)
@@ -118,9 +147,36 @@ final followingListProvider = StreamProvider.family<List<User>, String>((ref, ta
           uids.map((uid) => FirebaseFirestore.instance.collection('users').doc(uid).get())
         );
 
-        return userDocs
-            .where((doc) => doc.exists)
-            .map((doc) => User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>))
-            .toList();
+        final List<User> validUsers = [];
+        final List<String> deadUids = [];
+
+        for (final doc in userDocs) {
+          if (doc.exists) {
+            validUsers.add(User.fromFirestore(doc as DocumentSnapshot<Map<String, dynamic>>));
+          } else {
+            deadUids.add(doc.id);
+          }
+        }
+
+        if (deadUids.isNotEmpty && targetUid == currentUid) {
+          final batch = FirebaseFirestore.instance.batch();
+          for (final deadUid in deadUids) {
+            batch.delete(
+              FirebaseFirestore.instance
+                  .collection('users')
+                  .doc(targetUid)
+                  .collection('following')
+                  .doc(deadUid)
+            );
+          }
+          batch.set(
+            FirebaseFirestore.instance.collection('users').doc(targetUid),
+            {'stats': {'followingCount': FieldValue.increment(-deadUids.length)}},
+            SetOptions(merge: true),
+          );
+          batch.commit().catchError((e) => print("Error cleaning up dead following: $e"));
+        }
+
+        return validUsers;
       });
 });
