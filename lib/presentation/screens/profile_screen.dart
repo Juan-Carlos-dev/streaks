@@ -400,6 +400,9 @@ class _ProfileBody extends StatelessWidget {
 
   Widget _buildBadgesShowcase(BuildContext context) {
     final showcase = user?.showcaseBadges ?? [];
+
+    // On other profiles, hide the whole section if no badges are showcased
+    if (!isOwnProfile && showcase.isEmpty) return const SizedBox.shrink();
     
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 0),
@@ -453,8 +456,11 @@ class _ProfileBody extends StatelessWidget {
                   ),
                 );
               } else {
+                // On other profiles, don't show empty slots at all
+                if (!isOwnProfile) return const SizedBox.shrink();
+
                 return GestureDetector(
-                  onTap: isOwnProfile ? () => _showBadgeShowcaseEditor(context) : null,
+                  onTap: () => _showBadgeShowcaseEditor(context),
                   child: Container(
                     margin: const EdgeInsets.only(right: 12),
                     width: 56,
@@ -462,16 +468,16 @@ class _ProfileBody extends StatelessWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isOwnProfile ? Colors.white24 : Colors.white10,
+                        color: Colors.white24,
                         width: 1.5,
                         style: BorderStyle.solid,
                       ),
                       color: Colors.white.withOpacity(0.02),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Icon(
-                        isOwnProfile ? Icons.add : Icons.remove,
-                        color: isOwnProfile ? Colors.white30 : Colors.white10,
+                        Icons.add,
+                        color: Colors.white30,
                         size: 20,
                       ),
                     ),
