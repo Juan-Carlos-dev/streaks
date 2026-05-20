@@ -110,6 +110,87 @@ class AuthRepositoryImpl implements AuthRepository {
     }
   }
 
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      final user = _firebaseAuth.currentUser;
+      if (user == null) {
+        return const Left(AuthFailure('No hay ningún usuario autenticado'));
+      }
+      final uid = user.uid;
+
+      // 1. Delete habits belonging to the user
+      final habitsSnapshot = await _firestore
+          .collection('habits')
+          .where('userId', isEqualTo: uid)
+          .get();
+      if (habitsSnapshot.docs.isNotEmpty) {
+        final habitBatch = _firestore.batch();
+        for (final doc in habitsSnapshot.docs) {
+          habitBatch.delete(doc.reference);
+        }
+        await habitBatch.commit();
+      }
+
+      // 2. Delete posts belonging to the user
+      final postsSnapshot = await _firestore
+          .collection('posts')
+          .where('userId', isEqualTo: uid)
+          .get();
+      if (postsSnapshot.docs.isNotEmpty) {
+        final postBatch = _firestore.batch();
+        for (final doc in postsSnapshot.docs) {
+          postBatch.delete(doc.reference);
+        }
+        await postBatch.commit();
+      }
+
+      // 3. Delete user's following subcollection documents
+      final followingSnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('following')
+          .get();
+      if (followingSnapshot.docs.isNotEmpty) {
+        final followingBatch = _firestore.batch();
+        for (final doc in followingSnapshot.docs) {
+          followingBatch.delete(doc.reference);
+        }
+        await followingBatch.commit();
+      }
+
+      // 4. Delete user's followers subcollection documents
+      final followersSnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('followers')
+          .get();
+      if (followersSnapshot.docs.isNotEmpty) {
+        final followersBatch = _firestore.batch();
+        for (final doc in followersSnapshot.docs) {
+          followersBatch.delete(doc.reference);
+        }
+        await followersBatch.commit();
+      }
+
+      // 5. Delete user document from Firestore
+      await _firestore.collection('users').doc(uid).delete();
+
+      // 6. Delete Auth user
+      await user.delete();
+
+      return const Right(null);
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      if (e.code == 'requires-recent-login') {
+        return const Left(AuthFailure(
+            'Por seguridad, debes cerrar sesión e iniciar sesión de nuevo antes de eliminar tu cuenta.'));
+      }
+      return Left(AuthFailure(e.message ?? 'Error al eliminar la cuenta'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
   String _mapAuthError(String code) {
     switch (code) {
       case 'user-not-found':

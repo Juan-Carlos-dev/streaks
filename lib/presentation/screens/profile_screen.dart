@@ -872,7 +872,7 @@ class _ProfileBody extends StatelessWidget {
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.of(bottomSheetContext).pop();
-                      _showDeleteConfirmation(context);
+                      _showDeleteConfirmation(context, ref);
                     },
                     icon: const Icon(Icons.warning_amber_rounded, color: Colors.white, size: 18),
                     label: const Text(
@@ -3343,7 +3343,7 @@ class _ProfileBody extends StatelessWidget {
     return '#${color.value.toRadixString(16).substring(2).toUpperCase()}';
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
+  void _showDeleteConfirmation(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -3353,7 +3353,7 @@ class _ProfileBody extends StatelessWidget {
         title: const Text('Eliminar cuenta',
             style: TextStyle(color: Colors.white)),
         content: const Text(
-          '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.',
+          '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y borrará permanentemente todos tus hábitos y publicaciones.',
           style: TextStyle(color: AppColors.textSecondary),
         ),
         actions: [
@@ -3362,7 +3362,52 @@ class _ProfileBody extends StatelessWidget {
             child: const Text('Cancelar'),
           ),
           TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
+            onPressed: () async {
+              Navigator.of(ctx).pop(); // Close confirmation dialog
+              
+              // Show loading indicator
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (loadingCtx) => const Center(
+                  child: CircularProgressIndicator(),
+                ),
+              );
+
+              final result = await ref.read(authRepositoryProvider).deleteAccount();
+
+              if (context.mounted) {
+                Navigator.of(context).pop(); // Dismiss loading indicator
+              }
+
+              result.fold(
+                (failure) {
+                  showDialog(
+                    context: context,
+                    builder: (errCtx) => AlertDialog(
+                      backgroundColor: AppColors.surface,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      title: const Text('Error', style: TextStyle(color: Colors.white)),
+                      content: Text(failure.message, style: const TextStyle(color: AppColors.textSecondary)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(errCtx).pop(),
+                          child: const Text('Aceptar'),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                (_) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Cuenta eliminada con éxito.'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                },
+              );
+            },
             child: const Text('Eliminar',
                 style: TextStyle(color: AppColors.error)),
           ),
