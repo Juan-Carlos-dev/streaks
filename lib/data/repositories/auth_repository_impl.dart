@@ -145,12 +145,66 @@ class AuthRepositoryImpl implements AuthRepository {
         await postBatch.commit();
       }
 
-      // 3. Delete user's following subcollection documents
+      // 3. Find followers and following snapshots
       final followingSnapshot = await _firestore
           .collection('users')
           .doc(uid)
           .collection('following')
           .get();
+      
+      final followersSnapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('followers')
+          .get();
+
+      // Clean up following relations on OTHER users (whom current user followed)
+      if (followingSnapshot.docs.isNotEmpty) {
+        final followingCleanupBatch = _firestore.batch();
+        for (final doc in followingSnapshot.docs) {
+          final followedUid = doc.id;
+          followingCleanupBatch.delete(_firestore
+              .collection('users')
+              .doc(followedUid)
+              .collection('followers')
+              .doc(uid));
+          followingCleanupBatch.set(
+            _firestore.collection('users').doc(followedUid),
+            {
+              'stats': {
+                'followersCount': FieldValue.increment(-1),
+              }
+            },
+            SetOptions(merge: true),
+          );
+        }
+        await followingCleanupBatch.commit();
+      }
+
+      // Clean up followers relations on OTHER users (who followed current user)
+      if (followersSnapshot.docs.isNotEmpty) {
+        final followersCleanupBatch = _firestore.batch();
+        for (final doc in followersSnapshot.docs) {
+          final followerUid = doc.id;
+          followersCleanupBatch.delete(_firestore
+              .collection('users')
+              .doc(followerUid)
+              .collection('following')
+              .doc(uid));
+          followersCleanupBatch.set(
+            _firestore.collection('users').doc(followerUid),
+            {
+              'stats': {
+                'followingCount': FieldValue.increment(-1),
+              }
+            },
+            SetOptions(merge: true),
+          );
+        }
+        await followersCleanupBatch.commit();
+      }
+
+      // 4. Delete user's own following subcollection documents
       if (followingSnapshot.docs.isNotEmpty) {
         final followingBatch = _firestore.batch();
         for (final doc in followingSnapshot.docs) {
@@ -159,12 +213,7 @@ class AuthRepositoryImpl implements AuthRepository {
         await followingBatch.commit();
       }
 
-      // 4. Delete user's followers subcollection documents
-      final followersSnapshot = await _firestore
-          .collection('users')
-          .doc(uid)
-          .collection('followers')
-          .get();
+      // 5. Delete user's own followers subcollection documents
       if (followersSnapshot.docs.isNotEmpty) {
         final followersBatch = _firestore.batch();
         for (final doc in followersSnapshot.docs) {
@@ -173,10 +222,32 @@ class AuthRepositoryImpl implements AuthRepository {
         await followersBatch.commit();
       }
 
-      // 5. Delete user document from Firestore
+      // 6. Delete conversations and messages the user is part of
+      final conversationsSnapshot = await _firestore
+          .collection('conversations')
+          .where('participants', arrayContains: uid)
+          .get();
+      for (final convDoc in conversationsSnapshot.docs) {
+        final conversationId = convDoc.id;
+        final messagesSnapshot = await _firestore
+            .collection('conversations')
+            .doc(conversationId)
+            .collection('messages')
+            .get();
+        if (messagesSnapshot.docs.isNotEmpty) {
+          final msgBatch = _firestore.batch();
+          for (final msgDoc in messagesSnapshot.docs) {
+            msgBatch.delete(msgDoc.reference);
+          }
+          await msgBatch.commit();
+        }
+        await _firestore.collection('conversations').doc(conversationId).delete();
+      }
+
+      // 7. Delete user document from Firestore
       await _firestore.collection('users').doc(uid).delete();
 
-      // 6. Delete Auth user
+      // 8. Delete Auth user
       await user.delete();
 
       return const Right(null);
