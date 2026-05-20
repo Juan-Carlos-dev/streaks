@@ -517,6 +517,7 @@ class ProfileBadge {
       tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFFF48FB1), Color(0xFFC2185B)],
       unlockCriteria: '1 seguidor.',
+      imagePath: 'assets/images/badge_seguidor_1.png',
     ),
     ProfileBadge(
       id: 'followers_5',
