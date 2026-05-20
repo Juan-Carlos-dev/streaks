@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/auth_providers.dart';
+import '../widgets/logo_animation.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -12,6 +13,105 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
+  void _showResetPasswordDialog(BuildContext context, WidgetRef ref, String initialEmail) {
+    final emailController = TextEditingController(text: initialEmail);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: const Text(
+            'Recuperar contraseña',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const Text(
+                  'Introduce tu correo electrónico y te enviaremos un enlace para restablecer tu contraseña.',
+                  style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: emailController,
+                  style: const TextStyle(color: Colors.white),
+                  decoration: const InputDecoration(
+                    hintText: 'Correo electrónico',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Introduce tu correo' : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                'Cancelar',
+                style: TextStyle(color: Colors.white70),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final email = emailController.text.trim();
+                  final result = await ref
+                      .read(authRepositoryProvider)
+                      .sendPasswordResetEmail(email: email);
+                  
+                  result.fold(
+                    (failure) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(failure.message),
+                            backgroundColor: AppColors.error,
+                          ),
+                        );
+                      }
+                    },
+                    (_) {
+                      if (dialogContext.mounted) {
+                        Navigator.of(dialogContext).pop();
+                      }
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Correo de restablecimiento enviado con éxito. Revisa tu bandeja de entrada.',
+                            ),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    },
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text('Enviar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   void _showSignInSheet() {
     final emailController = TextEditingController();
     final passwordController = TextEditingController();
@@ -89,10 +189,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     validator: (v) =>
                         v == null || v.isEmpty ? 'Introduce tu contraseña' : null,
                   ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        _showResetPasswordDialog(context, ref, emailController.text.trim());
+                      },
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: const Size(0, 0),
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        '¿Has olvidado tu contraseña?',
+                        style: TextStyle(
+                          color: AppColors.primaryLight,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 24),
                   DecoratedBox(
                     decoration: BoxDecoration(
-                      gradient: AppColors.blueGradient,
+                      gradient: AppColors.defaultBlueGradient,
                       borderRadius: const BorderRadius.all(Radius.circular(14)),
                     ),
                     child: ElevatedButton(
@@ -153,6 +275,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               children: [
                 const Spacer(flex: 3),
+                // Logo animation
+                const Align(
+                  alignment: Alignment.center,
+                  child: LogoAnimation(),
+                ),
+                const SizedBox(height: 32),
                 // Main title
                 const Text(
                   'Encuentra tu ritmo.\nCrea tu equilibrio.',
@@ -162,13 +290,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     color: Colors.white,
                     height: 1.2,
                   ),
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
                 const Align(
-                  alignment: Alignment.centerLeft,
+                  alignment: Alignment.center,
                   child: Text(
                     'Alcanza tus metas y construye la vida que\nsiempre has querido.',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.white70,

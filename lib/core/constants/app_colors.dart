@@ -78,6 +78,12 @@ class AppColors {
     colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],
   );
 
+  static const LinearGradient defaultBlueGradient = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [Color(0xFF3D8EF0), Color(0xFF64B5F6)],
+  );
+
   static const LinearGradient darkGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,

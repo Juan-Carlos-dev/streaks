@@ -3,21 +3,17 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import 'package:device_preview/device_preview.dart';
-import 'package:flutter/foundation.dart';
 import 'core/theme/app_theme.dart';
 import 'core/router/app_router.dart';
 import 'firebase_options.dart';
-import 'presentation/providers/session_provider.dart';
-
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  // Set Spanish locale for timeago
   timeago.setLocaleMessages('es', timeago.EsMessages());
   timeago.setDefaultLocale('es');
 
@@ -29,11 +25,8 @@ void main() async {
   );
 
   runApp(
-    DevicePreview(
-      enabled: kIsWeb,
-      builder: (context) => const ProviderScope(
-        child: SocialHabitTrackerApp(),
-      ),
+    const ProviderScope(
+      child: SocialHabitTrackerApp(),
     ),
   );
 }
@@ -46,11 +39,6 @@ class SocialHabitTrackerApp extends ConsumerWidget {
     final router = ref.watch(routerProvider);
 
     return MaterialApp.router(
-      locale: kIsWeb ? DevicePreview.locale(context) : null,
-      builder: (context, child) {
-        final content = kIsWeb ? DevicePreview.appBuilder(context, child) : child;
-        return AppSessionTracker(child: content ?? const SizedBox.shrink());
-      },
       title: 'Streaks',
       theme: AppTheme.darkTheme,
       routerConfig: router,

@@ -38,6 +38,21 @@ class LoginController extends StateNotifier<AsyncValue<void>> {
       (_) => state = const AsyncData(null),
     );
   }
+
+  Future<bool> sendPasswordResetEmail(String email) async {
+    state = const AsyncLoading();
+    final result = await _authRepository.sendPasswordResetEmail(email: email);
+    return result.fold(
+      (failure) {
+        state = AsyncError(failure.message, StackTrace.current);
+        return false;
+      },
+      (_) {
+        state = const AsyncData(null);
+        return true;
+      },
+    );
+  }
 }
 
 final registerControllerProvider =

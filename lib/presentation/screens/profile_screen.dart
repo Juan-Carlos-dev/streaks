@@ -4,6 +4,7 @@ import 'package:flutter_colorpicker/flutter_colorpicker.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/image_preview_popup.dart';
 import '../widgets/follow_list_modal.dart';
+import '../widgets/banner_emoji_decoration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
@@ -151,12 +152,16 @@ class _ProfileBody extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        _BannerEmojiDecoration(
+                        BannerEmojiDecoration(
                           emojiString: user?.bannerEmojiPattern ?? '',
                           style: user?.bannerEmojiStyle ?? 'none',
-                          seed: user?.uid ?? 'default_seed',
+                          seed: (user?.bannerEmojiSeed != null && user!.bannerEmojiSeed.isNotEmpty)
+                              ? user!.bannerEmojiSeed
+                              : (user?.uid ?? 'default_seed'),
                           size: user?.bannerEmojiSize ?? 16.0,
                           rotation: user?.bannerEmojiRotation ?? 0.0,
+                          opacity: user?.bannerEmojiOpacity ?? 0.20,
+                          spacingFactor: user?.bannerEmojiSpacing ?? 1.0,
                         ),
                       ],
                     ),
@@ -2287,6 +2292,9 @@ class _ProfileBody extends StatelessWidget {
     String selectedStyle = user.bannerEmojiStyle;
     double selectedSize = user.bannerEmojiSize;
     double selectedRotation = user.bannerEmojiRotation;
+    double selectedOpacity = user.bannerEmojiOpacity;
+    String selectedSeed = user.bannerEmojiSeed.isNotEmpty ? user.bannerEmojiSeed : user.uid;
+    double selectedSpacing = user.bannerEmojiSpacing;
     String activeCategory = '😀';
 
     showModalBottomSheet(
@@ -2382,12 +2390,14 @@ class _ProfileBody extends StatelessWidget {
                             children: [
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(16),
-                                child: _BannerEmojiDecoration(
+                                child: BannerEmojiDecoration(
                                   emojiString: selectedEmojis.join(''),
                                   style: selectedStyle,
-                                  seed: user.uid,
+                                  seed: selectedSeed,
                                   size: selectedSize,
                                   rotation: selectedRotation,
+                                  opacity: selectedOpacity,
+                                  spacingFactor: selectedSpacing,
                                 ),
                               ),
                               Center(
@@ -2686,7 +2696,28 @@ class _ProfileBody extends StatelessWidget {
                                 title: 'Disperso',
                                 icon: Icons.bubble_chart_rounded,
                                 isSelected: selectedStyle == 'scattered',
-                                onTap: () => setState(() => selectedStyle = 'scattered'),
+                                onTap: () {
+                                  setState(() {
+                                    selectedStyle = 'scattered';
+                                    selectedSeed = DateTime.now().microsecondsSinceEpoch.toString();
+                                  });
+                                },
+                              ),
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'radial',
+                                title: 'Radial',
+                                icon: Icons.blur_circular_rounded,
+                                isSelected: selectedStyle == 'radial',
+                                onTap: () => setState(() => selectedStyle = 'radial'),
+                              ),
+                              _buildStyleOption(
+                                stateContext,
+                                id: 'spiral',
+                                title: 'Espiral',
+                                icon: Icons.filter_tilt_shift_rounded,
+                                isSelected: selectedStyle == 'spiral',
+                                onTap: () => setState(() => selectedStyle = 'spiral'),
                               ),
                             ],
                           ),
@@ -2711,8 +2742,8 @@ class _ProfileBody extends StatelessWidget {
                                 child: Slider(
                                   value: selectedSize,
                                   min: 10.0,
-                                  max: 32.0,
-                                  divisions: 22,
+                                  max: 52.0,
+                                  divisions: 42,
                                   label: '${selectedSize.toInt()}px',
                                   activeColor: Colors.blueAccent,
                                   inactiveColor: Colors.grey[200],
@@ -2726,6 +2757,50 @@ class _ProfileBody extends StatelessWidget {
                               const SizedBox(width: 8),
                               Text(
                                 '${selectedSize.toInt()}px',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+
+                          // Emoji Spacing Slider
+                          const Text(
+                            'SEPARACIÓN DE EMOJIS',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.space_bar_rounded, color: Colors.black54, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Slider(
+                                  value: selectedSpacing,
+                                  min: 0.5,
+                                  max: 3.0,
+                                  divisions: 25,
+                                  label: '${(selectedSpacing * 100).toInt()}%',
+                                  activeColor: Colors.blueAccent,
+                                  inactiveColor: Colors.grey[200],
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedSpacing = val;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${(selectedSpacing * 100).toInt()}%',
                                 style: const TextStyle(
                                   color: Colors.black87,
                                   fontWeight: FontWeight.bold,
@@ -2778,6 +2853,50 @@ class _ProfileBody extends StatelessWidget {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 24),
+
+                          // Emoji Opacity Slider
+                          const Text(
+                            'OPACIDAD DE EMOJIS',
+                            style: TextStyle(
+                              color: Colors.black54,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 11,
+                              letterSpacing: 0.8,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              const Icon(Icons.opacity, color: Colors.black54, size: 20),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Slider(
+                                  value: selectedOpacity,
+                                  min: 0.0,
+                                  max: 1.0,
+                                  divisions: 20,
+                                  label: '${(selectedOpacity * 100).toInt()}%',
+                                  activeColor: Colors.blueAccent,
+                                  inactiveColor: Colors.grey[200],
+                                  onChanged: (val) {
+                                    setState(() {
+                                      selectedOpacity = val;
+                                    });
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '${(selectedOpacity * 100).toInt()}%',
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -2810,6 +2929,9 @@ class _ProfileBody extends StatelessWidget {
                               bannerEmojiStyle: selectedStyle,
                               bannerEmojiSize: selectedSize,
                               bannerEmojiRotation: selectedRotation,
+                              bannerEmojiOpacity: selectedOpacity,
+                              bannerEmojiSeed: selectedSeed,
+                              bannerEmojiSpacing: selectedSpacing,
                             );
                             await ref.read(userRepositoryProvider).updateUser(updatedUser);
                             
@@ -4029,147 +4151,6 @@ class _NotificationSwitchTile extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _BannerEmojiDecoration extends StatelessWidget {
-  final String emojiString;
-  final String style;
-  final String seed;
-  final double size;
-  final double rotation;
-
-  const _BannerEmojiDecoration({
-    required this.emojiString,
-    required this.style,
-    required this.seed,
-    required this.size,
-    required this.rotation,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    if (style == 'none' || emojiString.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    final List<String> emojis = emojiString.characters.map((c) => c).toList();
-    if (emojis.isEmpty) return const SizedBox.shrink();
-
-    final double rad = rotation * 3.14159265358979323846 / 180.0;
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final height = constraints.maxHeight;
-
-        if (style == 'grid') {
-          final double stepX = (size * 3.0).clamp(35.0, 100.0);
-          final double stepY = (size * 2.5).clamp(30.0, 80.0);
-          final List<Widget> children = [];
-          int emojiIndex = 0;
-
-          for (double y = 10; y < height; y += stepY) {
-            for (double x = 15; x < width; x += stepX) {
-              final emoji = emojis[emojiIndex % emojis.length];
-              emojiIndex++;
-              children.add(
-                Positioned(
-                  left: x,
-                  top: y,
-                  child: Opacity(
-                    opacity: 0.18,
-                    child: Transform.rotate(
-                      angle: rad,
-                      child: Text(
-                        emoji,
-                        style: TextStyle(fontSize: size),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            }
-          }
-          return Stack(children: children);
-        }
-
-        if (style == 'diagonal') {
-          final double step = (size * 2.2).clamp(25.0, 70.0);
-          final double stepY = (size * 1.25).clamp(15.0, 45.0);
-          final List<Widget> children = [];
-          int emojiIndex = 0;
-
-          for (double offset = -height; offset < width + height; offset += step) {
-            for (double t = 0; t < height; t += stepY) {
-              final x = offset + t;
-              final y = t;
-              if (x >= 0 && x < width && y >= 0 && y < height) {
-                final emoji = emojis[emojiIndex % emojis.length];
-                emojiIndex++;
-                children.add(
-                  Positioned(
-                    left: x,
-                    top: y,
-                    child: Opacity(
-                      opacity: 0.18,
-                      child: Transform.rotate(
-                        angle: rad,
-                        child: Text(
-                          emoji,
-                          style: TextStyle(fontSize: size * 0.88),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              }
-            }
-          }
-          return Stack(children: children);
-        }
-
-        if (style == 'scattered') {
-          final List<Widget> children = [];
-          int hash = seed.hashCode;
-          double nextRandom() {
-            hash = (1103515245 * hash + 12345) & 0x7fffffff;
-            return hash / 2147483647.0;
-          }
-
-          final densityFactor = (size * size).clamp(100.0, 1000.0);
-          final count = (width * height / (densityFactor * 1.5)).clamp(8, 35).toInt();
-          
-          for (int i = 0; i < count; i++) {
-            final x = nextRandom() * (width - size - 8);
-            final y = nextRandom() * (height - size - 8);
-            final scale = 0.8 + nextRandom() * 0.6;
-            final randomRot = nextRandom() * 0.6 - 0.3;
-            final emoji = emojis[i % emojis.length];
-
-            children.add(
-              Positioned(
-                left: x,
-                top: y,
-                child: Transform.rotate(
-                  angle: rad + randomRot,
-                  child: Opacity(
-                    opacity: 0.20,
-                    child: Text(
-                      emoji,
-                      style: TextStyle(fontSize: size * scale),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }
-          return Stack(children: children);
-        }
-
-        return const SizedBox.shrink();
-      },
     );
   }
 }

@@ -109,17 +109,197 @@ Explica la estructura de colecciones de Firestore, justificando por qué se usa 
 ---
 
 ## CAPÍTULO 4: DISEÑO DEL SISTEMA Y ARQUITECTURA (Pág. 24-32)
-### Páginas 24-27: Estructura de Capas en Código
-Detalla cómo se organiza el árbol de directorios del proyecto y qué función cumple cada subcarpeta:
-* `lib/core`: Utilidades del sistema, constantes de color y temas.
-* `lib/domain`: Entidades puras (`Post`, `User`, `Follow`) y repositorios abstractos.
-* `lib/data`: Implementaciones concretas de llamadas de red y base de datos.
-* `lib/presentation`: Widgets de Flutter organizados por pantallas (`screens`) y controladores del estado.
+Este capítulo describe la arquitectura de software seleccionada para la aplicación **Streaks**, justificando las decisiones de diseño desde una perspectiva de ingeniería del software. Se detalla la implementación de los principios Clean Architecture, el desacoplamiento de componentes y el flujo de datos reactivo gobernado por Riverpod.
 
-### Páginas 28-30: Flujo de Datos y Reactive Caching
-Explica cómo Riverpod maneja el flujo de datos reactivo:
-* `StreamProvider` escucha directamente los documentos de Firestore.
-* Cuando ocurre una modificación física en la base de datos (ej. un nuevo Like o un nuevo seguidor), Firestore emite un snapshot, Riverpod reconstruye automáticamente el Provider afectado, y la UI se actualiza sin requerir intervención del usuario.
+---
+
+### Página 24: Fundamentación Teórica del Diseño Arquitectónico (Clean Architecture y SOLID)
+El principal desafío técnico del proyecto radica en construir un sistema móvil robusto que evite el acoplamiento rígido con el proveedor de la infraestructura en la nube (Firebase). Para resolver esto, se ha optado por implementar **Clean Architecture**, estructurando el código en capas concéntricas aisladas.
+
+Este enfoque arquitectónico garantiza cuatro propiedades fundamentales:
+1. **Independencia del Framework**: La lógica de negocio no sabe nada del motor de renderizado de Flutter. Podríamos migrar la UI a otra tecnología sin reescribir las reglas del sistema.
+2. **Testeabilidad**: Las reglas de negocio se pueden probar de forma aislada sin necesidad de levantar bases de datos, servidores de red o interfaces visuales.
+3. **Independencia de la Base de Datos**: La persistencia es un detalle de implementación secundario. El núcleo de la aplicación interactúa con interfaces de repositorio abstractas, aislando al sistema de si los datos provienen de Firestore, SQLite o memoria volátil.
+4. **Independencia de la UI**: La interfaz gráfica puede cambiar sustancialmente (como la modificación del gesto Drag-to-Like al doble toque en imágenes en `ImagePreviewWrapper`) sin alterar en lo más mínimo las reglas operativas internas.
+
+A nivel de principios **SOLID**, la arquitectura aprovecha intensivamente el **Principio de Inversión de Dependencias (DIP)**: las capas de mayor nivel abstracto (Dominio) no dependen de las capas de bajo nivel (Datos o Presentación), sino que todas las capas dependen de abstracciones definidas en el dominio. Asimismo, se aplica el **Principio de Responsabilidad Única (SRP)** en el diseño de los controladores de estado de Riverpod, limitando el ámbito de cada proveedor al control exclusivo de un módulo lógico del sistema (e.g., autenticación, feed de posts o gestión de seguidores).
+
+---
+
+### Página 25: Análisis Detallado del Núcleo del Sistema (Domain Layer)
+La capa de **Dominio** se ubica en el centro de la arquitectura del software (`lib/domain`). Se encuentra escrita en Dart puro, sin importar paquetes de Flutter ni del SDK de Firebase. Su única responsabilidad es modelar el negocio de la aplicación a través de dos tipos de componentes:
+
+1. **Entidades (`lib/domain/entities`)**: Modelos de datos del negocio libres de efectos secundarios. 
+   * [post.dart](file:///Volumes/Lexar%20SL300/streaks/lib/domain/entities/post.dart): Define la entidad `Post`, que encapsula las propiedades básicas de una publicación (ID, autor, URL de imagen, caption, cantidad de estrellas y lista de UIDs que interactuaron con ella).
+   * [user.dart](file:///Volumes/Lexar%20SL300/streaks/lib/domain/entities/user.dart): Estructura la entidad `User` con campos como nombre de usuario, email, índice de gradiente de perfil, contadores de seguidores y URL del avatar.
+   * [habit.dart](file:///Volumes/Lexar%20SL300/streaks/lib/domain/entities/habit.dart): Modela el hábito a seguir y sus estados de racha actual e histórica.
+   * [message.dart](file:///Volumes/Lexar%20SL300/streaks/lib/domain/entities/message.dart): Modela la mensajería interna.
+
+2. **Repositorios Abstractos (`lib/domain/repositories`)**: Interfaces abstractas que actúan como contratos de persistencia. Define la firma de las operaciones válidas del sistema, pero no cómo se ejecutan. Por ejemplo, en [post_repository.dart](file:///Volumes/Lexar%20SL300/streaks/lib/domain/repositories/post_repository.dart):
+
+```dart
+abstract class PostRepository {
+  Stream<List<Post>> watchFeedPosts();
+  Stream<List<Post>> watchUserPosts(String userId);
+  Future<void> createPost(String imageUrl, String caption);
+  Future<void> toggleLike(String postId);
+  Future<void> deletePost(String postId);
+}
+```
+
+Al obligar al resto de la aplicación a comunicarse mediante este contrato, aseguramos que la capa de presentación consuma abstracciones, haciendo invisible el almacenamiento real de datos.
+
+---
+
+### Página 26: Implementación Práctica del Acceso a Datos (Data Layer)
+La capa de **Datos** (`lib/data`) contiene las implementaciones reales de los repositorios abstractos definidos en el Dominio. Es aquí donde se realiza la integración directa con el SDK de Firebase (Authentication y Firestore).
+
+En la subcarpeta `lib/data/repositories`, encontramos los archivos de implementación concretos, por ejemplo [post_repository_impl.dart](file:///Volumes/Lexar%20SL300/streaks/lib/data/repositories/post_repository_impl.dart), el cual implementa `PostRepository`. 
+
+Esta capa asume la responsabilidad de:
+* **Conectarse con el origen físico de los datos**: Usa las referencias de `FirebaseFirestore.instance` y realiza consultas a colecciones específicas.
+* **Transformar y mapear modelos NoSQL**: La base de datos relacional orientada a documentos Firestore trabaja con mapas serializados (`Map<String, dynamic>`). Esta capa procesa los documentos crudos (`DocumentSnapshot`) y los convierte en entidades fuertemente tipadas del dominio mediante constructores de mapeo como `Post.fromMap(...)`.
+* **Tratar excepciones específicas de red**: Captura errores propios de los servicios Firebase (ej. cuotas superadas, fallos de permisos de red) y los convierte en excepciones tipadas del dominio para ser interpretadas por los controladores visuales sin acoplar la UI a la sintaxis del framework de Google.
+
+---
+
+### Página 27: La Interfaz de Usuario y los Estados Visuales (Presentation Layer)
+La capa de **Presentación** (`lib/presentation`) maneja la interacción directa con el usuario final de Streaks. Esta capa está estructurada bajo el patrón arquitectónico MVVM (Model-View-ViewModel), utilizando Flutter para las Vistas e inyectores reactivos de Riverpod para los Modelos de Vista.
+
+La capa está dividida físicamente en tres directorios principales:
+1. **`lib/presentation/screens`**: Representa las páginas principales de la aplicación (vistas completas con ciclo de vida del árbol de widgets). Entre ellas destacan:
+   * [profile_screen.dart](file:///Volumes/Lexar%20SL300/streaks/lib/presentation/screens/profile_screen.dart): Maneja el feed del usuario propio y la visualización de hábitos.
+   * [user_profile_screen.dart](file:///Volumes/Lexar%20SL300/streaks/lib/presentation/screens/user_profile_screen.dart): Renderiza perfiles ajenos con sus publicaciones.
+2. **`lib/presentation/widgets`**: Componentes atómicos reutilizables diseñados para dotar de dinamismo e interactividad visual a la app. 
+   * [image_preview_popup.dart](file:///Volumes/Lexar%20SL300/streaks/lib/presentation/widgets/image_preview_popup.dart): Alberga la lógica de previsualización táctil, capturando interacciones avanzadas como el doble toque para dar estrellas y renderizando la animación de partículas mediante un controlador gráfico local (`AnimationController`).
+3. **`lib/presentation/providers`**: Representa los ViewModels/Controladores del sistema. Almacenan y exponen el estado actual de las vistas a través de abstracciones reactivas.
+
+---
+
+### Página 28: Inyección de Dependencias y Desacoplamiento Eficiente con Riverpod
+Para cumplir rigurosamente el Principio de Inversión de Dependencias (DIP) sin introducir un contenedor de inyección complejo e invasivo, la aplicación aprovecha el sistema de proveedores jerárquicos de **Riverpod**.
+
+En el sistema, los repositorios reales no se instancian directamente en la UI. En su lugar, se exponen como proveedores globales de solo lectura:
+
+```dart
+final postRepositoryProvider = Provider<PostRepository>((ref) {
+  return PostRepositoryImpl(
+    firestore: FirebaseFirestore.instance,
+    auth: FirebaseAuth.instance,
+  );
+});
+```
+
+Cualquier controlador de la presentación que necesite operar sobre publicaciones, no referencia al constructor de la base de datos de datos, sino que solicita la dependencia usando el contenedor de Riverpod. Por ejemplo, en [feed_providers.dart](file:///Volumes/Lexar%20SL300/streaks/lib/presentation/providers/feed_providers.dart):
+
+```dart
+final toggleLikeProvider = FutureProvider.family<void, String>((ref, postId) async {
+  final repository = ref.read(postRepositoryProvider);
+  return repository.toggleLike(postId);
+});
+```
+
+**Ventaja de Testeo Unitario**: En entornos de pruebas unitarias (`test/`), es posible simular la persistencia sobrepasando la implementación del proveedor de la siguiente forma, sin tocar una sola línea de código del frontend:
+
+```dart
+final container = ProviderContainer(
+  overrides: [
+    postRepositoryProvider.overrideWithValue(MockPostRepository()),
+  ],
+);
+```
+
+---
+
+### Página 29: Arquitectura de Controladores y Modelado de Estado de la Vista (ViewModel)
+El flujo de control de Streaks sigue un ciclo de vida cerrado unidireccional y reactivo. La vista nunca altera el estado del modelo directamente; en su lugar, delega eventos en los controladores inyectados de Riverpod.
+
+El flujo básico de interacción se estructura de la siguiente manera:
+1. **Acción del Usuario (UI)**: El usuario pulsa dos veces en la foto de progreso. El componente `PreviewOverlayWidget` captura el evento en su `GestureDetector` e invoca la llamada a la acción asociada.
+2. **Delegación de Evento (Provider)**: La vista ejecuta el callback de interacción (ej. `onLike`), el cual apunta a una función de actualización manejada por un `Notifier` de Riverpod.
+3. **Persistencia (Repository/Data)**: El Notificador de estado invoca al `PostRepository` inyectado para realizar el `toggleLike(postId)` en Firestore.
+4. **Respuesta Asíncrona**: El servidor procesa la escritura y actualiza el documento.
+5. **Reacción Automática (Stream)**: El canal de datos activo (`StreamProvider`) detecta el nuevo snapshot del documento modificado y propaga el estado reconstruyendo los widgets suscritos de forma automática.
+
+```
++-----------------------------------------------------+
+|                  PRESENTATION LAYER                 |
+|   +-----------------------+                         |
+|   |   Widget de la Vista  |                         |
+|   | (ConsumerWidget / UI) | <===================+   |
+|   +-----------------------+                     |   |
+|               | (Doble toque / Evento)          |   |
+|               v                                 |   |
+|   +-----------------------+                     |   |
+|   |  Notifier / Provider  |                     |   |
+|   |      (ViewModel)      |                     |   |
+|   +-----------------------+                     |   |
+|               |                                 |   |
++---------------|---------------------------------|---+
+|               | (Usa la interfaz abstracta)     |   |
+|               v                                 |   |
+|   +-----------------------+                     |   |
+|   |    PostRepository     | (Dominio/Contrato)  |   |
+|   +-----------------------+                     |   |
+|               |                                 |   |
++---------------|---------------------------------|---+
+|               v                                 |   |
+|   +-----------------------+                     |   |
+|   |  PostRepositoryImpl   | (Datos)             |   |
+|   +-----------------------+                     |   |
+|               |                                 |   |
++---------------|---------------------------------|---+
+                v                                 |
+    +-----------------------+                     | (Suscripción activa)
+    |  Cloud Firestore API  | ====================+ (Stream Snapshot)
+    +-----------------------+
+```
+
+---
+
+### Página 30: Flujo de Datos Reactivo en Tiempo Real y StreamProvider
+El feed social de Streaks requiere reflejar instantáneamente el incremento de estrellas y la subida de publicaciones entre la red de contactos. En lugar de forzar actualizaciones manuales o realizar encuestas repetitivas (*polling*), se aprovecha el patrón reactivo mediante la combinación de `Stream` de Dart y `StreamProvider` de Riverpod.
+
+En el archivo de proveedores del feed, se configura la escucha activa del canal de datos:
+
+```dart
+final userPostsStreamProvider = StreamProvider.family<List<Post>, String>((ref, userId) {
+  final repository = ref.watch(postRepositoryProvider);
+  return repository.watchUserPosts(userId);
+});
+```
+
+* **Escucha Activa**: El método `watchUserPosts` del repositorio de datos devuelve un flujo continuo (`Stream<List<Post>>`) mapeado a partir de los `snapshots()` de una consulta parametrizada a la colección de Firestore.
+* **Auto-Mantenimiento**: Si otro usuario de la red social otorga una estrella a una publicación, Firestore notifica de forma nativa la modificación a través de la conexión web abierta.
+* **Manejo UI Limpio**: La vista simplemente consume el proveedor y utiliza la coincidencia de patrones (*pattern matching*) nativa de los estados asíncronos de Riverpod (`AsyncValue`), lo que automatiza y limpia la gestión de estados de carga, éxito y error:
+
+```dart
+userPostsAsync.when(
+  data: (posts) => ListView.builder(itemCount: posts.length, ...),
+  loading: () => const CircularProgressIndicator(),
+  error: (err, stack) => Text('Error al cargar feed: $err'),
+);
+```
+
+---
+
+### Página 31: Gestión de Caché Local (Caching) y Persistencia Offline en Firestore
+Un factor crítico de calidad en la memoria de prácticas de una app móvil es el comportamiento del software en entornos con conectividad inestable o nula. En Streaks, la persistencia offline se resuelve mediante el aprovechamiento de la base de datos local y la caché de documentos de Firebase Firestore.
+
+Al inicializar la aplicación, la base de datos se configura para habilitar la persistencia persistente fuera de línea (*Offline Persistence*). Esto altera el flujo tradicional de la capa de datos:
+
+1. **Lectura de Caché Prioritaria**: Cuando la aplicación solicita el feed de fotos mediante el repositorio, Firestore devuelve inmediatamente los registros almacenados en su caché SQLite local en el dispositivo. Esto permite una velocidad de renderizado instantánea.
+2. **Sincronización en Background**: Paralelamente, el SDK establece la conexión de red en segundo plano para verificar si existen actualizaciones en el servidor. Si se encuentran datos nuevos, el Stream emite un nuevo evento con la información consolidada, actualizando la UI de manera fluida.
+3. **Escrituras Offline mediante Concurrencia Optimista**: Cuando el usuario da doble tap a una foto en modo avión, el repositorio procesa la acción de inmediato a nivel local. La UI simula visualmente la adición de la estrella. El SDK encolará internamente la transacción mutacional de red y la ejecutará contra el servidor en la nube en el momento exacto en que la conectividad a Internet sea restaurada.
+
+---
+
+### Página 32: Resumen y Conclusiones del Diseño Arquitectónico
+La implantación de Clean Architecture y Riverpod en Streaks ha demostrado aportar grandes ventajas operativas durante el transcurso del desarrollo del proyecto:
+
+* **Separación Efectiva de Responsabilidad**: Ha sido viable rediseñar por completo la capa de presentación (sustituyendo el complejo botón de arrastre por un gesto intuitivo de doble toque en la foto) sin tocar una sola línea de código en la capa de lógica empresarial (`lib/domain`) o en la capa de datos (`lib/data`).
+* **Facilidad en la Rotación de Miembros**: En un contexto de desarrollo real de prácticas de empresa, un nuevo programador puede incorporarse y comprender el comportamiento del feed analizando exclusivamente los archivos en `lib/domain` sin necesidad de entender la configuración del entorno de Firebase ni la estructura interna de las vistas complejas de Flutter.
+* **Control de Ciclo de Vida**: Riverpod optimiza el consumo de memoria liberando automáticamente el estado de los proveedores cuando la UI deja de consumirlos (haciendo uso del modificador `.autoDispose`). Esto previene fugas de memoria típicas al retener streams activos de red de forma innecesaria.
 
 ---
 

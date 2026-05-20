@@ -5,6 +5,7 @@ import '../../data/repositories/habit_repository_impl.dart';
 import '../../domain/entities/habit.dart';
 import 'auth_providers.dart';
 import 'user_providers.dart';
+import '../../core/utils/widget_utils.dart';
 
 
 /// Calculates the real global daily streak from the habits list.
@@ -439,4 +440,22 @@ StreakRecord _buildRecord({
     minutesSpent: minutes,
   );
 }
+
+final nativeWidgetSyncProvider = Provider.autoDispose<void>((ref) {
+  final userAsync = ref.watch(currentUserProvider);
+  final habitsAsync = ref.watch(habitListProvider);
+  final streak = ref.watch(globalStreakProvider);
+
+  userAsync.whenData((user) {
+    habitsAsync.whenData((habits) {
+      if (user != null) {
+        WidgetUtils.updateNativeWidget(
+          user: user,
+          habits: habits,
+          globalStreak: streak,
+        );
+      }
+    });
+  });
+});
 

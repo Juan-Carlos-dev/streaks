@@ -20,6 +20,9 @@ class User {
   final String bannerEmojiStyle;
   final double bannerEmojiSize;
   final double bannerEmojiRotation;
+  final double bannerEmojiOpacity;
+  final String bannerEmojiSeed;
+  final double bannerEmojiSpacing;
 
   const User({
     required this.uid,
@@ -47,6 +50,9 @@ class User {
     this.bannerEmojiStyle = 'none',
     this.bannerEmojiSize = 16.0,
     this.bannerEmojiRotation = 0.0,
+    this.bannerEmojiOpacity = 0.20,
+    this.bannerEmojiSeed = '',
+    this.bannerEmojiSpacing = 1.0,
   });
 
   factory User.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -87,6 +93,13 @@ class User {
       bannerEmojiRotation: (data['bannerEmojiRotation'] ?? 0.0) is int 
           ? (data['bannerEmojiRotation'] as int).toDouble() 
           : (data['bannerEmojiRotation'] ?? 0.0) as double,
+      bannerEmojiOpacity: (data['bannerEmojiOpacity'] ?? 0.20) is int 
+          ? (data['bannerEmojiOpacity'] as int).toDouble() 
+          : (data['bannerEmojiOpacity'] ?? 0.20) as double,
+      bannerEmojiSeed: data['bannerEmojiSeed'] ?? '',
+      bannerEmojiSpacing: (data['bannerEmojiSpacing'] ?? 1.0) is int
+          ? (data['bannerEmojiSpacing'] as int).toDouble()
+          : (data['bannerEmojiSpacing'] ?? 1.0) as double,
     );
   }
 
@@ -111,6 +124,9 @@ class User {
       'bannerEmojiStyle': bannerEmojiStyle,
       'bannerEmojiSize': bannerEmojiSize,
       'bannerEmojiRotation': bannerEmojiRotation,
+      'bannerEmojiOpacity': bannerEmojiOpacity,
+      'bannerEmojiSeed': bannerEmojiSeed,
+      'bannerEmojiSpacing': bannerEmojiSpacing,
     };
   }
 
@@ -134,6 +150,9 @@ class User {
     String? bannerEmojiStyle,
     double? bannerEmojiSize,
     double? bannerEmojiRotation,
+    double? bannerEmojiOpacity,
+    String? bannerEmojiSeed,
+    double? bannerEmojiSpacing,
   }) {
     return User(
       uid: uid ?? this.uid,
@@ -155,6 +174,9 @@ class User {
       bannerEmojiStyle: bannerEmojiStyle ?? this.bannerEmojiStyle,
       bannerEmojiSize: bannerEmojiSize ?? this.bannerEmojiSize,
       bannerEmojiRotation: bannerEmojiRotation ?? this.bannerEmojiRotation,
+      bannerEmojiOpacity: bannerEmojiOpacity ?? this.bannerEmojiOpacity,
+      bannerEmojiSeed: bannerEmojiSeed ?? this.bannerEmojiSeed,
+      bannerEmojiSpacing: bannerEmojiSpacing ?? this.bannerEmojiSpacing,
     );
   }
 }

@@ -52,9 +52,14 @@ widget_target.build_configurations.each do |config|
   config.build_settings['SKIP_INSTALL'] = 'YES'
 end
 
+# Set project-level deployment target
+project.build_configurations.each do |config|
+  config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+end
+
 runner_target = project.targets.find { |t| t.name == 'Runner' }
 if runner_target
-  puts "Configuring Runner target entitlements..."
+  puts "Configuring Runner target..."
   
   runner_app_group = runner_group.find_subpath('Runner', false)
   if runner_app_group
@@ -66,8 +71,18 @@ if runner_target
   
   runner_target.build_configurations.each do |config|
     config.build_settings['CODE_SIGN_ENTITLEMENTS'] = 'Runner/Runner.entitlements'
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
   end
 end
+
+runner_tests_target = project.targets.find { |t| t.name == 'RunnerTests' }
+if runner_tests_target
+  puts "Configuring RunnerTests target..."
+  runner_tests_target.build_configurations.each do |config|
+    config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+  end
+end
+
 
 unless runner_target.dependencies.any? { |dep| dep.target == widget_target }
   puts "Adding target dependency: RunnerWidget -> Runner"

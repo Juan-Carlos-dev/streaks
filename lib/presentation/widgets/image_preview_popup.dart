@@ -120,27 +120,22 @@ class _ImagePreviewWrapperState extends State<ImagePreviewWrapper> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTap: () {
+        ImagePreviewWrapper.showPreviewDialog(
+          context,
+          imageUrl: widget.imageUrl,
+          username: widget.username,
+          userPhotoUrl: widget.userPhotoUrl,
+          profileGradientIndex: widget.profileGradientIndex,
+          aspectRatio: widget.aspectRatio,
+          likesCount: widget.likesCount,
+          caption: widget.caption,
+          isLiked: widget.isLiked,
+          onLike: widget.onLike,
+        );
+      },
       onLongPressStart: (_) => _showPreview(),
-      onLongPressMoveUpdate: (details) {
-        if (_isShowing) {
-          _overlayKey.currentState?.updateDragPosition(details.globalPosition);
-        }
-      },
-      onLongPressEnd: (_) async {
-        if (_isShowing) {
-          final wasHovered = _overlayKey.currentState?.isLikeButtonHovered ?? false;
-          if (wasHovered && widget.onLike != null) {
-            // If it is not liked yet, trigger the star explosion animation and wait for it
-            if (!widget.isLiked) {
-              await _overlayKey.currentState?.triggerStarAnimation();
-            }
-            widget.onLike!();
-            _hidePreview();
-          } else {
-            _hidePreview();
-          }
-        }
-      },
+      onLongPressEnd: (_) => _hidePreview(),
       onLongPressCancel: () => _hidePreview(),
       child: widget.child,
     );
@@ -183,8 +178,6 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
 
-  final GlobalKey _likeButtonKey = GlobalKey();
-  bool isLikeButtonHovered = false;
   bool _showStarAnimation = false;
 
   @override
@@ -201,31 +194,6 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
       CurvedAnimation(parent: _controller, curve: Curves.easeOut),
     );
     _controller.forward();
-  }
-
-  void updateDragPosition(Offset globalPosition) {
-    final RenderBox? renderBox = _likeButtonKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox == null) return;
-
-    final size = renderBox.size;
-    final position = renderBox.localToGlobal(Offset.zero);
-
-    // Give some comfortable padding (15px) around the button bounds
-    const padding = 15.0;
-    final isHovered = globalPosition.dx >= position.dx - padding &&
-        globalPosition.dx <= position.dx + size.width + padding &&
-        globalPosition.dy >= position.dy - padding &&
-        globalPosition.dy <= position.dy + size.height + padding;
-
-    if (isHovered != isLikeButtonHovered) {
-      setState(() {
-        isLikeButtonHovered = isHovered;
-      });
-      // Micro-haptic tap to confirm hover detection
-      if (isHovered) {
-        Feedback.forLongPress(context);
-      }
-    }
   }
 
   Future<void> triggerStarAnimation() async {
@@ -320,54 +288,64 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
                                 ],
                               ),
                             ),
-                            // Image
-                            AspectRatio(
-                              aspectRatio: widget.aspectRatio,
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  CachedNetworkImage(
-                                    imageUrl: widget.imageUrl,
-                                    fit: BoxFit.cover,
-                                    placeholder: (_, __) => Container(
-                                      color: const Color(0xFF121212),
-                                      child: const Center(
-                                        child: CircularProgressIndicator(),
+                            // Image with Double Tap support
+                            GestureDetector(
+                              onDoubleTap: () {
+                                if (widget.onLike != null && !widget.isLiked) {
+                                  triggerStarAnimation().then((_) {
+                                    widget.onLike!();
+                                    dismiss();
+                                  });
+                                }
+                              },
+                              child: AspectRatio(
+                                aspectRatio: widget.aspectRatio,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    CachedNetworkImage(
+                                      imageUrl: widget.imageUrl,
+                                      fit: BoxFit.cover,
+                                      placeholder: (_, __) => Container(
+                                        color: const Color(0xFF121212),
+                                        child: const Center(
+                                          child: CircularProgressIndicator(),
+                                        ),
+                                      ),
+                                      errorWidget: (_, __, ___) => Container(
+                                        color: const Color(0xFF121212),
+                                        child: const Icon(
+                                          Icons.broken_image,
+                                          color: Colors.grey,
+                                          size: 48,
+                                        ),
                                       ),
                                     ),
-                                    errorWidget: (_, __, ___) => Container(
-                                      color: const Color(0xFF121212),
-                                      child: const Icon(
-                                        Icons.broken_image,
-                                        color: Colors.grey,
-                                        size: 48,
-                                      ),
-                                    ),
-                                  ),
-                                  if (_showStarAnimation)
-                                    TweenAnimationBuilder<double>(
-                                      tween: Tween(begin: 0.4, end: 1.0),
-                                      duration: const Duration(milliseconds: 550),
-                                      curve: Curves.elasticOut,
-                                      builder: (context, scale, child) {
-                                        return Transform.scale(
-                                          scale: scale,
-                                          child: AnimatedOpacity(
-                                            opacity: _showStarAnimation ? 1.0 : 0.0,
-                                            duration: const Duration(milliseconds: 250),
-                                            child: const Icon(
-                                              Icons.star_rounded,
-                                              color: Colors.amber,
-                                              size: 110,
-                                              shadows: [
-                                                Shadow(color: Colors.black54, blurRadius: 12, offset: Offset(0, 4))
-                                              ],
+                                    if (_showStarAnimation)
+                                      TweenAnimationBuilder<double>(
+                                        tween: Tween(begin: 0.4, end: 1.0),
+                                        duration: const Duration(milliseconds: 550),
+                                        curve: Curves.elasticOut,
+                                        builder: (context, scale, child) {
+                                          return Transform.scale(
+                                            scale: scale,
+                                            child: AnimatedOpacity(
+                                              opacity: _showStarAnimation ? 1.0 : 0.0,
+                                              duration: const Duration(milliseconds: 250),
+                                              child: const Icon(
+                                                Icons.star_rounded,
+                                                color: Colors.amber,
+                                                size: 110,
+                                                shadows: [
+                                                  Shadow(color: Colors.black54, blurRadius: 12, offset: Offset(0, 4))
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                ],
+                                          );
+                                        },
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
                             // Footer (likes & caption)
@@ -432,19 +410,8 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
 
   Widget _buildActionsBar() {
     final Color activeColor = widget.isLiked ? Colors.redAccent : Colors.amber;
-    final Color iconColor = isLikeButtonHovered 
-        ? activeColor 
-        : (widget.isLiked ? Colors.amber : Colors.white70);
-    
-    String normalText;
-    String hoverText;
-    if (widget.isLiked) {
-      normalText = 'Arrastra aquí para quitar estrella';
-      hoverText = '¡Soltar para quitar estrella!';
-    } else {
-      normalText = 'Arrastra aquí para Destacar';
-      hoverText = '¡Soltar para Destacar!';
-    }
+    final Color iconColor = widget.isLiked ? Colors.amber : Colors.white70;
+    final String text = widget.isLiked ? 'Quitar estrella' : 'Destacar';
 
     return GestureDetector(
       onTap: () {
@@ -461,46 +428,37 @@ class PreviewOverlayWidgetState extends State<PreviewOverlayWidget>
         }
       },
       child: AnimatedContainer(
-        key: _likeButtonKey,
         duration: const Duration(milliseconds: 150),
         curve: Curves.easeOut,
-        transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.05 : 1.0),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: const Color(0xFF1E1E1E).withOpacity(0.9),
           borderRadius: BorderRadius.circular(30),
           border: Border.all(
-            color: isLikeButtonHovered ? activeColor.withOpacity(0.6) : Colors.white.withOpacity(0.12),
+            color: Colors.white.withOpacity(0.12),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: isLikeButtonHovered 
-                  ? activeColor.withOpacity(0.2) 
-                  : Colors.black.withOpacity(0.4),
+              color: Colors.black.withOpacity(0.4),
               blurRadius: 16,
-              spreadRadius: isLikeButtonHovered ? 3 : 0,
+              spreadRadius: 0,
             ),
           ],
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 150),
-              curve: Curves.easeOutBack,
-              transform: Matrix4.identity()..scale(isLikeButtonHovered ? 1.3 : 1.0),
-              child: Icon(
-                widget.isLiked ? Icons.star_rounded : Icons.star_outline_rounded,
-                color: iconColor,
-                size: 26,
-              ),
+            Icon(
+              widget.isLiked ? Icons.star_rounded : Icons.star_outline_rounded,
+              color: iconColor,
+              size: 26,
             ),
             const SizedBox(width: 10),
             Text(
-              isLikeButtonHovered ? hoverText : normalText,
-              style: TextStyle(
-                color: isLikeButtonHovered ? activeColor : Colors.white70,
+              text,
+              style: const TextStyle(
+                color: Colors.white70,
                 fontWeight: FontWeight.bold,
                 fontSize: 13.5,
               ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../widgets/image_preview_popup.dart';
 import '../widgets/follow_list_modal.dart';
+import '../widgets/banner_emoji_decoration.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../core/constants/app_colors.dart';
 import '../../domain/entities/user.dart';
@@ -156,12 +157,32 @@ class _UserProfileBody extends StatelessWidget {
                   top: 0, left: 0, right: 0,
                   height: bannerHeight,
                   child: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [Color(0xFF64B5F6), Color(0xFF1565C0)],
-                      ),
+                    decoration: BoxDecoration(
+                      gradient: (user != null && user!.customGradient.length == 2)
+                          ? LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Color(int.parse(user!.customGradient[0].replaceAll('#', '0xFF'))),
+                                Color(int.parse(user!.customGradient[1].replaceAll('#', '0xFF'))),
+                              ],
+                            )
+                          : AppColors.blueGradient,
+                    ),
+                    child: Stack(
+                      children: [
+                        BannerEmojiDecoration(
+                          emojiString: user?.bannerEmojiPattern ?? '',
+                          style: user?.bannerEmojiStyle ?? 'none',
+                          seed: (user?.bannerEmojiSeed != null && user!.bannerEmojiSeed.isNotEmpty)
+                              ? user!.bannerEmojiSeed
+                              : (user?.uid ?? 'default_seed'),
+                          size: user?.bannerEmojiSize ?? 16.0,
+                          rotation: user?.bannerEmojiRotation ?? 0.0,
+                          opacity: user?.bannerEmojiOpacity ?? 0.20,
+                          spacingFactor: user?.bannerEmojiSpacing ?? 1.0,
+                        ),
+                      ],
                     ),
                   ),
                 ),

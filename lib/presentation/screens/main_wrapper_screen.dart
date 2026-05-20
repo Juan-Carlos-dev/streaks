@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'dart:ui';
 import '../../core/constants/app_colors.dart';
 import '../providers/user_providers.dart';
+import '../providers/habit_providers.dart';
 
 class MainWrapperScreen extends ConsumerWidget {
   final StatefulNavigationShell navigationShell;
@@ -24,6 +25,7 @@ class MainWrapperScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     ref.watch(gradientControllerProvider);
+    ref.watch(nativeWidgetSyncProvider);
     return Scaffold(
       backgroundColor: Colors.black,
       // No bottomNavigationBar — we use a floating overlay via Stack
