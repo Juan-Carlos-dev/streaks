@@ -449,11 +449,6 @@ class _ProfileBody extends StatelessWidget {
                     height: 56,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: badge.backgroundColors,
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
                       boxShadow: [
                         BoxShadow(
                           color: badge.backgroundColors.first.withOpacity(0.4),
@@ -462,11 +457,11 @@ class _ProfileBody extends StatelessWidget {
                         ),
                       ],
                     ),
-                    child: Center(
-                      child: Text(
-                        badge.emoji,
-                        style: const TextStyle(fontSize: 26),
-                      ),
+                    child: Image.asset(
+                      badge.imagePath,
+                      width: 56,
+                      height: 56,
+                      fit: BoxFit.contain,
                     ),
                   ),
                 );
@@ -523,11 +518,6 @@ class _ProfileBody extends StatelessWidget {
                   height: 72,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      colors: badge.backgroundColors,
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
                     boxShadow: [
                       BoxShadow(
                         color: badge.backgroundColors.first.withOpacity(0.4),
@@ -536,11 +526,11 @@ class _ProfileBody extends StatelessWidget {
                       ),
                     ],
                   ),
-                  child: Center(
-                    child: Text(
-                      badge.emoji,
-                      style: const TextStyle(fontSize: 36),
-                    ),
+                  child: Image.asset(
+                    badge.imagePath,
+                    width: 72,
+                    height: 72,
+                    fit: BoxFit.contain,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -671,10 +661,18 @@ class _ProfileBody extends StatelessWidget {
                                   height: 50,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
-                                    gradient: LinearGradient(colors: badge.backgroundColors),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: badge.backgroundColors.first.withOpacity(0.3),
+                                        blurRadius: 8,
+                                      ),
+                                    ],
                                   ),
-                                  child: Center(
-                                    child: Text(badge.emoji, style: const TextStyle(fontSize: 22)),
+                                  child: Image.asset(
+                                    badge.imagePath,
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.contain,
                                   ),
                                 ),
                                 Positioned(
@@ -771,21 +769,39 @@ class _ProfileBody extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   Opacity(
-                                    opacity: isUnlocked ? 1.0 : 0.35,
+                                    opacity: isUnlocked ? 1.0 : 0.4,
                                     child: Container(
                                       width: 44,
                                       height: 44,
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
-                                        gradient: isUnlocked 
-                                            ? LinearGradient(colors: badge.backgroundColors)
-                                            : null,
-                                        color: isUnlocked ? null : Colors.grey[900],
+                                        boxShadow: isUnlocked ? [
+                                          BoxShadow(
+                                            color: badge.backgroundColors.first.withOpacity(0.3),
+                                            blurRadius: 6,
+                                          ),
+                                        ] : null,
                                       ),
-                                      child: Center(
-                                        child: isUnlocked 
-                                            ? Text(badge.emoji, style: const TextStyle(fontSize: 22))
-                                            : const Icon(Icons.lock_outline, color: Colors.white24),
+                                      child: Stack(
+                                        alignment: Alignment.center,
+                                        children: [
+                                          Image.asset(
+                                            badge.imagePath,
+                                            width: 44,
+                                            height: 44,
+                                            fit: BoxFit.contain,
+                                          ),
+                                          if (!isUnlocked)
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withOpacity(0.45),
+                                                shape: BoxShape.circle,
+                                              ),
+                                              child: const Center(
+                                                child: Icon(Icons.lock_outline, color: Colors.white70, size: 16),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
                                   ),
