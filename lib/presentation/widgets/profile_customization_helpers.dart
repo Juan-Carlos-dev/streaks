@@ -743,11 +743,14 @@ class ProfileBadgeWidget extends StatelessWidget {
             ClipOval(
               child: Opacity(
                 opacity: isUnlocked ? 1.0 : 0.4,
-                child: Image.asset(
-                  badge.imagePath!,
-                  width: size,
-                  height: size,
-                  fit: BoxFit.cover,
+                child: Transform.scale(
+                  scale: 1.35,
+                  child: Image.asset(
+                    badge.imagePath!,
+                    width: size,
+                    height: size,
+                    fit: BoxFit.cover,
+                  ),
                 ),
               ),
             ),
