@@ -127,6 +127,7 @@ class ProfileBadge {
   final BadgeTier tier;
   final List<Color> backgroundColors;
   final String unlockCriteria;
+  final String? imagePath;
 
   const ProfileBadge({
     required this.id,
@@ -138,6 +139,7 @@ class ProfileBadge {
     required this.tier,
     required this.backgroundColors,
     required this.unlockCriteria,
+    this.imagePath,
   });
 
   bool isUnlocked(User user, List<Habit> habits) {
@@ -241,6 +243,7 @@ class ProfileBadge {
       tier: BadgeTier.bronze,
       backgroundColors: [Color(0xFF81C784), Color(0xFF009688)],
       unlockCriteria: '1 hábito activo.',
+      imagePath: 'assets/images/badge_primer_paso.png',
     ),
     ProfileBadge(
       id: 'habits_3',
@@ -729,6 +732,46 @@ class ProfileBadgeWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (badge.imagePath != null) {
+      return SizedBox(
+        width: size,
+        height: size,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Circular clipped image asset to isolate the coin
+            ClipOval(
+              child: Opacity(
+                opacity: isUnlocked ? 1.0 : 0.4,
+                child: Image.asset(
+                  badge.imagePath!,
+                  width: size,
+                  height: size,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
+            if (!isUnlocked)
+              Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.5),
+                  shape: BoxShape.circle,
+                ),
+                child: Center(
+                  child: Icon(
+                    Icons.lock_outline,
+                    color: Colors.white70,
+                    size: size * 0.38,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      );
+    }
+
     return SizedBox(
       width: size,
       height: size,
