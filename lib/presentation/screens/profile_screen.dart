@@ -108,6 +108,7 @@ class _ProfileBody extends StatelessWidget {
   void _showAvatarOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.grey[950],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -169,6 +170,7 @@ class _ProfileBody extends StatelessWidget {
   void _showFrameSelector(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.grey[950],
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -502,6 +504,7 @@ class _ProfileBody extends StatelessWidget {
   void _showBadgeDetails(BuildContext context, ProfileBadge badge) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.grey[950],
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
@@ -592,6 +595,7 @@ class _ProfileBody extends StatelessWidget {
   void _showBadgeShowcaseEditor(BuildContext context) {
     showModalBottomSheet(
       context: context,
+      useRootNavigator: true,
       backgroundColor: Colors.grey[950],
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
