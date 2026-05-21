@@ -83,15 +83,39 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const Spacer(flex: 2),
-                const LogoAnimation(),
-                const SizedBox(height: 16),
-                const Text(
-                  'STREAKS',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 4.0,
-                    color: Colors.white,
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: Column(
+                    children: [
+                      Text(
+                        'CREA HÁBITOS • CONSTRUYE TU RITMO',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 3.0,
+                          color: Colors.white38,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Bienvenido a tu nueva vida',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          height: 1.25,
+                          color: Colors.white,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              offset: Offset(0, 4),
+                              blurRadius: 10,
+                            ),
+                          ],
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
                 const Spacer(flex: 1),
