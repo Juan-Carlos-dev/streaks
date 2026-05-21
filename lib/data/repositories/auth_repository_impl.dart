@@ -321,14 +321,14 @@ class AuthRepositoryImpl implements AuthRepository {
 
     final suggestions = <String>[];
     for (final candidate in baseCandidates) {
-      if (suggestions.length >= 3) break;
+      if (suggestions.length >= 4) break;
       if (await isUsernameAvailable(candidate)) {
         suggestions.add(candidate);
       }
     }
 
     int attempts = 0;
-    while (suggestions.length < 3 && attempts < 10) {
+    while (suggestions.length < 4 && attempts < 10) {
       attempts++;
       final candidate = '$clean${random.nextInt(999)}';
       if (!suggestions.contains(candidate) && await isUsernameAvailable(candidate)) {
