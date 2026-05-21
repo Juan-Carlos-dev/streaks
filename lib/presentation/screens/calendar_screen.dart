@@ -20,7 +20,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
   late DateTime _selectedDate;
   late DateTime _today;
   late DateTime _visibleDate;
-  final ScrollController _dayScrollController = ScrollController();
+  late final ScrollController _dayScrollController;
   
   final int _initialIndex = 5000;
   final double _itemWidth = 64.0; // Definimos la constante que faltaba
@@ -32,14 +32,18 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     _selectedDate = _today;
     _visibleDate = _today;
 
-    _dayScrollController.addListener(_onScroll);
+    // Compute the initial scroll offset immediately from the platform window,
+    // so the ListView starts at "today" on the very first frame — no flash.
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final screenWidth = view.physicalSize.width / view.devicePixelRatio;
+    final initialOffset = (10.0 +
+            (_initialIndex * _itemWidth) -
+            (screenWidth / 2) +
+            (_itemWidth / 2))
+        .clamp(0.0, double.infinity);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final screenWidth = MediaQuery.of(context).size.width;
-      _dayScrollController.jumpTo(
-        10.0 + (_initialIndex * _itemWidth) - (screenWidth / 2) + (_itemWidth / 2)
-      );
-    });
+    _dayScrollController = ScrollController(initialScrollOffset: initialOffset);
+    _dayScrollController.addListener(_onScroll);
   }
 
   void _scrollToToday() {
