@@ -164,35 +164,39 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       style: TextStyle(color: Colors.white70, fontSize: 13),
                     ),
                     const SizedBox(height: 6),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: usernameState.suggestions.map((suggestion) {
-                        return ActionChip(
-                          backgroundColor: Colors.white.withOpacity(0.15),
-                          side: BorderSide.none,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          label: Text(
-                            suggestion,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: usernameState.suggestions.map((suggestion) {
+                          return Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: ActionChip(
+                              backgroundColor: Colors.white,
+                              side: BorderSide.none,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              label: Text(
+                                suggestion,
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              onPressed: () {
+                                ref
+                                    .read(usernameCheckProvider.notifier)
+                                    .selectSuggestion(suggestion);
+                                _usernameController.text = suggestion;
+                                _usernameController.selection = TextSelection.fromPosition(
+                                  TextPosition(offset: suggestion.length),
+                                );
+                              },
                             ),
-                          ),
-                          onPressed: () {
-                            ref
-                                .read(usernameCheckProvider.notifier)
-                                .selectSuggestion(suggestion);
-                            _usernameController.text = suggestion;
-                            _usernameController.selection = TextSelection.fromPosition(
-                              TextPosition(offset: suggestion.length),
-                            );
-                          },
-                        );
-                      }).toList(),
+                          );
+                        }).toList(),
+                      ),
                     ),
                   ],
                   const SizedBox(height: 16),
