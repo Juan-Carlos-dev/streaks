@@ -287,6 +287,7 @@ class _UserProfileBody extends StatelessWidget {
                 child: GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
+                  padding: EdgeInsets.zero,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 3, mainAxisSpacing: 6, crossAxisSpacing: 6,
                   ),
