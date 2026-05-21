@@ -254,13 +254,15 @@ class _UserProfileBody extends StatelessWidget {
           // ── Vitrina de Insignias ──────────────────────────────────────
           _buildBadgesShowcase(context),
 
-          if (!isOwnProfile)
+          if (!isOwnProfile) ...[
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: _FollowButtons(userId: user?.uid ?? ''),
             ),
-
-          const SizedBox(height: 6),
+            const SizedBox(height: 24),
+          ] else ...[
+            const SizedBox(height: 24),
+          ],
 
           postsAsync.when(
             loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
