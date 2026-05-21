@@ -1,4 +1,4 @@
-import 'dart:ui';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/auth_providers.dart';
@@ -7,7 +7,6 @@ import '../providers/habit_providers.dart';
 import '../providers/feed_providers.dart';
 import '../providers/preloading_provider.dart';
 import '../widgets/lava_lamp_background.dart';
-import '../widgets/logo_animation.dart';
 
 class WelcomeScreen extends ConsumerStatefulWidget {
   const WelcomeScreen({super.key});
@@ -72,230 +71,126 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
       suggestedLoaded,
     );
 
-    final username = userAsync.value?.username ?? '';
-
     return Scaffold(
       body: LavaLampBackground(
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Spacer(flex: 2),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        'CREA HÁBITOS • CONSTRUYE TU RITMO',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 3.0,
-                          color: Colors.white38,
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Circular glowing loader
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.08),
+                          blurRadius: 24,
+                          spreadRadius: 4,
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        'Bienvenido a tu nueva vida',
-                        style: TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w800,
-                          height: 1.25,
-                          color: Colors.white,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black26,
-                              offset: Offset(0, 4),
-                              blurRadius: 10,
-                            ),
-                          ],
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
-                  ),
-                ),
-                const Spacer(flex: 1),
-                // Glassmorphism Card
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 28,
-                        vertical: 32,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
-                        borderRadius: BorderRadius.circular(28),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.12),
-                          width: 1.5,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.15),
-                            blurRadius: 30,
-                            spreadRadius: -10,
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          AnimatedCrossFade(
-                            firstChild: const Text(
-                              '¡Te damos la bienvenida!',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            secondChild: Text(
-                              '¡Hola, $username!',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: Colors.white,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            crossFadeState: username.isNotEmpty
-                                ? CrossFadeState.showSecond
-                                : CrossFadeState.showFirst,
-                            duration: const Duration(milliseconds: 400),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'Preparando tu espacio de crecimiento personal...',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.white.withOpacity(0.6),
-                              height: 1.4,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 32),
-                          // Loading Checklist
-                          _buildStatusRow(
-                            'Personalizando tu perfil',
-                            userLoaded,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildStatusRow(
-                            'Sincronizando tus hábitos',
-                            habitsLoaded,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildStatusRow(
-                            'Conectando con la comunidad',
-                            followingLoaded && suggestedLoaded,
-                          ),
-                          const SizedBox(height: 32),
-                          // Circular glowing loader
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 44,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.white.withOpacity(0.1),
-                                      blurRadius: 16,
-                                      spreadRadius: 2,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                width: 36,
-                                height: 36,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 3.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.white.withOpacity(0.85),
-                                  ),
-                                  backgroundColor: Colors.white.withOpacity(0.1),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
+                  SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 3,
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Colors.white.withOpacity(0.9),
+                      ),
+                      backgroundColor: Colors.white.withOpacity(0.08),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+              // Typing text
+              const TypingText(
+                text: 'Crea hábitos • Construye tu ritmo',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 2.0,
+                  color: Colors.white,
                 ),
-                const Spacer(flex: 3),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
+}
 
-  Widget _buildStatusRow(String label, bool isCompleted) {
-    return Row(
-      children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          width: 24,
-          height: 24,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: isCompleted
-                ? Colors.green.withOpacity(0.15)
-                : Colors.white.withOpacity(0.05),
-            border: Border.all(
-              color: isCompleted
-                  ? Colors.green.withOpacity(0.6)
-                  : Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
-          ),
-          child: Center(
-            child: isCompleted
-                ? const Icon(
-                    Icons.check,
-                    size: 14,
-                    color: Colors.greenAccent,
-                  )
-                : SizedBox(
-                    width: 8,
-                    height: 8,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 1.5,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withOpacity(0.4),
-                      ),
-                    ),
-                  ),
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: isCompleted ? FontWeight.w600 : FontWeight.w400,
-              color: isCompleted
-                  ? Colors.white
-                  : Colors.white.withOpacity(0.5),
-            ),
-          ),
-        ),
-      ],
+class TypingText extends StatefulWidget {
+  final String text;
+  final TextStyle style;
+  final Duration speed;
+
+  const TypingText({
+    super.key,
+    required this.text,
+    required this.style,
+    this.speed = const Duration(milliseconds: 80),
+  });
+
+  @override
+  State<TypingText> createState() => _TypingTextState();
+}
+
+class _TypingTextState extends State<TypingText> {
+  String _displayedText = '';
+  int _charIndex = 0;
+  Timer? _typingTimer;
+  bool _showCursor = true;
+  Timer? _cursorTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startTyping();
+    _startCursorFlashing();
+  }
+
+  void _startTyping() {
+    _typingTimer = Timer.periodic(widget.speed, (timer) {
+      if (_charIndex < widget.text.length) {
+        setState(() {
+          _displayedText += widget.text[_charIndex];
+          _charIndex++;
+        });
+      } else {
+        _typingTimer?.cancel();
+      }
+    });
+  }
+
+  void _startCursorFlashing() {
+    _cursorTimer = Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      setState(() {
+        _showCursor = !_showCursor;
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _typingTimer?.cancel();
+    _cursorTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      '$_displayedText${_showCursor ? "|" : " "}',
+      style: widget.style,
+      textAlign: TextAlign.center,
     );
   }
 }
