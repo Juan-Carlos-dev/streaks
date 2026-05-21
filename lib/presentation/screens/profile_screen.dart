@@ -4078,18 +4078,24 @@ class _ProfileBody extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: Colors.white,
         shape:
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Eliminar cuenta',
-            style: TextStyle(color: Colors.white)),
+        title: const Text(
+          'Eliminar cuenta',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         content: const Text(
           '¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer y borrará permanentemente todos tus hábitos y publicaciones.',
-          style: TextStyle(color: AppColors.textSecondary),
+          style: TextStyle(color: Colors.black54),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey[700]),
             child: const Text('Cancelar'),
           ),
           TextButton(
@@ -4116,13 +4122,23 @@ class _ProfileBody extends StatelessWidget {
                   showDialog(
                     context: context,
                     builder: (errCtx) => AlertDialog(
-                      backgroundColor: AppColors.surface,
+                      backgroundColor: Colors.white,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      title: const Text('Error', style: TextStyle(color: Colors.white)),
-                      content: Text(failure.message, style: const TextStyle(color: AppColors.textSecondary)),
+                      title: const Text(
+                        'Error',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      content: Text(
+                        failure.message,
+                        style: const TextStyle(color: Colors.black54),
+                      ),
                       actions: [
                         TextButton(
                           onPressed: () => Navigator.of(errCtx).pop(),
+                          style: TextButton.styleFrom(foregroundColor: Colors.blueAccent),
                           child: const Text('Aceptar'),
                         ),
                       ],
@@ -4139,8 +4155,8 @@ class _ProfileBody extends StatelessWidget {
                 },
               );
             },
-            child: const Text('Eliminar',
-                style: TextStyle(color: AppColors.error)),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('Eliminar'),
           ),
         ],
       ),
