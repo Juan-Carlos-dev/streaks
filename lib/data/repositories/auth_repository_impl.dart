@@ -268,6 +268,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return 'No existe una cuenta con este correo';
       case 'wrong-password':
         return 'Contraseña incorrecta';
+      case 'invalid-credential':
+        return 'Correo o contraseña incorrectos';
       case 'email-already-in-use':
         return 'Ya existe una cuenta con este correo';
       case 'weak-password':
