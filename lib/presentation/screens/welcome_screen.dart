@@ -17,6 +17,7 @@ class WelcomeScreen extends ConsumerStatefulWidget {
 
 class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
   bool _isMinTimeElapsed = false;
+  bool _isTypingCompleted = false;
 
   @override
   void initState() {
@@ -38,6 +39,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
     bool suggestedLoaded,
   ) {
     if (_isMinTimeElapsed &&
+        _isTypingCompleted &&
         userLoaded &&
         habitsLoaded &&
         followingLoaded &&
@@ -110,14 +112,21 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               ),
               const SizedBox(height: 32),
               // Typing text
-              const TypingText(
+              TypingText(
                 text: 'Crea hábitos • Construye tu ritmo',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w500,
                   letterSpacing: 2.0,
                   color: Colors.white,
                 ),
+                onComplete: () {
+                  if (mounted) {
+                    setState(() {
+                      _isTypingCompleted = true;
+                    });
+                  }
+                },
               ),
             ],
           ),
@@ -131,12 +140,14 @@ class TypingText extends StatefulWidget {
   final String text;
   final TextStyle style;
   final Duration speed;
+  final VoidCallback? onComplete;
 
   const TypingText({
     super.key,
     required this.text,
     required this.style,
     this.speed = const Duration(milliseconds: 80),
+    this.onComplete,
   });
 
   @override
@@ -166,6 +177,9 @@ class _TypingTextState extends State<TypingText> {
         });
       } else {
         _typingTimer?.cancel();
+        if (widget.onComplete != null) {
+          widget.onComplete!();
+        }
       }
     });
   }
