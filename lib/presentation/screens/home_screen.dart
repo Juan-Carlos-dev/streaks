@@ -18,6 +18,7 @@ import '../widgets/search_drawer.dart';
 import '../widgets/image_preview_popup.dart';
 import 'messages_screen.dart';
 import '../providers/message_providers.dart';
+import '../widgets/profile_customization_helpers.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -869,34 +870,84 @@ class _UserAvatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (user != null && user!.photoUrl.isNotEmpty) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundImage: CachedNetworkImageProvider(ImageUtils.wrapProxy(user!.photoUrl)),
-      );
-    }
+    final photoUrl = user?.photoUrl ?? '';
+    final initial = (user?.username.isNotEmpty == true ? user!.username : 'U')[0].toUpperCase();
+
     final gradientIndex = (user?.profileGradientIndex ?? 0)
         .clamp(0, AppColors.profileGradients.length - 1);
     final colors = AppColors.profileGradients[gradientIndex];
+
+    final frame = AvatarFrame.getById(user?.activeFrame ?? 'none');
+    final hasFrame = frame.id != 'none';
+
+    Widget avatarWidget = photoUrl.isNotEmpty
+        ? CachedNetworkImage(
+            imageUrl: ImageUtils.wrapProxy(photoUrl),
+            fit: BoxFit.cover,
+            width: radius * 2,
+            height: radius * 2,
+          )
+        : Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: colors,
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Center(
+              child: Text(
+                initial,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: radius * 0.8,
+                ),
+              ),
+            ),
+          );
+
+    if (!hasFrame) {
+      return Container(
+        width: radius * 2,
+        height: radius * 2,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey[300],
+          border: Border.all(color: Colors.black, width: 2),
+        ),
+        child: ClipOval(child: avatarWidget),
+      );
+    }
+
     return Container(
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
+        boxShadow: [
+          if (frame.glowColor != Colors.transparent)
+            BoxShadow(
+              color: frame.glowColor,
+              blurRadius: 6,
+              spreadRadius: 1.0,
+            ),
+        ],
         gradient: LinearGradient(
-          colors: colors,
+          colors: frame.gradientColors,
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
       ),
-      child: Center(
-        child: Text(
-          (user?.username.isNotEmpty == true ? user!.username : 'U')[0].toUpperCase(),
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: radius * 0.8,
-          ),
+      padding: EdgeInsets.all(frame.borderWidth * 0.85),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black,
+        ),
+        padding: const EdgeInsets.all(1.0),
+        child: ClipOval(
+          child: avatarWidget,
         ),
       ),
     );
