@@ -256,11 +256,11 @@ class _UserProfileBody extends StatelessWidget {
 
           if (!isOwnProfile)
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
               child: _FollowButtons(userId: user?.uid ?? ''),
             ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 6),
 
           postsAsync.when(
             loading: () => const SizedBox(height: 200, child: Center(child: CircularProgressIndicator())),
