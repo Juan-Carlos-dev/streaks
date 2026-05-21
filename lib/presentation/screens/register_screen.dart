@@ -122,7 +122,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.blueAccent,
-                    fontWeight: FontWeight.bold,
+                    textStyle: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   child: const Text('Iniciar sesión'),
                 ),
