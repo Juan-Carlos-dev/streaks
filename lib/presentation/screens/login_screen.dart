@@ -313,14 +313,19 @@ class _SignInBottomSheetState extends ConsumerState<_SignInBottomSheet> {
             TextFormField(
               controller: _emailController,
               style: const TextStyle(color: Colors.white),
+              cursorColor: Colors.white,
               decoration: InputDecoration(
                 hintText: 'Correo electrónico',
-                prefixIcon: const Icon(Icons.email_outlined),
+                prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.1),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
                 ),
               ),
               keyboardType: TextInputType.emailAddress,
@@ -331,14 +336,19 @@ class _SignInBottomSheetState extends ConsumerState<_SignInBottomSheet> {
             TextFormField(
               controller: _passwordController,
               style: const TextStyle(color: Colors.white),
+              cursorColor: Colors.white,
               decoration: InputDecoration(
                 hintText: 'Contraseña',
-                prefixIcon: const Icon(Icons.lock_outline),
+                prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
                 filled: true,
                 fillColor: Colors.white.withOpacity(0.1),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                   borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  borderSide: const BorderSide(color: Colors.white, width: 1.5),
                 ),
               ),
               obscureText: true,
@@ -360,7 +370,7 @@ class _SignInBottomSheetState extends ConsumerState<_SignInBottomSheet> {
                 child: const Text(
                   '¿Has olvidado tu contraseña?',
                   style: TextStyle(
-                    color: AppColors.primaryLight,
+                    color: Colors.white70,
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                   ),
@@ -368,43 +378,43 @@ class _SignInBottomSheetState extends ConsumerState<_SignInBottomSheet> {
               ),
             ),
             const SizedBox(height: 24),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: AppColors.defaultBlueGradient,
-                borderRadius: const BorderRadius.all(Radius.circular(14)),
-              ),
-              child: ElevatedButton(
-                onPressed: loginState.isLoading
-                    ? null
-                    : () {
-                        if (_formKey.currentState!.validate()) {
-                          ref.read(loginControllerProvider.notifier).signIn(
-                                _emailController.text.trim(),
-                                _passwordController.text.trim(),
-                              );
-                        }
-                      },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  foregroundColor: Colors.white,
-                  shadowColor: Colors.transparent,
-                  elevation: 0,
-                  minimumSize: const Size(double.infinity, 52),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
+            ElevatedButton(
+              onPressed: loginState.isLoading
+                  ? null
+                  : () {
+                      if (_formKey.currentState!.validate()) {
+                        ref.read(loginControllerProvider.notifier).signIn(
+                              _emailController.text.trim(),
+                              _passwordController.text.trim(),
+                            );
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                disabledBackgroundColor: Colors.white.withOpacity(0.6),
+                elevation: 0,
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: loginState.isLoading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Entrar'),
               ),
+              child: loginState.isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.black,
+                      ),
+                    )
+                  : const Text(
+                      'Entrar',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
             ),
             const SizedBox(height: 32),
           ],
