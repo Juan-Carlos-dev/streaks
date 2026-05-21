@@ -176,15 +176,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _usernameController,
                     style: const TextStyle(color: Colors.white),
+                    cursorColor: Colors.white,
                     decoration: InputDecoration(
                       hintText: 'Nombre de usuario',
-                      prefixIcon: const Icon(Icons.person_outline),
+                      prefixIcon: const Icon(Icons.person_outline, color: Colors.white70),
                       suffixIcon: _buildUsernameSuffix(usernameState),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Colors.white, width: 1.5),
                       ),
                     ),
                     validator: (v) {
@@ -247,14 +252,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _emailController,
                     style: const TextStyle(color: Colors.white),
+                    cursorColor: Colors.white,
                     decoration: InputDecoration(
                       hintText: 'Correo electrónico',
-                      prefixIcon: const Icon(Icons.email_outlined),
+                      prefixIcon: const Icon(Icons.email_outlined, color: Colors.white70),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Colors.white, width: 1.5),
                       ),
                     ),
                     keyboardType: TextInputType.emailAddress,
@@ -265,14 +275,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   TextFormField(
                     controller: _passwordController,
                     style: const TextStyle(color: Colors.white),
+                    cursorColor: Colors.white,
                     decoration: InputDecoration(
                       hintText: 'Contraseña',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_outline, color: Colors.white70),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(14),
                         borderSide: BorderSide.none,
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: const BorderSide(color: Colors.white, width: 1.5),
                       ),
                     ),
                     obscureText: true,
