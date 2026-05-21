@@ -86,9 +86,54 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   Widget build(BuildContext context) {
     ref.listen<AsyncValue<void>>(registerControllerProvider, (_, state) {
       if (state.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.error.toString())),
-        );
+        final errorMsg = state.error.toString();
+        if (errorMsg.contains('Ya existe una cuenta con este correo')) {
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (ctx) => AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              title: const Text(
+                'Correo ya registrado',
+                style: TextStyle(
+                  color: Colors.black87,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              content: const Text(
+                'Ya existe una cuenta vinculada a este correo electrónico. ¿Quieres iniciar sesión en su lugar?',
+                style: TextStyle(color: Colors.black54),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.grey[700],
+                  ),
+                  child: const Text('Cancelar'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    context.go('/login');
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.blueAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  child: const Text('Iniciar sesión'),
+                ),
+              ],
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(errorMsg)),
+          );
+        }
       }
     });
 
