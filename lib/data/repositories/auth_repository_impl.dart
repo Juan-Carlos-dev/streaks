@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
@@ -68,10 +69,13 @@ class AuthRepositoryImpl implements AuthRepository {
         widgetConfig: {},
       );
 
+      final newUserMap = newUser.toFirestore();
+      newUserMap['username_lowercase'] = username.trim().toLowerCase();
+
       await _firestore
           .collection('users')
           .doc(firebaseUser.uid)
-          .set(newUser.toFirestore());
+          .set(newUserMap);
 
       return Right(firebaseUser.uid);
     } on firebase_auth.FirebaseAuthException catch (e) {
@@ -279,5 +283,58 @@ class AuthRepositoryImpl implements AuthRepository {
       default:
         return 'Error de autenticación';
     }
+  }
+
+  @override
+  Future<bool> isUsernameAvailable(String username) async {
+    final clean = username.trim();
+    if (clean.length < 3) return false;
+    
+    final lowercaseQuery = await _firestore
+        .collection('users')
+        .where('username_lowercase', isEqualTo: clean.toLowerCase())
+        .limit(1)
+        .get();
+    if (lowercaseQuery.docs.isNotEmpty) return false;
+
+    final legacyQuery = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: clean)
+        .limit(1)
+        .get();
+    return legacyQuery.docs.isEmpty;
+  }
+
+  @override
+  Future<List<String>> getUsernameSuggestions(String username) async {
+    final clean = username.trim().toLowerCase();
+    final baseCandidates = [
+      '${clean}123',
+      '${clean}_',
+      '${clean}_streaks',
+      '${clean}fit',
+    ];
+    final random = Random();
+    for (int i = 0; i < 3; i++) {
+      baseCandidates.add('$clean${10 + random.nextInt(89)}');
+    }
+
+    final suggestions = <String>[];
+    for (final candidate in baseCandidates) {
+      if (suggestions.length >= 3) break;
+      if (await isUsernameAvailable(candidate)) {
+        suggestions.add(candidate);
+      }
+    }
+
+    int attempts = 0;
+    while (suggestions.length < 3 && attempts < 10) {
+      attempts++;
+      final candidate = '$clean${random.nextInt(999)}';
+      if (!suggestions.contains(candidate) && await isUsernameAvailable(candidate)) {
+        suggestions.add(candidate);
+      }
+    }
+    return suggestions;
   }
 }

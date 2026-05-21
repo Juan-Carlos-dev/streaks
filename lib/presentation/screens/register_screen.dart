@@ -18,6 +18,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
 
   @override
+  void initState() {
+    super.initState();
+    _usernameController.addListener(() {
+      ref.read(usernameCheckProvider.notifier).checkUsername(_usernameController.text);
+    });
+  }
+
+  @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
@@ -26,6 +34,19 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   }
 
   void _submit() {
+    final usernameState = ref.read(usernameCheckProvider);
+    if (usernameState.isLoading) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, espera a que se compruebe el nombre de usuario')),
+      );
+      return;
+    }
+    if (usernameState.isAvailable != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('El nombre de usuario no está disponible o es inválido')),
+      );
+      return;
+    }
     if (_formKey.currentState!.validate()) {
       ref.read(registerControllerProvider.notifier).signUp(
             _emailController.text.trim(),
@@ -33,6 +54,30 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             _usernameController.text.trim(),
           );
     }
+  }
+
+  Widget? _buildUsernameSuffix(UsernameCheckState state) {
+    if (state.username.trim().length < 3) return null;
+    if (state.isLoading) {
+      return const Padding(
+        padding: EdgeInsets.all(12.0),
+        child: SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white70),
+          ),
+        ),
+      );
+    }
+    if (state.isAvailable == true) {
+      return const Icon(Icons.check_circle, color: Colors.greenAccent);
+    }
+    if (state.isAvailable == false) {
+      return const Icon(Icons.cancel, color: Colors.redAccent);
+    }
+    return null;
   }
 
   @override
@@ -46,6 +91,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     final registerState = ref.watch(registerControllerProvider);
+    final usernameState = ref.watch(usernameCheckProvider);
 
     return Scaffold(
       body: Container(
@@ -89,6 +135,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: InputDecoration(
                       hintText: 'Nombre de usuario',
                       prefixIcon: const Icon(Icons.person_outline),
+                      suffixIcon: _buildUsernameSuffix(usernameState),
                       filled: true,
                       fillColor: Colors.white.withOpacity(0.1),
                       border: OutlineInputBorder(
@@ -96,9 +143,58 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         borderSide: BorderSide.none,
                       ),
                     ),
-                    validator: (v) =>
-                        v == null || v.isEmpty ? 'Introduce un nombre' : null,
+                    validator: (v) {
+                      if (v == null || v.isEmpty) {
+                        return 'Introduce un nombre';
+                      }
+                      if (v.trim().length < 3) {
+                        return 'Mínimo 3 caracteres';
+                      }
+                      if (usernameState.isAvailable == false) {
+                        return 'El nombre de usuario ya está cogido';
+                      }
+                      return null;
+                    },
                   ),
+                  if (usernameState.isAvailable == false &&
+                      usernameState.suggestions.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Sugerencias:',
+                      style: TextStyle(color: Colors.white70, fontSize: 13),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: usernameState.suggestions.map((suggestion) {
+                        return ActionChip(
+                          backgroundColor: Colors.white.withOpacity(0.15),
+                          side: BorderSide.none,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          label: Text(
+                            suggestion,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 13,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          onPressed: () {
+                            ref
+                                .read(usernameCheckProvider.notifier)
+                                .selectSuggestion(suggestion);
+                            _usernameController.text = suggestion;
+                            _usernameController.selection = TextSelection.fromPosition(
+                              TextPosition(offset: suggestion.length),
+                            );
+                          },
+                        );
+                      }).toList(),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _emailController,

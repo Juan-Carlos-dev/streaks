@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -94,3 +95,102 @@ class GoRouterRefreshStream extends ChangeNotifier {
     super.dispose();
   }
 }
+
+class UsernameCheckState {
+  final String username;
+  final bool isLoading;
+  final bool? isAvailable;
+  final List<String> suggestions;
+
+  const UsernameCheckState({
+    this.username = '',
+    this.isLoading = false,
+    this.isAvailable,
+    this.suggestions = const [],
+  });
+
+  UsernameCheckState copyWith({
+    String? username,
+    bool? isLoading,
+    bool? isAvailable,
+    bool clearAvailability = false,
+    List<String>? suggestions,
+  }) {
+    return UsernameCheckState(
+      username: username ?? this.username,
+      isLoading: isLoading ?? this.isLoading,
+      isAvailable: clearAvailability ? null : (isAvailable ?? this.isAvailable),
+      suggestions: suggestions ?? this.suggestions,
+    );
+  }
+
+  UsernameCheckState.initial()
+      : username = '',
+        isLoading = false,
+        isAvailable = null,
+        suggestions = const [];
+}
+
+class UsernameCheckNotifier extends StateNotifier<UsernameCheckState> {
+  final AuthRepository _authRepository;
+  Timer? _debounceTimer;
+
+  UsernameCheckNotifier(this._authRepository) : super(UsernameCheckState.initial());
+
+  void checkUsername(String username) {
+    _debounceTimer?.cancel();
+    final clean = username.trim();
+    if (clean.length < 3) {
+      state = UsernameCheckState.initial().copyWith(username: clean);
+      return;
+    }
+
+    if (clean == state.username && state.isAvailable == true && !state.isLoading) {
+      return;
+    }
+
+    state = state.copyWith(
+      username: clean,
+      isLoading: true,
+      clearAvailability: true,
+      suggestions: const [],
+    );
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () async {
+      final available = await _authRepository.isUsernameAvailable(clean);
+      List<String> suggestions = const [];
+      if (!available) {
+        suggestions = await _authRepository.getUsernameSuggestions(clean);
+      }
+
+      if (state.username == clean) {
+        state = state.copyWith(
+          isLoading: false,
+          isAvailable: available,
+          suggestions: suggestions,
+        );
+      }
+    });
+  }
+
+  void selectSuggestion(String suggestion) {
+    _debounceTimer?.cancel();
+    state = UsernameCheckState(
+      username: suggestion,
+      isLoading: false,
+      isAvailable: true,
+      suggestions: const [],
+    );
+  }
+
+  @override
+  void dispose() {
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+}
+
+final usernameCheckProvider =
+    StateNotifierProvider.autoDispose<UsernameCheckNotifier, UsernameCheckState>((ref) {
+  return UsernameCheckNotifier(ref.watch(authRepositoryProvider));
+});
