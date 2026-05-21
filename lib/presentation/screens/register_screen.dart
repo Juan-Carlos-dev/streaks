@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../core/constants/app_colors.dart';
 import '../providers/auth_providers.dart';
 import '../widgets/lava_lamp_background.dart';
+import '../widgets/marquee_row.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
@@ -251,7 +252,71 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           )
                         : const Text('Crear cuenta'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 48),
+                  ExcludeSemantics(
+                    child: Column(
+                      children: [
+                        SizedBox(
+                          height: 30,
+                          child: OverflowBox(
+                            maxWidth: MediaQuery.of(context).size.width * 1.4,
+                            child: const MarqueeRow(
+                              words: ['MOTIVACIÓN', 'ESFUERZO', 'CONSTANCIA', 'DISCIPLINA', 'ENFOQUE'],
+                              speed: 30.0,
+                              fontSize: 14.0,
+                              baseAngle: -0.03, // Mild slant
+                              phaseOffset: 0.0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 38,
+                          child: OverflowBox(
+                            maxWidth: MediaQuery.of(context).size.width * 1.4,
+                            child: const MarqueeRow(
+                              words: ['SUPERACIÓN', 'VOLUNTAD', 'HÁBITO', 'DEDICACIÓN', 'RUTINA'],
+                              speed: 45.0,
+                              fontSize: 22.0,
+                              baseAngle: -0.08, // Steeper slant
+                              reverse: true,
+                              phaseOffset: 1.5, // Out of phase for organic desync
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 32,
+                          child: OverflowBox(
+                            maxWidth: MediaQuery.of(context).size.width * 1.4,
+                            child: const MarqueeRow(
+                              words: ['RESILIENCIA', 'CRECIMIENTO', 'PROPÓSITO', 'FOCO', 'ACTITUD'],
+                              speed: 25.0,
+                              fontSize: 16.0,
+                              baseAngle: -0.05, // Medium slant
+                              phaseOffset: 3.1, // Out of phase
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          height: 36,
+                          child: OverflowBox(
+                            maxWidth: MediaQuery.of(context).size.width * 1.4,
+                            child: const MarqueeRow(
+                              words: ['ÉXITO', 'FUERZA', 'PROGRESO', 'VOLUNTAD', 'CONSTANCIA'],
+                              speed: 35.0,
+                              fontSize: 20.0,
+                              baseAngle: -0.10, // Deepest slant
+                              reverse: true,
+                              phaseOffset: 4.6, // Out of phase
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 32),
                 ],
               ),
             ),
