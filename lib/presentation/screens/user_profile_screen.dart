@@ -432,24 +432,73 @@ class _UPAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final photoUrl = user?.photoUrl ?? '';
     final initial = (user?.username.isNotEmpty == true) ? user!.username[0].toUpperCase() : 'U';
+
+    final frame = AvatarFrame.getById(user?.activeFrame ?? 'none');
+    final hasFrame = frame.id != 'none';
+
+    Widget avatarWidget = photoUrl.isNotEmpty
+        ? CachedNetworkImage(
+            imageUrl: ImageUtils.wrapProxy(photoUrl),
+            fit: BoxFit.cover,
+            width: radius * 2,
+            height: radius * 2,
+          )
+        : Container(
+            color: AppColors.primary,
+            child: Center(
+              child: Text(
+                initial,
+                style: TextStyle(
+                  fontSize: radius * 0.7,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          );
+
+    if (!hasFrame) {
+      return Container(
+        width: radius * 2,
+        height: radius * 2,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.grey[300],
+          border: Border.all(color: Colors.black, width: 3),
+        ),
+        child: ClipOval(child: avatarWidget),
+      );
+    }
+
     return Container(
       width: radius * 2,
       height: radius * 2,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        color: Colors.grey[300],
-        border: Border.all(color: Colors.black, width: 3),
+        boxShadow: [
+          if (frame.glowColor != Colors.transparent)
+            BoxShadow(
+              color: frame.glowColor,
+              blurRadius: 10,
+              spreadRadius: 1.5,
+            ),
+        ],
+        gradient: LinearGradient(
+          colors: frame.gradientColors,
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
       ),
-      child: ClipOval(
-        child: photoUrl.isNotEmpty
-            ? CachedNetworkImage(imageUrl: ImageUtils.wrapProxy(photoUrl), fit: BoxFit.cover, width: radius * 2, height: radius * 2)
-            : Container(
-                color: AppColors.primary,
-                child: Center(
-                  child: Text(initial,
-                      style: TextStyle(fontSize: radius * 0.7, fontWeight: FontWeight.bold, color: Colors.white)),
-                ),
-              ),
+      padding: EdgeInsets.all(frame.borderWidth),
+      child: Container(
+        decoration: const BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black,
+        ),
+        padding: const EdgeInsets.all(1.5),
+        child: ClipOval(
+          child: avatarWidget,
+        ),
       ),
     );
   }
