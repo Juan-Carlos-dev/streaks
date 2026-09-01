@@ -1,4 +1,4 @@
-# ⚡ Streaks – Gamified Habit Tracker & Social Productivity App
+#  Streaks – Gamified Habit Tracker & Social Productivity App
 
 **Streaks** es una aplicación móvil multiplataforma desarrollada en **Flutter** orientada al seguimiento de hábitos y la mejora de la productividad personal. Combina mecánicas de **gamificación** con una **red social** integrada para fomentar el compromiso, la constancia y la motivación entre usuarios.
 
@@ -6,17 +6,17 @@ Este proyecto ha sido diseñado y desarrollado como el **Proyecto Fin de Grado (
 
 ---
 
-## 🌟 Características Principales
+##  Características Principales
 
-- 🔄 **Seguimiento de Hábitos y Rachas:** Creación, registro diario y analítica visual del cumplimiento de hábitos (*streaks*).
-- 🎮 **Gamificación:** Sistema de recompensas y progresión para incentivar el cumplimiento de objetivos.
-- 👥 **Red Social e Interacción:** Feed comunitario donde compartir avances, celebrar rachas y motivar a otros usuarios.
-- 🔔 **Notificaciones y Recordatorios:** Configuración de alertas para no perder el hábito diario.
-- 🌐 **Soporte Multiplataforma:** Arquitectura adaptada para ejecución en dispositivos iOS y Android.
+-  **Seguimiento de Hábitos y Rachas:** Creación, registro diario y analítica visual del cumplimiento de hábitos (*streaks*).
+-  **Gamificación:** Sistema de recompensas y progresión para incentivar el cumplimiento de objetivos.
+-  **Red Social e Interacción:** Feed comunitario donde compartir avances, celebrar rachas y motivar a otros usuarios.
+-  **Notificaciones y Recordatorios:** Configuración de alertas para no perder el hábito diario.
+-  **Soporte Multiplataforma:** Arquitectura adaptada para ejecución en dispositivos iOS y Android.
 
 ---
 
-## 🛠️ Stack Tecnológico
+##  Stack Tecnológico
 
 - **Framework:** [Flutter](https://flutter.dev/) (Dart)
 - **Gestión de Estado:** [Riverpod](https://riverpod.dev/)
@@ -26,7 +26,7 @@ Este proyecto ha sido diseñado y desarrollado como el **Proyecto Fin de Grado (
 
 ---
 
-## 📐 Estructura del Proyecto (Clean Architecture)
+##  Estructura del Proyecto (Clean Architecture)
 
 El código fuente principal dentro del directorio `lib/` está organizado de manera modular mediante **Clean Architecture** para garantizar la mantenibilidad, escalabilidad y separación de responsabilidades:
 
@@ -42,7 +42,7 @@ lib/
 
 ---
 
-## 🚀 Instalación y Ejecución Local
+##  Instalación y Ejecución Local
 
 ### Requisitos previos
 - [Flutter SDK](https://docs.flutter.dev/get-started/install)
@@ -69,7 +69,7 @@ lib/
 
 ---
 
-## 👤 Autor
+##  Autor
 
 * **Juan Carlos Pérez Simarro** – *Desarrollador Full Stack / Mobile*
 * **GitHub:** [@Juan-Carlos-dev](https://github.com/Juan-Carlos-dev)
