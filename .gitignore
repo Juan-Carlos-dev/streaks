@@ -43,3 +43,10 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Drafts and temporary screenshots
+borradores_tfg/
+flutter_*.png
+flutter_*.log
+Gemini_*.png
+
