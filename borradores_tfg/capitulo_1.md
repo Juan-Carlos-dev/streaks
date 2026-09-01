@@ -9,7 +9,7 @@ En paralelo a la evolución del hardware, la psicología conductual aplicada al 
 
 Sin embargo, en el ámbito de las aplicaciones móviles de productividad y seguimiento de metas (*habit trackers*), se observa una carencia fundamental. La gran mayoría de soluciones disponibles en los repositorios oficiales de software (como Google Play Store o Apple App Store) se centran de forma exclusiva en un modelo solitario y cuantitativo. Si bien registrar el progreso diario en forma de tablas o gráficos numéricos resulta útil para ciertos perfiles analíticos, para la mayoría de los usuarios este enfoque carece del motor motivacional más potente identificado por la psicología social: el **compromiso social** o *social accountability*.
 
-La motivación que impulsa este Trabajo de Fin de Grado radica en cerrar esta brecha conceptual mediante el diseño y desarrollo de **Streaks**. Streaks se concibe no solo como un gestor de hábitos individual, sino como una red social reactiva de productividad. La hipótesis fundamental que sostiene este proyecto es que la visibilidad pública de las rachas de progreso (*streaks*), combinada con la validación de una comunidad que persigue metas similares (representada a través de interacciones sociales rápidas), actúa como un catalizador psicológico que reduce drásticamente las tasas de abandono. De este modo, la gamificación no se reduce a una puntuación solitaria, sino que se convierte en un mecanismo social donde el progreso de cada individuo sirve de inspiración y soporte para su red de contactos.
+La motivación que impulsa este Proyecto de Fin de Ciclo radica en cerrar esta brecha conceptual mediante el diseño y desarrollo de **Streaks**. Streaks se concibe no solo como un gestor de hábitos individual, sino como una red social reactiva de productividad. La hipótesis fundamental que sostiene este proyecto es que la visibilidad pública de las rachas de progreso (*streaks*), combinada con la validación de una comunidad que persigue metas similares (representada a través de interacciones sociales rápidas), actúa como un catalizador psicológico que reduce drásticamente las tasas de abandono. De este modo, la gamificación no se reduce a una puntuación solitaria, sino que se convierte en un mecanismo social donde el progreso de cada individuo sirve de inspiración y soporte para su red de contactos.
 
 ---
 
@@ -40,10 +40,10 @@ Para alcanzar el objetivo general propuesto, se definen los siguientes objetivos
 
 ---
 
-## 1.4 Alcance y Límites del Trabajo
+## 1.4 Alcance y Límites del Proyecto
 
 ### Alcance del Proyecto
-El alcance del presente Trabajo de Fin de Grado abarca el ciclo de vida completo de ingeniería de software, contemplando el análisis de requisitos, diseño de la arquitectura, codificación, pruebas y despliegue del sistema Streaks. A nivel de características técnicas del software, el alcance está definido por los siguientes módulos funcionales:
+El alcance del presente Proyecto de Fin de Ciclo abarca el ciclo de vida completo de ingeniería de software, contemplando el análisis de requisitos, diseño de la arquitectura, codificación, pruebas y despliegue del sistema Streaks. A nivel de características técnicas del software, el alcance está definido por los siguientes módulos funcionales:
 
 *   **Módulo de Autenticación y Gestión de Cuentas**: Registro y login seguro de usuarios a través de correo electrónico y contraseña utilizando Firebase Auth, y edición avanzada del perfil de usuario (avatar con gradientes, nombre público, biografía e email con lógica de bypass en desarrollo).
 *   **Módulo de Seguimiento de Hábitos (Gamificación)**: Creación de metas diarias y cálculo automático de rachas (*streaks*) acumulativas basadas en registros históricos inmutables.
@@ -52,7 +52,7 @@ El alcance del presente Trabajo de Fin de Grado abarca el ciclo de vida completo
 *   **Módulo de Relaciones Sociales**: Gestión de seguidores y seguidos con buscador adaptativo local en cliente de perfiles de usuario.
 
 ### Límites del Proyecto
-Quedan fuera del alcance de este trabajo las siguientes líneas funcionales, las cuales se proponen como posibles trabajos futuros debido a limitaciones de tiempo y presupuesto del grado:
+Quedan fuera del alcance de este proyecto las siguientes líneas funcionales, las cuales se proponen como posibles desarrollos futuros debido a limitaciones de tiempo y presupuesto del ciclo formativo:
 
 *   **Soporte Multi-Backend**: El software está fuertemente acoplado al SDK de Firebase para el funcionamiento en tiempo real, por lo que la migración a una base de datos relacional SQL local no está contemplada en esta fase del desarrollo.
 *   **Sincronización con Dispositivos Wearables**: No se implementarán integraciones con APIs de sensores físicos o relojes inteligentes (como Apple HealthKit o Google Fit).
@@ -73,3 +73,54 @@ El desarrollo se estructuró en **Sprints quincenales** (de dos semanas de durac
 6.  **Sprint 6 (Resiliencia y Pruebas)**: Desarrollo del flujo alternativo del gestor de emails, pruebas de widgets y optimización del rendimiento en la renderización de imágenes con el motor de Flutter.
 
 La trazabilidad del código y el control de versiones se realizaron exclusivamente mediante **Git**, alojando los repositorios remotos en **GitHub** y organizando el trabajo en ramas de funcionalidad (*Feature Branches*) independientes para evitar conflictos antes de fusionar los componentes estables a la rama principal (*main*).
+
+---
+
+### 1.5.1 Planificación Temporal y Asignación de Horas (Diagrama de Gantt)
+Para la obtención del título de Técnico Superior en DAM, la gestión del tiempo y la estimación de esfuerzos representan factores de evaluación determinantes. El desarrollo de este proyecto se estimó en un total de **150 horas de trabajo efectivo**, distribuidas a lo largo de un período de 12 semanas (equivalente a 6 Sprints quincenales).
+
+La distribución del tiempo por fases metodológicas se estructura de la siguiente manera:
+
+*   **Análisis (20 horas - 13.3%)**: Especificación de requisitos de usuario, análisis de viabilidad técnica y configuración del entorno Firebase Console.
+*   **Diseño (25 horas - 16.7%)**: Modelado del esquema NoSQL en Firestore, diseño conceptual de Clean Architecture y creación de prototipos/interfaces (wireframes).
+*   **Implementación (70 horas - 46.7%)**: Desarrollo del núcleo de datos, lógica de negocio en la capa de dominio, programación de widgets, gestos interactivos (*drag-to-like*) y chat.
+*   **Pruebas (20 horas - 13.3%)**: Ejecución de baterías de pruebas unitarias y de widgets, optimización de velocidad de carga y consumo con Impeller.
+*   **Documentación (15 horas - 10%)**: Redacción de la memoria del proyecto, manual de usuario y manual de instalación/despliegue.
+
+A continuación, se detalla en la **Tabla 3.2** la distribución exacta de estas horas entre los 6 Sprints de desarrollo:
+
+**Tabla 3.2: Planificación de Horas por Fases y Sprints**
+
+| Sprint / Fase | Análisis | Diseño | Implementación | Pruebas | Documentación | Total Sprint |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **Sprint 1** (Análisis e Inicio) | 20 h | - | - | - | 5 h | **25 h** |
+| **Sprint 2** (Core Técnico) | - | 20 h | 5 h | - | - | **25 h** |
+| **Sprint 3** (Persistencia/Datos) | - | 5 h | 20 h | - | - | **25 h** |
+| **Sprint 4** (UI e Interfaces) | - | - | 25 h | - | - | **25 h** |
+| **Sprint 5** (Interactividad) | - | - | 20 h | 5 h | - | **25 h** |
+| **Sprint 6** (Pruebas y Cierre) | - | - | - | 15 h | 10 h | **25 h** |
+| **TOTALES** | **20 h** | **25 h** | **70 h** | **20 h** | **15 h** | **150 h** |
+
+El cronograma visual del proyecto se representa en el siguiente diagrama de Gantt (**Figura 5.1**), donde se visualiza el solapamiento y la secuencia temporal de las distintas fases:
+
+```mermaid
+gantt
+    title Figura 5.1: Diagrama de Gantt del Cronograma del Proyecto
+    dateFormat  YYYY-MM-DD
+    axisFormat %W
+    
+    section Análisis
+    Análisis de Requisitos y Viabilidad :active, a1, 2026-03-01, 2026-03-14
+    section Diseño
+    Esquema Firestore y Prototipado UI  : d1, 2026-03-15, 2026-03-28
+    Refinamiento de Reglas e Interfaces : d2, 2026-03-29, 2026-04-05
+    section Implementación
+    Capa de Datos, Repositorios y Auth : i1, 2026-04-06, 2026-04-18
+    Capa de Presentación y Calendario   : i2, 2026-04-19, 2026-05-02
+    Gestos Táctiles y Widget Home       : i3, 2026-05-03, 2026-05-13
+    section Pruebas
+    Pruebas Unitarias y Benchmarks      : p1, 2026-05-14, 2026-05-20
+    section Documentación
+    Manuales y Redacción de Memoria     : doc1, 2026-05-17, 2026-05-24
+```
+

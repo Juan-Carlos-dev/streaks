@@ -58,6 +58,28 @@ A continuación, se documentan detalladamente los flujos de ejecución correspon
 *   **Flujos Alternativos**:
     *   *Desviación 5.a*: El usuario levanta el dedo fuera del área del botón. El overlay se cierra de inmediato sin realizar llamadas de red ni alterar los datos.
 
+```mermaid
+graph TD
+    classDef start fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
+    classDef process fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
+    classDef decision fill:#ECEFF1,stroke:#37474F,stroke-width:2px,color:#263238;
+    classDef success fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
+    classDef fail fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#C62828;
+
+    Inicio(["Long Press en Miniatura"]):::start --> Overlay["Desplegar OverlayEntry<br>y Difuminar Pantalla"]:::process
+    Overlay --> Deslizar["Deslizar Dedo sin Levantar"]:::process
+    Deslizar --> Colision{"¿Colisión detectada<br>con Botón?"}:::decision
+
+    Colision -- Sí --> Feedback["Vibración Haptica Ligera<br>Escalar Píldora 5%<br>Borde Dorado/Rojo"]:::success
+    Feedback --> LevantarSi["Levantar Dedo en Área Activa"]:::success
+    LevantarSi --> Final["Animación Estrella Elástica<br>Llamada Asíncrona Firestore"]:::success
+
+    Colision -- No --> LevantarNo["Levantar Dedo Fuera de Área"]:::fail
+    LevantarNo --> Cancelar["Cerrar OverlayEntry<br>Sin Cambios"]:::fail
+```
+
+<!-- ![Figura 3.1: Diagrama de Flujo del Gesto Drag-to-Like](diagrama_drag_to_like.png) -->
+
 ### Escenario Crítico 2: Modificación Resiliente de Correo de Perfil
 *   **Actor**: Usuario autenticado.
 *   **Precondiciones**: El usuario se encuentra en la sección de Ajustes dentro de su perfil.
@@ -70,6 +92,48 @@ A continuación, se documentan detalladamente los flujos de ejecución correspon
 *   **Flujo Alternativo (Bypass de Verificación)**:
     *   *Paso 2 Fallido*: Firebase Auth rechaza la actualización debido a políticas de verificación o sesiones antiguas (excepción `FirebaseAuthException`).
     *   El sistema intercepta la excepción, guarda el nuevo email directamente en el documento del perfil de Firestore (garantizando que el perfil muestre el correo actualizado en el ecosistema de la app) e informa al usuario mediante una alerta naranja de que sus credenciales de login físicas deberán actualizarse manualmente.
+
+```mermaid
+graph TD
+    classDef start fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#E65100;
+    classDef process fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#0D47A1;
+    classDef decision fill:#ECEFF1,stroke:#37474F,stroke-width:2px,color:#263238;
+    classDef success fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#1B5E20;
+    classDef fail fill:#FFEBEE,stroke:#C62828,stroke-width:2px,color:#C62828;
+    classDef bypass fill:#FFE0B2,stroke:#FB8C00,stroke-width:2px,color:#E65100;
+
+    Inicio(["Confirmar Nuevo Email"]):::start --> Validar["Validar Formato Correo"]:::process
+    Validar --> EsValido{"¿Es Válido?"}:::decision
+    
+    EsValido -- No --> Error["Mostrar Error Formato"]:::fail
+    
+    EsValido -- Sí --> AuthUpdate["updateEmail() en Firebase Auth"]:::process
+    AuthUpdate --> ExitoAuth{"¿Éxito en Auth?"}:::decision
+    
+    ExitoAuth -- Sí --> FirestoreUpdate["Actualizar Email en Firestore"]:::success
+    FirestoreUpdate --> MsgExito["Mostrar Mensaje de Éxito"]:::success
+    
+    ExitoAuth -- No --> Intercept["Interceptar Exception"]:::bypass
+    Intercept --> FirestoreBypass["Bypass: Guardar Email en Firestore"]:::bypass
+    FirestoreBypass --> AlertaNaranja["Mostrar Alerta Naranja:<br>Actualizar Login Manualmente"]:::bypass
+```
+
+<!-- ![Figura 3.2: Diagrama de Flujo de Modificación Resiliente de Email](diagrama_modificacion_email.png) -->
+
+### Escenario Crítico 3: Mensajería Asíncrona en Tiempo Real con Escritura Atómica
+*   **Actor**: Usuario remitente.
+*   **Precondiciones**: El usuario se encuentra dentro de la interfaz del chat privado con un destinatario y el canal de conversación ya está instanciado.
+*   **Disparador**: El usuario redacta un mensaje de texto en el cuadro de entrada y presiona el botón "Enviar".
+*   **Flujo Principal**:
+    1.  La aplicación valida en cliente que el mensaje no esté vacío ni contenga caracteres incompatibles.
+    2.  El sistema inicializa un lote de transacciones físicas de Firestore (`WriteBatch`) para asegurar la atomicidad de la operación.
+    3.  Se añade al lote la inserción del documento del mensaje dentro del historial cronológico en `/conversations/{conversationId}/messages/{messageId}`.
+    4.  Se añade al lote la actualización de los metadatos globales del canal de chat en `/conversations/{conversationId}`, modificando el texto del último mensaje (`lastMessage`), el timestamp de envío en el servidor (`lastMessageAt`) y el incremento incremental del contador de no leídos para el destinatario (`unreadCount_{receiverId}`).
+    5.  Se ejecuta y confirma el lote atómicamente en la base de datos remota mediante `batch.commit()`.
+    6.  El stream reactivo gestionado por `StreamProvider` a través de WebSockets notifica instantáneamente a la pantalla del chat de ambos terminales, actualizando la conversación en menos de 1.5 segundos.
+*   **Flujo Alternativo (Persistencia en Caché Offline)**:
+    *   *Paso 5 sin conexión*: En caso de pérdida temporal del canal de red, el SDK local de Firestore retiene el lote en la base de datos de caché SQLite interna del dispositivo.
+    *   La interfaz de usuario del remitente refleja el mensaje con un estado visual transitorio de "enviado localmente", y el sistema reintenta la confirmación física en el servidor en segundo plano tan pronto como se restablezca la conectividad física.
 
 ---
 
@@ -93,7 +157,9 @@ Contiene los perfiles de usuario. La clave de cada documento corresponde al iden
   "photoUrl": "String (URL de Storage)",
   "profileGradientIndex": "Integer (Índice de color de 0 a 5)",
   "followersCount": "Integer (Número total de seguidores)",
-  "followingCount": "Integer (Número total de seguidos)"
+  "followingCount": "Integer (Número total de seguidos)",
+  "widgetConfig": "Map (Parámetros del widget de pantalla de inicio: widgetType, widgetBg, widgetColor, selectedHabitId)",
+  "customGradient": "Array of Strings (Par de códigos hexadecimales del gradiente personalizado)"
 }
 ```
 
@@ -120,6 +186,33 @@ Modelado de la relación dirigida de seguimiento de perfiles. Cada documento se 
   "followerId": "String (UID del usuario seguidor)",
   "followingId": "String (UID del usuario al que se sigue)",
   "createdAt": "Timestamp (Fecha de creación del seguimiento)"
+}
+```
+
+#### Colección: `conversations`
+Colección de salas de chat y mensajería instantánea bidireccional privada entre usuarios. El identificador del documento corresponde al par ordenado de UIDs de los participantes para prevenir duplicación de salas.
+
+```json
+{
+  "id": "String (Clave Primaria, e.g., 'uidA_uidB')",
+  "participants": "Array of Strings (Contiene los UIDs de los dos interlocutores)",
+  "lastMessage": "String (Contenido de texto del último mensaje enviado)",
+  "lastMessageAt": "Timestamp / FieldValue (Marca de tiempo del último mensaje, actualizada por servidor)",
+  "unreadCount_UID_A": "Integer (Contador de mensajes pendientes de leer para el interlocutor A)",
+  "unreadCount_UID_B": "Integer (Contador de mensajes pendientes de leer para el interlocutor B)"
+}
+```
+
+##### Subcolección: `messages` (Ruta: `/conversations/{conversationId}/messages/{messageId}`)
+Colección secundaria anidada que contiene la secuencia cronológica de mensajes intercambiados en la sala de chat.
+
+```json
+{
+  "id": "String (Clave Primaria autogenerada por Firestore)",
+  "senderId": "String (UID del remitente)",
+  "receiverId": "String (UID del receptor)",
+  "text": "String (Mensaje de texto plano enviado)",
+  "timestamp": "Timestamp (Fecha y hora exacta de envío)"
 }
 ```
 

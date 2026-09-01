@@ -8,17 +8,25 @@ En este capítulo se detalla el diseño arquitectónico seleccionado para la apl
 
 El desarrollo de aplicaciones móviles modernas exige una arquitectura que aísle la lógica del negocio de los cambios tecnológicos constantes en las interfaces de usuario o en los proveedores de servicios en la nube. En la aplicación **Streaks**, se ha implementado **Clean Architecture** (Arquitectura Limpia) para estructurar el código fuente en capas concéntricas bien definidas.
 
-```
-       +---------------------------------------------------+
-       | Capa de Presentación (UI / Screens / Widgets)      |
-       |  +---------------------------------------------+  |
-       |  | Capa de Datos (Implementaciones / Firebase) |  |
-       |  |  +---------------------------------------+  |  |
-       |  |  | Capa de Dominio (Entidades / Repos)   |  |  |
-       |  |  |                                       |  |  |
-       |  |  +---------------------------------------+  |  |
-       |  +---------------------------------------------+  |
-       +---------------------------------------------------+
+```mermaid
+graph TD
+    %% Estilos de Nodos (Paleta HSL premium para TFG, a juego con el resto de la memoria)
+    classDef domain fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef data fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    classDef presentation fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
+
+    subgraph Capas ["ESTRUCTURA DE CAPAS (CLEAN ARCHITECTURE)"]
+        direction TB
+
+        UI["<b>CAPA DE PRESENTACIÓN (UI / Screens / Widgets)</b><br/>Screens, Widgets & Providers (Riverpod)"]:::presentation
+        
+        DB["<b>CAPA DE DATOS (Implementaciones / Firebase)</b><br/>Repositories Implementation & Data Sources (Firestore / Auth)"]:::data
+        
+        DM["<b>CAPA DE DOMINIO (Entidades / Contratos / Repos)</b><br/>Entidades y Contratos de Repositorios (Dart Puro)"]:::domain
+
+        UI ==> DM
+        DB ==> DM
+    end
 ```
 
 La regla fundamental de esta arquitectura es la **Regla de Dependencia**: las dependencias del código fuente solo pueden apuntar hacia adentro. Las capas externas son detalles de implementación que pueden ser sustituidos sin alterar el núcleo.
@@ -162,12 +170,36 @@ Este desacoplamiento facilita la creación de pruebas de integración y unitaria
 
 El flujo de control de datos en Streaks se rige por un principio de **Flujo Unidireccional de Datos (UDF)**. Esto significa que la UI no modifica directamente el estado interno ni la base de datos de manera directa; todo cambio viaja en un ciclo único y controlado:
 
+```mermaid
+flowchart TD
+    %% Estilos de Nodos (Paleta HSL premium para TFG)
+    classDef ui fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
+    classDef action fill:#f3e5f5,stroke:#8e24aa,stroke-width:2px,color:#4a148c;
+    classDef repo fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px,color:#1b5e20;
+    classDef db fill:#eceff1,stroke:#37474f,stroke-width:2px,color:#263238;
+    classDef provider fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+
+    subgraph UDF ["CICLO DE FLUJO UNIDIRECCIONAL DE DATOS (UDF)"]
+        Gesto["<b>1. Gesto de Usuario</b><br/>(UI / Vista)"]:::ui
+        Accion["<b>2. Invocación de Acción</b><br/>(Controlador / Notifier)"]:::action
+        Repo["<b>3. Capa de Datos</b><br/>(Repositorios / Persistencia)"]:::repo
+        Firestore["<b>4. Actualización en Nube</b><br/>(Cloud Firestore)"]:::db
+        Stream["<b>5. Stream de Estado</b><br/>(Riverpod State)"]:::provider
+        Redraw["<b>6. Redibujado de UI</b><br/>(Actualización Visual)"]:::ui
+
+        %% Bucle cerrado
+        Gesto --> Accion
+        Accion --> Repo
+        Repo --> Firestore
+        Firestore --> Stream
+        Stream --> Redraw
+        Redraw --> Gesto
+    end
 ```
-[ Gesto de Usuario ] ---> [ Invocación de Acción ] ---> [ Capa de Repositorios (Data) ]
-       ^                                                                |
-       |                                                                v
-[ Redibujado de UI ] <--- [ Stream de Proveedores ] <--- [ Actualización en Firestore ]
-```
+
+<!-- Si prefieres usar la imagen horizontal estática en su lugar:
+![Figura 4.2: Ciclo de control del Flujo Unidireccional de Datos (UDF)](diagrama_flujo_unidireccional_horizontal.png)
+-->
 
 ### Proceso de Ejemplo (Dar Estrella mediante Doble Toque):
 1. **Acción**: El usuario realiza un doble toque en la imagen emergente dentro de la ventana de previsualización.

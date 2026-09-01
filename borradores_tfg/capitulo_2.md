@@ -32,20 +32,29 @@ Flutter, el framework de Google, propone un enfoque innovador. En lugar de comun
 ## 2.2 Estudio del Ecosistema de Flutter y Dart
 La elección de Flutter como framework principal para el desarrollo de **Streaks** responde a su arquitectura interna y al lenguaje de programación sobre el que se apoya: **Dart**.
 
-```
-+-------------------------------------------------------------+
-|                     CAPA DE APLICACIÓN                      |
-|           Widgets del Desarrollador (Código Dart)           |
-+-------------------------------------------------------------+
-|                     FLUTTER FRAMEWORK                       |
-|  Gestos - Animaciones - Pintado - Layout - Material/Cupertino|
-+-------------------------------------------------------------+
-|                       FLUTTER ENGINE                        |
-|   Motor Gráfico (Impeller/Skia) - Dart VM - Text Rendering   |
-+-------------------------------------------------------------+
-|                      PLATAFORMA FÍSICA                      |
-|                GPU (Metal / Vulkan) - Canvas                |
-+-------------------------------------------------------------+
+```mermaid
+flowchart TD
+    %% Estilos de Nodos (Paleta HSL premium para TFG, a juego con el resto de la memoria)
+    classDef app fill:#fff3e0,stroke:#ef6c00,stroke-width:2px,color:#e65100;
+    classDef framework fill:#e3f2fd,stroke:#1565c0,stroke-width:2px,color:#0d47a1;
+    classDef engine fill:#ede7f6,stroke:#673ab7,stroke-width:2px,color:#311b92;
+    classDef platform fill:#eceff1,stroke:#455a64,stroke-width:2px,color:#263238;
+
+    subgraph Ecosistema ["ARQUITECTURA DE FLUTTER"]
+        direction TB
+        
+        AP["<b>CAPA DE APLICACIÓN</b><br/>Widgets del Desarrollador (Código Dart)"]:::app
+        
+        FW["<b>FLUTTER FRAMEWORK</b><br/>Gestos · Animaciones · Pintado · Layout · Material / Cupertino (Código Dart)"]:::framework
+        
+        EG["<b>FLUTTER ENGINE</b><br/>Motor Gráfico (Impeller / Skia) · Dart VM · Text Rendering (Código C/C++)"]:::engine
+        
+        PF["<b>PLATAFORMA FÍSICA</b><br/>GPU (Metal / Vulkan) · Canvas del Sistema Operativo"]:::platform
+
+        AP ==> FW
+        FW ==> EG
+        EG ==> PF
+    end
 ```
 
 ### El Motor Gráfico (Rendering Pipeline)
@@ -84,29 +93,152 @@ Riverpod rediseña por completo el concepto de Provider para solventar todas sus
 ### Diagrama del Flujo de Datos con Riverpod en Streaks:
 
 ```mermaid
-graph LR
-    subgraph UI (Presentation)
-        Widget[ConsumerWidget]
+graph TD
+    %% Estilos de Nodos (Paleta HSL premium para TFG)
+    classDef datasource fill:#eceff1,stroke:#37474f,stroke-width:2px;
+    classDef repository fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px;
+    classDef provider fill:#e3f2fd,stroke:#1565c0,stroke-width:2px;
+    classDef controller fill:#fff3e0,stroke:#ef6c00,stroke-width:2px;
+    classDef view fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px;
+
+    %% 1. FUENTES DE DATOS (Arriba)
+    subgraph Capa_Datos [1. Capa de Datos e Infraestructura]
+        direction TB
+        FA[Firebase Auth]:::datasource
+        FS[Cloud Firestore]:::datasource
     end
 
-    subgraph State Management (Riverpod)
-        Notifier[NotifierProvider / AsyncNotifier]
-        State[State / AsyncValue]
+    %% 2. REPOSITORIOS (Nivel 2)
+    subgraph Capa_Repositorios [2. Capa de Repositorios]
+        direction TB
+        AR[AuthRepository]:::repository
+        UR[UserRepository]:::repository
+        HR[HabitRepository]:::repository
+        FR[FollowRepository]:::repository
+        PR[PostRepository]:::repository
+        MR[MessageRepository]:::repository
     end
 
-    subgraph Business Logic & Data
-        Repository[PostRepository Implementation]
-        Source[Cloud Firestore Stream]
+    %% 3. PROVEEDORES Y GESTIÓN DE ESTADO (Nivel 3 - Stack Vertical)
+    subgraph Capa_Estado [3. Capa de Gestión de Estado: Riverpod]
+        direction TB
+
+        %% Sub-nivel A: Identidad y Autenticación
+        subgraph Auth_Identity [3.A. Proveedores de Identidad]
+            direction TB
+            ASP[authStateProvider]:::provider
+            CUP[currentUserProvider]:::provider
+            UCP[usernameCheckProvider]:::provider
+        end
+
+        %% Sub-nivel B: Streams de Datos de Firebase
+        subgraph Data_Streams [3.B. Streams de Colecciones]
+            direction TB
+            HLP[habitListProvider]:::provider
+            HBP[habitByIdProvider]:::provider
+            FDP[followerDatesProvider]:::provider
+            FSP[feedStreamProvider]:::provider
+            FUIP[followingUidsProvider]:::provider
+            FFP[followingFeedProvider]:::provider
+            CP[conversationsProvider]:::provider
+            MP[messagesProvider]:::provider
+        end
+
+        %% Sub-nivel C: Estados Derivados / Calculados
+        subgraph Derived_State [3.C. Estado Derivado y Sincronización]
+            direction TB
+            GSP[globalStreakProvider]:::provider
+            ASP_stats[activeStreakStatsProvider]:::provider
+            PSP[pastStreaksProvider]:::provider
+            GCP[gradientControllerProvider]:::provider
+            NSP[nativeWidgetSyncProvider]:::provider
+            TUP[totalUnreadProvider]:::provider
+        end
+
+        %% Sub-nivel D: Controladores de Acciones
+        subgraph Action_Controllers [3.D. Controladores / ViewModels]
+            direction TB
+            LC[loginControllerProvider]:::controller
+            RC[registerControllerProvider]:::controller
+            HC[habitControllerProvider]:::controller
+            CPC[createPostControllerProvider]:::controller
+            FCC[followControllerProvider]:::controller
+        end
+        
+        %% Fuerza el flujo vertical entre subgrupos de Riverpod
+        Auth_Identity --> Data_Streams
+        Data_Streams --> Derived_State
+        Derived_State --> Action_Controllers
     end
 
-    Widget -->|1. Invoca Acción / Lee| Notifier
-    Notifier -->|2. Modifica Estado| State
-    State -->|3. Escucha / Reconstruye| Widget
-    Notifier -->|4. Llama método| Repository
-    Repository -->|5. Escucha Updates| Source
-    Source -->|6. Emite Evento| Repository
-    Repository -->|7. Empuja Nuevos Datos| Notifier
+    %% 4. CAPA DE INTERFAZ DE USUARIO (Abajo)
+    subgraph Capa_UI [4. Capa de Presentación / UI]
+        direction TB
+        LS[LoginScreen]:::view
+        WS[WelcomeScreen]:::view
+        AHM[AddHabitModal]:::view
+        CPS[CreatePostScreen]:::view
+        SD[SearchDrawer]:::view
+        AST[AppSessionTracker]:::view
+    end
+
+    %% CONEXIONES DE FLUJO DE DATOS
+    
+    %% Del Backend a los Repositorios
+    FA --> AR
+    FS --> UR
+    FS --> HR
+    FS --> FR
+    FS --> PR
+    FS --> MR
+
+    %% De Repositorios a Proveedores de Entrada (Streams)
+    AR --> ASP
+    UR --> CUP
+    HR --> HLP
+    HR --> HBP
+    FR --> FUIP
+    PR --> FSP
+    MR --> CP
+
+    %% Relaciones entre Proveedores (watch)
+    ASP --> CUP
+    CUP --> GCP
+    HLP --> GSP
+    GSP --> ASP_stats
+    HLP --> ASP_stats
+    CUP --> ASP_stats
+    FDP --> ASP_stats
+    HLP --> PSP
+    CUP --> PSP
+    FDP --> PSP
+    CUP --> NSP
+    HLP --> NSP
+    GSP --> NSP
+    CP --> TUP
+
+    %% De la UI a los Controladores (Mutaciones)
+    LS --> LC
+    LS --> RC
+    AHM --> HC
+    CPS --> CPC
+    SD --> FCC
+
+    %% De la UI a los Proveedores (Escucha/watch)
+    WS --> CUP
+    WS --> HLP
+    WS --> FUIP
+    AST --> ASP
+    AST --> FS
+
+    %% Retorno de los Controladores a los Repositorios
+    LC --> AR
+    RC --> AR
+    HC --> HR
+    CPC --> PR
+    FCC --> FR
 ```
+
 
 ---
 
