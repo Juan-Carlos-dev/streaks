@@ -38,32 +38,39 @@ lib/
 ├── presentation/          # Vistas (UI), widgets reusables y gestión de estado (Riverpod)
 ├── firebase_options.dart  # Configuración e integración con servicios de Firebase
 └── main.dart              # Punto de entrada principal de la aplicación
+```
 
-Instalación y Ejecución Local
-Requisitos previos
-Flutter SDK
+---
 
-Dart SDK
+## 🚀 Instalación y Ejecución Local
 
-Dispositivo físico o emulador (Android / iOS)
+### Requisitos previos
+- [Flutter SDK](https://docs.flutter.dev/get-started/install)
+- [Dart SDK](https://dart.dev/get-dart)
+- Dispositivo físico o emulador (Android / iOS)
 
-Pasos para clonar y ejecutar
-Clonar el repositorio:
+### Pasos para clonar y ejecutar
 
-Bash
-git clone [https://github.com/Juan-Carlos-dev/streaks.git](https://github.com/Juan-Carlos-dev/streaks.git)
-cd streaks
-Obtener las dependencias de Flutter:
+1. **Clonar el repositorio:**
+   ```bash
+   git clone https://github.com/Juan-Carlos-dev/streaks.git
+   cd streaks
+   ```
 
-Bash
-flutter pub get
-Ejecutar la aplicación:
+2. **Obtener las dependencias de Flutter:**
+   ```bash
+   flutter pub get
+   ```
 
-Bash
-flutter run
-👤 Autor
-Juan Carlos Pérez Simarro – Desarrollador Full Stack / Mobile
+3. **Ejecutar la aplicación:**
+   ```bash
+   flutter run
+   ```
 
-GitHub: @Juan-Carlos-dev
+---
 
-Email: jcpsdev@gmail.com
+## 👤 Autor
+
+* **Juan Carlos Pérez Simarro** – *Desarrollador Full Stack / Mobile*
+* **GitHub:** [@Juan-Carlos-dev](https://github.com/Juan-Carlos-dev)
+* **Email:** jcpsdev@gmail.com
